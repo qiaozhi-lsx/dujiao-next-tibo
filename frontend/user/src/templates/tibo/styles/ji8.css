@@ -922,3 +922,66 @@ body.tibo-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71px; 
 @media (max-width: 760px) { .tibo-scope .j8-fcard.is-wide-full .j8-fcard-foot { flex-direction: row; align-items: center; margin-top: auto; } }
 @media (max-width: 760px) { .tibo-scope .fa-tools-row { gap: 10px; padding: 0px 8px; } }
 @media (max-width: 760px) { .tibo-scope .fa-tool img { width: 52px; height: 52px; border-radius: 14px; } }
+
+/* ---------- 交互增强：卡片艺术区 hover/按压反馈 ---------- */
+.tibo-scope .j8-fcard,
+.tibo-scope .j8-card {
+  cursor: pointer;
+}
+
+.tibo-scope .j8-fart {
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tibo-scope .j8-fcard:hover .j8-fart,
+.tibo-scope .j8-fcard:focus-visible .j8-fart {
+  transform: scale(1.04);
+}
+
+.tibo-scope .j8-fcard:active {
+  transform: translateY(-1px) scale(0.985);
+  transition-duration: 0.12s;
+}
+
+.tibo-scope .j8-fcard:active .j8-fart {
+  transform: scale(0.985);
+  transition-duration: 0.12s;
+}
+
+.tibo-scope .j8-card:active {
+  transform: translateY(-1px) scale(0.985);
+  transition-duration: 0.12s;
+}
+
+/* 悬停时暂停浮动/摆动动画并轻微归正，松手恢复 */
+.tibo-scope .j8-fcard.is-x:hover .fa-x-card,
+.tibo-scope .j8-fcard.is-gemini:hover .fa-gem-star,
+.tibo-scope .j8-fcard.is-duo:hover .fa-icon,
+.tibo-scope .j8-fcard.is-muse:hover .fa-icon {
+  animation-play-state: paused;
+}
+
+.tibo-scope .j8-fcard:hover .fa-x-sheen {
+  animation-duration: 2.4s;
+}
+
+.tibo-scope .j8-fcard:hover .fa-muse-ring,
+.tibo-scope .j8-fcard:hover .fa-gem-orbit {
+  animation-duration: 7s;
+}
+
+.tibo-scope .j8-fcard:hover .fa-chip {
+  animation-duration: 3s;
+}
+
+.tibo-scope .j8-pd-buy:not(:disabled):active,
+.tibo-scope .j8-pd-cart:not(:disabled):active,
+.tibo-scope .j8-btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@media (hover: none) {
+  .tibo-scope .j8-fcard:active .j8-fart {
+    transform: scale(1.02);
+  }
+}
