@@ -1726,5 +1726,78 @@
     "authInvalid": "Credentials mismatch, please try again",
     "authSubmit": "Save and search",
     "authClear": "Clear saved info"
+  },
+  "tibo": {
+    "hero": {
+      "titleA": "Shop.",
+      "titleB": "Find the service that fits you.",
+      "subtitle": "AI subscriptions, language learning and tool services — pick what you need here."
+    },
+    "intro": {
+      "supportQuestion": "Questions before buying?",
+      "supportAction": "Contact support"
+    },
+    "nav": {
+      "myOrders": "My orders",
+      "help": "Help center",
+      "support": "Contact support"
+    },
+    "home": {
+      "browse": "Browse",
+      "featuredTitle": "Picked for you.",
+      "searchPlaceholder": "Search products",
+      "myOrders": "Continue my orders",
+      "orderNote": "Payment, delivery and after-sales are all trackable in “My orders”.",
+      "orderNoteLink": "View orders"
+    },
+    "card": {
+      "choosePlan": "Choose a plan",
+      "priceFrom": "from"
+    },
+    "detail": {
+      "pickPlan": "01 / Choose a plan",
+      "available": "Available",
+      "headingFallback": "Digital goods service",
+      "planLabel": "Pick the plan that suits you",
+      "oneTime": "One-time purchase",
+      "perUnit": "/ unit",
+      "featureTrackable": "Order progress trackable",
+      "bottomNote": "No password required · Order progress trackable",
+      "orderTitle": "Your order",
+      "qty": "Quantity",
+      "delivery": "Delivery",
+      "payment": "Payment",
+      "onlinePayment": "Online payment",
+      "total": "Total",
+      "totalCaption": "One-time purchase",
+      "buyNow": "Buy now",
+      "secure": "Online payment · Order progress trackable",
+      "footNote": "Confirm your plan before paying, ",
+      "howItWorks": "How it works",
+      "steps": {
+        "step1k": "01 / Choose a plan",
+        "step1t": "Pick a plan",
+        "step1d": "Choose the plan and quantity that fit you.",
+        "step2k": "02 / Online payment",
+        "step2t": "Order and pay",
+        "step2d": "Fill in your email and complete payment online.",
+        "step3k": "03 / Track order",
+        "step3t": "Track your order",
+        "step3d": "Follow delivery progress in “My orders” after payment."
+      }
+    },
+    "notice": {
+      "title": "Before you order",
+      "emphasis": "Please confirm the product and plan before paying.",
+      "line1": "Choose a plan and quantity; track progress in “My orders” afterwards.",
+      "line2": "Check the delivery result in your order after payment.",
+      "cancel": "Not now",
+      "confirm": "Continue"
+    },
+    "footer": {
+      "tagline": "Keep tools simple, let inspiration grow.",
+      "darkAppearance": "Dark appearance",
+      "lightAppearance": "Light appearance"
+    }
   }
 }
