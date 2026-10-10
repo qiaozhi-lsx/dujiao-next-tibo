@@ -5,8 +5,8 @@ import { useAppStore } from '../stores/app'
  *
  * - 当前激活模板优先级：本地预览覆盖(?template=) > 站点全局配置(storefront_template) > 默认 classic
  * - classic 沿用现有 ../views/*，vault 落在 ./vault/*，tibo 落在 ./tibo/*；
- *   非 classic 模板缺页时自动回退（tibo → vault → classic，vault → classic），
- *   因此可以一页一页地把新设计搬进模板，旧站全程可用。
+ *   非 classic 模板缺页时自动回退（tibo 未覆盖的页面回退 classic 由 --ui-* 令牌层自动换肤，
+ *   vault 回退 classic），因此可以一页一页地把新设计搬进模板，旧站全程可用。
  */
 
 export type StorefrontTemplate = 'classic' | 'vault' | 'tibo'
@@ -68,8 +68,8 @@ const tiboViews = import.meta.glob('./tibo/**/*.vue')
 type ViewLoader = () => Promise<unknown>
 
 /**
- * 路由 view 解析器：非 classic 模板下若存在同名页面则用模板版，否则按 tibo → vault → classic
- * 逐级回退。用法：`component: templateView('Home', () => import('../views/Home.vue'))`
+ * 路由 view 解析器：非 classic 模板下若存在同名页面则用模板版，否则按 tibo → classic /
+ * vault → classic 逐级回退。用法：`component: templateView('Home', () => import('../views/Home.vue'))`
  */
 export const templateView = (name: string, classicLoader: ViewLoader): ViewLoader => {
     return () => {
@@ -78,7 +78,7 @@ export const templateView = (name: string, classicLoader: ViewLoader): ViewLoade
             const loader = tiboViews[`./tibo/${name}.vue`]
             if (loader) return loader()
         }
-        if (active === 'tibo' || active === 'vault') {
+        if (active === 'vault') {
             const loader = vaultViews[`./vault/${name}.vue`]
             if (loader) return loader()
         }

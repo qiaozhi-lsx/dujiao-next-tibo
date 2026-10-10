@@ -1,443 +1,447 @@
 <template>
-  <div class="page-width">
-    <!-- Loading -->
-    <div v-if="loading" class="tibo-detail-loading reveal-in">
-      <div class="skeleton-block skeleton-left"></div>
-      <div class="skeleton-block skeleton-right"></div>
+  <div class="j8-container j8-pd">
+    <!-- 返回 -->
+    <button type="button" class="j8-pd-back" @click="goBack">
+      <ChevronLeft />
+      {{ t('tibo.detail.back') }}
+    </button>
+
+    <!-- 骨架 -->
+    <div v-if="loading" class="j8-pd-skeleton">
+      <div class="j8-pd-sk-block"></div>
+      <div class="j8-pd-sk-line is-lg"></div>
+      <div class="j8-pd-sk-line"></div>
+      <div class="j8-pd-sk-line is-sm"></div>
+      <div class="j8-pd-sk-line is-btn"></div>
     </div>
 
     <template v-else-if="product">
-      <!-- 引导区 -->
-      <section class="detail-intro reveal-in">
-        <nav class="product-breadcrumb" aria-label="breadcrumb">
-          <RouterLink to="/">{{ t('products.allCategories') }}</RouterLink>
-          <ChevronRight class="crumb-icon" />
-          <span aria-current="page">{{ title }}</span>
-        </nav>
-        <h1>{{ title }}</h1>
-        <p v-if="pitchLead">{{ pitchLead }}</p>
-      </section>
-
-      <!-- 购买工作区 -->
-      <section class="purchase-workspace reveal-in delay-1" :aria-label="t('tibo.detail.pickPlan')">
-        <!-- 左侧：套餐选择 -->
-        <div class="product-area">
-          <div class="product-topline">
-            <span class="section-kicker">{{ t('tibo.detail.pickPlan') }}</span>
-            <span class="availability" :class="{ 'is-out': soldOut }">
-              <span></span>
-              {{ soldOut ? t('products.stockStatus.outOfStock') : t('tibo.detail.available') }}
-            </span>
+      <div class="j8-pd-card">
+        <!-- 左：媒体区 -->
+        <div class="j8-pd-media">
+          <div class="j8-pd-stage">
+            <img v-if="currentImage" :src="currentImage" :alt="title" />
+            <span v-else class="j8-pd-logo j8-brand-icon"><b>{{ title.slice(0, 1) }}</b></span>
           </div>
-
-          <div class="product-heading">
-            <div class="product-mark">
-              <img v-if="markImage" :src="markImage" alt="" />
-              <Package v-else />
-            </div>
-            <div>
-              <h2>{{ title }}</h2>
-              <p>{{ categoryName || t('tibo.detail.headingFallback') }}</p>
-            </div>
-            <span v-if="categoryName" class="product-badge">
-              <Tag class="badge-icon" />
-              {{ categoryName }}
-            </span>
-          </div>
-
-          <div v-if="pitchTitle || pitchSub" class="product-pitch">
-            <h3 v-if="pitchTitle">{{ pitchTitle }}</h3>
-            <p v-if="pitchSub">{{ pitchSub }}</p>
-          </div>
-
-          <!-- 套餐 -->
-          <template v-if="plans.length">
-            <div class="plan-label">
-              <span>{{ t('tibo.detail.planLabel') }}</span>
-              <span>{{ t('tibo.detail.oneTime') }}</span>
-            </div>
-            <div
-              role="radiogroup"
-              :aria-label="t('productDetail.skuTitle')"
-              class="plan-options subscription-plans"
+          <div v-if="gallery.length > 1" class="j8-pd-thumbs">
+            <button
+              v-for="(img, i) in gallery"
+              :key="i"
+              type="button"
+              :class="{ 'is-active': i === currentIndex }"
+              @click="currentIndex = i"
             >
+              <img :src="img" :alt="`${i + 1}`" loading="lazy" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 右：购买区（内嵌下单） -->
+        <div class="j8-pd-info">
+          <h1>{{ title }}</h1>
+
+          <div class="j8-pd-chips">
+            <span class="is-accent"><Zap />{{ fulfillmentLabel }}</span>
+            <span class="is-accent">{{ purchaseTypeLabel }}</span>
+            <span :class="soldOut ? 'is-danger' : 'is-accent'">{{ stockLabel }}</span>
+            <button type="button" class="j8-pd-share" @click="shareProduct"><Share2 />{{ t('tibo.detail.share') }}</button>
+          </div>
+
+          <div class="j8-pd-price-row">
+            <div class="j8-pd-price">
+              <span class="j8-pd-price-sym">{{ unitPriceParts.symbol }}</span>
+              <strong>{{ unitPriceParts.major }}{{ unitPriceParts.minor }}</strong>
+            </div>
+            <div v-if="promoTag" class="j8-pd-price-tag" :class="promoTag.tone">{{ promoTag.text }}</div>
+          </div>
+
+          <!-- 规格 -->
+          <div v-if="plans.length" class="j8-pd-field">
+            <label>{{ t('tibo.detail.spec') }}</label>
+            <div class="j8-pd-skus" :class="{ 'is-single': plans.length === 1 }">
               <button
                 v-for="plan in plans"
                 :key="plan.id"
                 type="button"
-                role="radio"
-                :aria-checked="plan.selected"
                 :disabled="plan.disabled"
-                class="plan-option"
-                :class="{ 'is-selected': plan.selected }"
-                @click="selectPlan(plan)"
+                :class="{ 'is-active': plan.selected, 'is-disabled': plan.disabled }"
+                @click="selectPlan(plan.id, plan.disabled)"
               >
-                <span class="plan-option-top">
-                  <span class="plan-radio" aria-hidden="true"></span>
-                  <span>{{ plan.name }}</span>
-                </span>
-                <p>{{ plan.hint }}</p>
-                <span class="plan-price">
-                  <span>{{ plan.priceParts.symbol }}</span>
-                  <strong>{{ plan.priceParts.major }}</strong>
-                  <span>{{ plan.priceParts.minor }} {{ t('tibo.detail.perUnit') }}</span>
-                </span>
+                <b>{{ plan.name }}</b>
+                <small>{{ plan.hint }}</small>
               </button>
             </div>
-            <p v-if="requiresSKUSelection" class="plan-required">{{ t('productDetail.skuRequired') }}</p>
-          </template>
-
-          <!-- 特点 -->
-          <div class="plan-features">
-            <span><Check class="feature-icon" />{{ fulfillmentLabel }}</span>
-            <span><Check class="feature-icon" />{{ purchaseTypeLabel }}</span>
-            <span><Check class="feature-icon" />{{ t('tibo.detail.featureTrackable') }}</span>
+            <p v-if="requiresSKUSelection" class="j8-pd-hint">{{ t('productDetail.skuRequired') }}</p>
           </div>
 
-          <div class="product-bottom">
-            <ShieldCheck />
-            <span>{{ t('tibo.detail.bottomNote') }}</span>
-            <button type="button" class="text-button" @click="noticeOpen = true">
-              {{ t('tibo.notice.title') }}
-              <ChevronRight class="bottom-icon" />
-            </button>
-          </div>
-        </div>
-
-        <!-- 右侧：订单摘要 -->
-        <aside class="order-summary" :aria-label="t('tibo.detail.orderTitle')">
-          <div class="summary-title">
-            <h2>{{ t('tibo.detail.orderTitle') }}</h2>
-            <Wallet />
-          </div>
-
-          <div class="summary-product">
-            <div class="product-mark small">
-              <img v-if="markImage" :src="markImage" alt="" />
-              <Package v-else />
-            </div>
-            <div>
-              <strong>{{ title }}<template v-if="selectedPlanName"> · <span class="state-enter">{{ selectedPlanName }}</span></template></strong>
-              <p>{{ categoryName || fulfillmentLabel }}</p>
+          <!-- 数量 -->
+          <div class="j8-pd-field">
+            <label>{{ t('productDetail.quantity') }}</label>
+            <div class="j8-pd-qty">
+              <button type="button" :disabled="quantity <= quantityEffectiveMin" :aria-label="t('common.previous')" @click="quantity = Math.max(quantityEffectiveMin, quantity - 1)">
+                <Minus />
+              </button>
+              <input inputmode="numeric" :value="quantity" @change="handleQuantityInput($event)" />
+              <button type="button" :disabled="quantityEffectiveLimit !== null && quantity >= quantityEffectiveLimit" :aria-label="t('common.next')" @click="quantity += 1">
+                <Plus />
+              </button>
             </div>
           </div>
 
-          <dl class="summary-details">
-            <div>
-              <dt>{{ t('tibo.detail.qty') }}</dt>
-              <dd>{{ quantity }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('tibo.detail.delivery') }}</dt>
-              <dd>{{ fulfillmentLabel }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('tibo.detail.payment') }}</dt>
-              <dd>{{ t('tibo.detail.onlinePayment') }}</dd>
-            </div>
-          </dl>
+          <p v-if="pitchLine" class="j8-pd-desc">{{ pitchLine }}</p>
 
-          <div class="summary-total">
-            <div>
-              <span>{{ t('tibo.detail.total') }}</span>
-              <span class="price-caption">{{ t('tibo.detail.totalCaption') }}</span>
-            </div>
-            <div class="total-price">
-              <small>{{ totalParts.symbol }}</small>{{ totalParts.major }}<span>{{ totalParts.minor }}</span>
-            </div>
-          </div>
+          <!-- 内嵌下单 -->
+          <div class="j8-pd-actions">
+            <form class="j8-ic" novalidate @submit.prevent="submitOrder">
+              <!-- 游客字段 -->
+              <template v-if="!userAuthStore.isAuthenticated">
+                <div class="j8-ic-field">
+                  <label for="j8-ic-email">{{ t('tibo.detail.email') }}<b>*</b></label>
+                  <input id="j8-ic-email" v-model="email" type="email" autocomplete="email" :placeholder="t('tibo.detail.emailPlaceholder')" />
+                </div>
+                <div class="j8-ic-field">
+                  <label for="j8-ic-password">{{ t('tibo.detail.orderPassword') }}<b>*</b></label>
+                  <input id="j8-ic-password" v-model="orderPassword" type="password" autocomplete="new-password" :placeholder="t('tibo.detail.orderPasswordPlaceholder')" />
+                </div>
+                <div v-if="captchaProvider === 'image'" class="j8-ic-field">
+                  <label>{{ t('tibo.detail.captcha') }}<b>*</b></label>
+                  <ImageCaptcha ref="imageCaptchaRef" v-model="captchaPayload" />
+                </div>
+                <div v-else-if="captchaProvider === 'turnstile'" class="j8-ic-field">
+                  <label>{{ t('tibo.detail.captcha') }}<b>*</b></label>
+                  <TurnstileCaptcha ref="turnstileRef" v-model="turnstileToken" :site-key="turnstileSiteKey" />
+                </div>
+                <p class="j8-ic-hint">
+                  {{ t('tibo.detail.guestHint') }}
+                  <RouterLink :to="`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`">{{ t('tibo.detail.loginToBuy') }}</RouterLink>
+                </p>
+              </template>
+              <p v-else class="j8-ic-hint is-ok">{{ t('tibo.detail.loggedInHint') }}</p>
 
-          <div v-if="cannotPurchaseReason" class="summary-warning">{{ cannotPurchaseReason }}</div>
+              <!-- 支付方式 -->
+              <div v-if="channels.length" class="j8-ic-pay">
+                <h3><Wallet />{{ t('tibo.detail.payTitle') }}</h3>
+                <div class="j8-ic-channels">
+                  <button
+                    v-for="ch in channels"
+                    :key="ch.id"
+                    type="button"
+                    class="j8-ic-channel"
+                    :class="{ 'is-active': selectedChannelId === ch.id }"
+                    @click="selectedChannelId = ch.id"
+                  >
+                    <i></i>
+                    <img v-if="ch.icon" :src="ch.icon" alt="" />
+                    <span>
+                      <b>{{ ch.name }}</b>
+                      <small v-if="ch.feeText">{{ ch.feeText }}</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
 
-          <button v-if="requiresLogin" type="button" class="summary-cta summary-login" @click="goLogin">
-            {{ t('productDetail.loginToBuy') }}
-          </button>
-          <button v-else type="button" class="summary-cta" :disabled="!canPurchase" @click="onBuyClick">
-            {{ t('tibo.detail.buyNow') }}
-            <ArrowRight />
-          </button>
+              <div class="j8-ic-total">
+                <span>{{ t('tibo.detail.totalDue') }}</span>
+                <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
+              </div>
 
-          <p class="summary-note">
-            <LockKeyhole />
-            {{ t('tibo.detail.secure') }}
-          </p>
+              <p v-if="formError" class="j8-ic-alert is-error">{{ formError }}</p>
+              <p v-else-if="cannotPurchaseReason" class="j8-ic-alert">{{ cannotPurchaseReason }}</p>
 
-          <div class="summary-footnote">
-            <CircleHelp />
-            <p>
-              {{ t('tibo.detail.footNote') }}
-              <button type="button" @click="noticeOpen = true">{{ t('tibo.notice.title') }}</button>
-            </p>
-          </div>
-        </aside>
-      </section>
-
-      <!-- 交付流程 -->
-      <section class="delivery-guide" :aria-label="t('tibo.detail.howItWorks')">
-        <article>
-          <small>{{ t('tibo.detail.steps.step1k') }}</small>
-          <h3>{{ t('tibo.detail.steps.step1t') }}</h3>
-          <p>{{ t('tibo.detail.steps.step1d') }}</p>
-        </article>
-        <article>
-          <small>{{ t('tibo.detail.steps.step2k') }}</small>
-          <h3>{{ t('tibo.detail.steps.step2t') }}</h3>
-          <p>{{ t('tibo.detail.steps.step2d') }}</p>
-        </article>
-        <article>
-          <small>{{ t('tibo.detail.steps.step3k') }}</small>
-          <h3>{{ t('tibo.detail.steps.step3t') }}</h3>
-          <p>{{ t('tibo.detail.steps.step3d') }}</p>
-        </article>
-      </section>
-
-      <!-- 商品详情 -->
-      <section v-if="descriptionText || product.content" class="product-details reveal-in">
-        <h2>{{ t('productDetail.details') }}</h2>
-        <div class="details-body">
-          <p v-if="descriptionText">{{ descriptionText }}</p>
-          <div v-if="product.content" v-html="processHtmlForDisplay(getLocalizedText(product.content))"></div>
-        </div>
-      </section>
-    </template>
-
-    <!-- 错误 -->
-    <div v-else class="tibo-empty">
-      <AlertCircle class="empty-icon" />
-      <p>{{ t('productDetail.notFound') }}</p>
-      <button type="button" class="store-action" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
-    </div>
-
-    <!-- 购买须知 -->
-    <Teleport to="body">
-      <div v-if="noticeOpen" class="tibo-modal-mask" @click.self="noticeOpen = false">
-        <div class="tibo-modal" role="dialog" aria-modal="true" :aria-label="t('tibo.notice.title')">
-          <h2>{{ t('tibo.notice.title') }}</h2>
-          <p class="modal-sub">{{ title }}<template v-if="selectedPlanName"> · {{ selectedPlanName }}</template></p>
-          <div class="tibo-notice-emphasis">
-            <Info />
-            <strong>{{ t('tibo.notice.emphasis') }}</strong>
-          </div>
-          <ol class="tibo-notice-steps">
-            <li>{{ t('tibo.notice.line1') }}</li>
-            <li>{{ t('tibo.notice.line2') }}</li>
-          </ol>
-          <div class="tibo-modal-actions">
-            <button type="button" @click="noticeOpen = false">{{ t('tibo.notice.cancel') }}</button>
-            <button type="button" class="modal-primary" @click="confirmBuy">
-              {{ t('tibo.notice.confirm') }}
-              <ArrowRight class="btn-icon" />
-            </button>
+              <div class="j8-pd-buttons">
+                <button type="button" class="j8-pd-cart" :disabled="!canPurchase" @click="onAddToCart">
+                  <ShoppingCart />{{ t('productDetail.addToCart') }}
+                </button>
+                <button type="submit" class="j8-pd-buy" :disabled="!canPurchase || submitting">
+                  <Loader2 v-if="submitting" class="j8-ic-spin" />
+                  <CreditCard v-else />
+                  {{ submitting ? t('tibo.detail.submitting') : t('tibo.detail.submitAndPay') }}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
-    </Teleport>
+
+      <!-- 商品详情 -->
+      <div v-if="detailHtml" class="j8-pd-detail">
+        <h2>{{ t('tibo.detail.details') }}</h2>
+        <div class="j8-pd-prose" v-html="detailHtml"></div>
+      </div>
+
+      <!-- 相关文章 -->
+      <div v-if="relatedPosts.length" class="j8-pd-detail">
+        <h2>{{ t('productDetail.relatedPosts') }}</h2>
+        <div class="j8-pd-posts">
+          <RouterLink v-for="rp in relatedPosts" :key="rp.id" :to="`/blog/${rp.slug}`">
+            <b>{{ getLocalizedText(rp.title) }}</b>
+            <small>{{ rp.summary ? getLocalizedText(rp.summary).slice(0, 60) : '' }}</small>
+          </RouterLink>
+        </div>
+      </div>
+    </template>
+
+    <!-- 错误 -->
+    <div v-else class="j8-empty">
+      <PackageOpen />
+      <b>{{ t('productDetail.notFound') }}</b>
+      <button type="button" class="j8-btn-primary" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  AlertCircle, ArrowRight, Check, ChevronRight, CircleHelp, Info, LockKeyhole,
-  Package, ShieldCheck, Tag, Wallet,
+  ChevronLeft, CreditCard, Loader2, Minus, PackageOpen, Plus, Share2, ShoppingCart, Wallet, Zap,
 } from 'lucide-vue-next'
+import { useAppStore } from '../../stores/app'
+import { useUserAuthStore } from '../../stores/userAuth'
+import { guestOrderAPI, userOrderAPI } from '../../api'
 import { useProductDetail } from '../../composables/useProductDetail'
 import { processHtmlForDisplay } from '../../utils/content'
-import { getFirstImageUrl } from '../../utils/image'
-import { useLocalized } from '../../composables/useProduct'
+import { getFirstImageUrl, getImageUrl } from '../../utils/image'
+import { normalizeSkuId } from '../../utils/sku'
+import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
+import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
+import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useTiboPrice } from './utils/price'
-import './styles/tibo-detail.css'
 
+const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
-const { getLocalizedText } = useLocalized()
+const appStore = useAppStore()
+const userAuthStore = useUserAuthStore()
 const { split: splitPrice } = useTiboPrice()
 
-const noticeOpen = ref(false)
-
 const {
-  loading, product,
-  getFulfillmentTypeLabel, getPurchaseTypeLabel, getStockStatusLabel,
+  loading, product, relatedPosts,
+  getLocalizedText, getFulfillmentTypeLabel, getPurchaseTypeLabel, getStockStatusLabel,
   hasPromotionPrice, getPromotionPriceAmount,
   hasSkuPromotionPrice, getSkuPromotionPriceAmount,
-  normalizeSkuId,
   activeSkus, selectedSku, selectedSkuId, quantity,
   isSkuPurchasable, skuDisplayText, skuStockText,
   requiresLogin, requiresSKUSelection, canPurchase, cannotPurchaseReason,
-  categoryName,
-  buyNow, goLogin, loadProduct,
+  quantityEffectiveMin, quantityEffectiveLimit, handleQuantityInput,
+  addToCart, loadProduct,
 } = useProductDetail()
 
 const title = computed(() => getLocalizedText(product.value?.title))
+const soldOut = computed(() => product.value?.stock_status === 'out_of_stock' || product.value?.is_sold_out === true)
 const fulfillmentLabel = computed(() => getFulfillmentTypeLabel(product.value?.fulfillment_type))
 const purchaseTypeLabel = computed(() => getPurchaseTypeLabel(product.value?.purchase_type))
-const soldOut = computed(() => getStockStatusLabel(product.value) === t('products.stockStatus.outOfStock'))
+const stockLabel = computed(() => (soldOut.value ? t('products.stockStatus.outOfStock') : getStockStatusLabel(product.value)))
 
-const markImage = computed(() => {
-  const primary = getFirstImageUrl(product.value?.images)
-  if (primary) return primary
+// ==================== 图库 ====================
+const gallery = computed(() => {
+  const list: string[] = []
+  const raw = product.value?.images
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      const url = typeof item === 'string' ? item : item?.url
+      if (url) list.push(getImageUrl(url))
+    }
+  }
+  if (!list.length) {
+    const primary = getFirstImageUrl(raw)
+    if (primary) list.push(primary)
+  }
+  return list
+})
+const currentIndex = ref(0)
+const currentImage = computed(() => gallery.value[currentIndex.value] || '')
+
+// ==================== 套餐 ====================
+const plans = computed(() =>
+  (activeSkus.value || []).map((sku: any) => {
+    const id = normalizeSkuId(sku.id)
+    return {
+      id,
+      disabled: !isSkuPurchasable(sku),
+      selected: normalizeSkuId(selectedSkuId.value) === id,
+      name: skuDisplayText(sku),
+      hint: skuStockText(sku),
+    }
+  }),
+)
+const selectPlan = (id: number, disabled: boolean) => {
+  if (disabled) return
+  selectedSkuId.value = id
+}
+
+// ==================== 价格 ====================
+const unitPrice = computed(() => {
+  const sku = selectedSku.value
+  if (sku) return hasSkuPromotionPrice(sku) ? getSkuPromotionPriceAmount(sku) : sku.price_amount
+  return hasPromotionPrice(product.value) ? getPromotionPriceAmount(product.value) : product.value?.price_amount
+})
+const unitPriceParts = computed(() => splitPrice(unitPrice.value))
+const totalAmount = computed(() => {
+  const base = Number(String(unitPrice.value ?? '0').replace(/[^\d.-]/g, '')) || 0
+  return (base * quantity.value).toFixed(2)
+})
+const totalParts = computed(() => splitPrice(totalAmount.value))
+const promoTag = computed(() => {
+  const sku = selectedSku.value
+  if ((sku && hasSkuPromotionPrice(sku)) || (!sku && hasPromotionPrice(product.value))) {
+    return { tone: 'is-promo', text: t('products.promotionTag') }
+  }
+  return null
+})
+
+// 说明行：描述首句
+const pitchLine = computed(() => {
+  const raw = getLocalizedText(product.value?.description)
+  if (!raw) return ''
+  return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
+})
+
+// 详情 HTML
+const detailHtml = computed(() => {
+  const content = getLocalizedText(product.value?.content)
+  const desc = getLocalizedText(product.value?.description)
+  if (content) return processHtmlForDisplay(content)
+  if (desc) return `<p>${desc.replace(/<[^>]+>/g, ' ')}</p>`
   return ''
 })
 
-const descriptionText = computed(() => {
-  const raw = getLocalizedText(product.value?.description)
-  return raw ? raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : ''
+// ==================== 内嵌下单 ====================
+const email = ref('')
+const orderPassword = ref('')
+const captchaPayload = ref<{ captcha_id?: string; captcha_code?: string }>({})
+const turnstileToken = ref('')
+const imageCaptchaRef = ref<{ refresh: () => void } | null>(null)
+const turnstileRef = ref<{ reset: () => void } | null>(null)
+const formError = ref('')
+const submitting = ref(false)
+const selectedChannelId = ref<number | null>(null)
+
+const captchaConfig = computed(() => appStore.config?.captcha as any)
+const captchaProvider = computed(() => {
+  const cfg = captchaConfig.value
+  if (!cfg || String(cfg.provider || 'none') === 'none') return 'none'
+  if (!cfg?.scenes?.guest_create_order) return 'none'
+  return String(cfg.provider)
+})
+const turnstileSiteKey = computed(() => String(captchaConfig.value?.turnstile?.site_key || ''))
+
+const channels = computed(() => {
+  const list = appStore.config?.payment_channels
+  if (!Array.isArray(list)) return []
+  return list
+    .filter((ch: any) => {
+      const providerType = String(ch?.provider_type || '').toLowerCase()
+      const channelType = String(ch?.channel_type || '').toLowerCase()
+      if (providerType === 'epay') return ['wechat', 'wxpay', 'alipay', 'qqpay'].includes(channelType)
+      return true
+    })
+    .map((ch: any) => {
+      const feeBps = Number(ch?.fee_bps ?? ch?.feeBps ?? 0)
+      return {
+        id: Number(ch.id),
+        name: String(ch.name || ch.channel_type || ch.provider_type || ''),
+        icon: ch.icon || ch.logo ? getImageUrl(String(ch.icon || ch.logo)) : '',
+        feeText: feeBps > 0 ? t('tibo.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
+      }
+    })
 })
 
-// 卖点两行：描述按首句拆
-const pitchLead = computed(() => {
-  const text = descriptionText.value
-  if (!text) return ''
-  const cut = text.search(/[。.!?！？]/)
-  return cut === -1 || cut > 30 ? text.slice(0, 30) : text.slice(0, cut + 1)
-})
-const pitchTitle = computed(() => pitchLead.value.slice(0, 24))
-const pitchSub = computed(() => {
-  const text = descriptionText.value
-  if (!text || text.length <= pitchTitle.value.length) return ''
-  return text.slice(pitchTitle.value.length).slice(0, 60)
-})
+const buildItems = () => [{
+  product_id: product.value?.id,
+  sku_id: normalizeSkuId(selectedSkuId.value) || undefined,
+  quantity: quantity.value,
+  fulfillment_type: product.value?.fulfillment_type || undefined,
+}]
 
-// 套餐列表
-const plans = computed(() => {
-  const skus = activeSkus.value || []
-  return skus.map((sku: any) => {
-    const id = normalizeSkuId(sku.id)
-    const promoPrice = hasSkuPromotionPrice(sku) ? getSkuPromotionPriceAmount(sku) : null
-    const price = promoPrice ?? sku.price_amount
-    return {
-      id,
-      raw: sku,
-      name: skuDisplayText(sku),
-      hint: skuStockText(sku),
-      disabled: !isSkuPurchasable(sku),
-      selected: normalizeSkuId(selectedSkuId.value) === id,
-      priceParts: splitPrice(price),
+const validateForm = (): string => {
+  if (!userAuthStore.isAuthenticated) {
+    const mail = email.value.trim()
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return t('tibo.detail.errEmail')
+    if (orderPassword.value.trim().length < 6) return t('tibo.detail.errPassword')
+    if (captchaProvider.value === 'image' && (!captchaPayload.value.captcha_id || !captchaPayload.value.captcha_code)) {
+      return t('auth.common.captchaRequired')
     }
-  })
-})
-
-const selectPlan = (plan: { id: number; disabled: boolean }) => {
-  if (plan.disabled) return
-  selectedSkuId.value = plan.id
-}
-
-const selectedPlanName = computed(() => {
-  const sku = selectedSku.value
-  return sku ? skuDisplayText(sku) : ''
-})
-
-// 最终单价（含促销）
-const unitPrice = computed(() => {
-  const sku = selectedSku.value
-  if (sku) {
-    return hasSkuPromotionPrice(sku) ? getSkuPromotionPriceAmount(sku) : sku.price_amount
+    if (captchaProvider.value === 'turnstile' && !turnstileToken.value) {
+      return t('auth.common.captchaRequired')
+    }
   }
-  return hasPromotionPrice(product.value) ? getPromotionPriceAmount(product.value) : product.value?.price_amount
+  if (channels.value.length && selectedChannelId.value === null) {
+    return t('tibo.detail.errChannel')
+  }
+  return ''
+}
+
+const submitOrder = async () => {
+  if (submitting.value) return
+  if (!canPurchase.value) {
+    formError.value = cannotPurchaseReason.value || ''
+    return
+  }
+  if (requiresLogin.value) {
+    router.push(`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  const err = validateForm()
+  if (err) {
+    formError.value = err
+    return
+  }
+  formError.value = ''
+  submitting.value = true
+  try {
+    const items = buildItems()
+    let orderNo = ''
+    if (userAuthStore.isAuthenticated) {
+      const res = await userOrderAPI.createAndPay({ items, channel_id: selectedChannelId.value || undefined })
+      orderNo = res.data?.data?.order_no || ''
+    } else {
+      const res = await guestOrderAPI.createAndPay({
+        items,
+        channel_id: selectedChannelId.value || undefined,
+        email: email.value.trim(),
+        order_password: orderPassword.value,
+        captcha_payload: captchaProvider.value === 'image'
+          ? captchaPayload.value
+          : (turnstileToken.value ? { turnstile_token: turnstileToken.value } : {}),
+      })
+      saveGuestOrderAuth({ email: email.value.trim(), order_password: orderPassword.value })
+      orderNo = res.data?.data?.order_no || ''
+    }
+    if (!orderNo) throw new Error(t('tibo.detail.errSubmit'))
+    const query = userAuthStore.isAuthenticated
+      ? `order_no=${encodeURIComponent(orderNo)}`
+      : `guest=1&order_no=${encodeURIComponent(orderNo)}`
+    router.push(`/pay?${query}`)
+  } catch (e: any) {
+    formError.value = e?.message || t('tibo.detail.errSubmit')
+    imageCaptchaRef.value?.refresh()
+    turnstileRef.value?.reset()
+  } finally {
+    submitting.value = false
+  }
+}
+
+const onAddToCart = () => {
+  if (!canPurchase.value) return
+  addToCart()
+}
+
+const shareProduct = async () => {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+  } catch {
+    /* 忽略 */
+  }
+}
+
+const goBack = () => {
+  if (window.history.length > 1) router.back()
+  else router.push('/')
+}
+
+onMounted(async () => {
+  await appStore.loadConfig()
 })
-
-const totalParts = computed(() => splitPrice(unitPrice.value))
-
-const onBuyClick = () => {
-  noticeOpen.value = true
-}
-
-const confirmBuy = () => {
-  noticeOpen.value = false
-  buyNow()
-}
 </script>
-
-<style scoped>
-.crumb-icon,
-.bottom-icon,
-.badge-icon,
-.feature-icon,
-.btn-icon {
-  width: 13px;
-  height: 13px;
-}
-
-.feature-icon {
-  color: var(--foreground);
-}
-
-.tibo-detail-loading {
-  display: grid;
-  grid-template-columns: minmax(0, 1.85fr) minmax(290px, 1fr);
-  gap: 0;
-  padding: 30px 0;
-}
-
-.skeleton-block {
-  min-height: 420px;
-  background: linear-gradient(120deg, var(--card), var(--muted), var(--card));
-  background-size: 200% 100%;
-  animation: tibo-skeleton 1.6s ease-in-out infinite;
-  border-radius: 20px;
-  margin: 0 6px;
-}
-
-.plan-required {
-  margin-top: 8px;
-  color: var(--warning);
-  font-size: 12px;
-}
-
-.summary-warning {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--warning) 12%, transparent);
-  color: var(--warning);
-  font-size: 11px;
-}
-
-.product-details {
-  padding: 30px 0 40px;
-}
-
-.product-details h2 {
-  font-size: 21px;
-  font-weight: 550;
-  letter-spacing: -0.6px;
-  margin-bottom: 14px;
-}
-
-.details-body {
-  color: var(--muted-foreground);
-  font-size: 13px;
-  line-height: 1.9;
-}
-
-.details-body :deep(img) {
-  border-radius: 12px;
-  max-width: 100%;
-}
-
-.tibo-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 64px 0;
-  color: var(--muted-foreground);
-  text-align: center;
-}
-
-.empty-icon {
-  width: 40px;
-  height: 40px;
-  opacity: 0.55;
-}
-
-@keyframes tibo-skeleton {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
-}
-</style>

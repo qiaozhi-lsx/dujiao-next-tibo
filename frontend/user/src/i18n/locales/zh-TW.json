@@ -1728,76 +1728,82 @@
     "authClear": "清除已保存資訊"
   },
   "tibo": {
-    "hero": {
-      "titleA": "商店。",
-      "titleB": "找到適合你的服務。",
-      "subtitle": "AI 訂閱、語言學習與工具服務，在這裡按需選擇。"
-    },
-    "intro": {
-      "supportQuestion": "選購遇到問題？",
-      "supportAction": "聯繫支援"
-    },
     "nav": {
-      "myOrders": "我的訂單",
-      "help": "幫助中心",
-      "support": "聯繫支援"
+      "shop": "購物",
+      "orders": "查訂單",
+      "tutorial": "使用教學",
+      "tfa": "動態驗證碼",
+      "support": "線上客服",
+      "notice": "公告",
+      "about": "關於",
+      "account": "個人中心"
     },
-    "home": {
-      "browse": "瀏覽商品",
-      "featuredTitle": "為你精選。",
-      "searchPlaceholder": "搜尋商品",
-      "myOrders": "繼續我的訂單",
-      "orderNote": "付款、交付與售後，都可以在「我的訂單」中跟進。",
-      "orderNoteLink": "查看訂單"
+    "hero": {
+      "eyebrow": "DIGITAL SERVICES",
+      "titleB": "AI 服務，一站直達。",
+      "subtitle": "數位商品自動發貨，付款後憑證即時送達。",
+      "shortlink": "本站短鏈",
+      "searchPlaceholder": "搜尋商品名稱或關鍵詞...",
+      "share": "分享本站",
+      "shared": "已複製"
+    },
+    "featured": {
+      "title": "為你精選",
+      "unit": "個商品",
+      "months": "個月",
+      "days": "天"
+    },
+    "catalog": {
+      "title": "商品分類",
+      "unit": "件"
     },
     "card": {
-      "choosePlan": "選擇套餐",
-      "priceFrom": "起"
+      "priceFrom": "起",
+      "finalPrice": "到手價",
+      "choosePlan": "選擇套餐"
     },
-    "detail": {
-      "pickPlan": "01 / 選擇套餐",
-      "available": "可購買",
-      "headingFallback": "數位商品服務",
-      "planLabel": "選擇適合你的方案",
-      "oneTime": "一次購買",
-      "perUnit": "/ 份",
-      "featureTrackable": "訂單進度可查",
-      "bottomNote": "無需提供密碼 · 訂單進度可查",
-      "orderTitle": "你的訂單",
-      "qty": "數量",
-      "delivery": "交付方式",
-      "payment": "付款方式",
-      "onlinePayment": "線上付款",
-      "total": "合計",
-      "totalCaption": "一次購買",
-      "buyNow": "立即購買",
-      "secure": "線上付款 · 訂單進度可查",
-      "footNote": "核對套餐後再付款，",
-      "howItWorks": "購買流程",
-      "steps": {
-        "step1k": "01 / 選擇套餐",
-        "step1t": "選擇套餐",
-        "step1d": "選擇適合你的套餐與數量。",
-        "step2k": "02 / 線上付款",
-        "step2t": "下單並付款",
-        "step2d": "填寫常用信箱，透過線上付款完成結帳。",
-        "step3k": "03 / 查看訂單",
-        "step3t": "查看訂單",
-        "step3d": "付款後在「我的訂單」中跟進交付進度。"
-      }
-    },
-    "notice": {
-      "title": "下單須知",
-      "emphasis": "付款前請核對商品與套餐資訊。",
-      "line1": "選擇套餐並確認數量，下單後可在「我的訂單」查看進度。",
-      "line2": "付款後在訂單中查看交付結果。",
-      "cancel": "暫不購買",
-      "confirm": "繼續下單"
+    "contact": {
+      "title": "線上客服",
+      "short": "線上客服",
+      "open": "打開",
+      "hint": "訂單問題請帶上訂單號聯繫，處理更高效。"
     },
     "footer": {
-      "tagline": "讓工具回歸簡單，讓靈感自由生長。",
-      "darkAppearance": "深色外觀",
-      "lightAppearance": "淺色外觀"
+      "rights": "保留所有權利"
+    },
+    "detail": {
+      "back": "返回商品",
+      "share": "分享",
+      "spec": "商品規格",
+      "email": "電子信箱",
+      "emailPlaceholder": "用於接收訂單通知和查詢訂單",
+      "orderPassword": "訂單查詢密碼",
+      "orderPasswordPlaceholder": "自行設定，至少 6 位，查訂單時要用",
+      "captcha": "驗證碼",
+      "guestHint": "無需註冊，憑信箱和訂單密碼即可在「查訂單」裡重查訂單。已有帳號？",
+      "loginToBuy": "登入購買",
+      "loggedInHint": "已登入，將直接為目前帳號建立訂單。",
+      "payTitle": "付款方式",
+      "fee": "手續費 {rate}%",
+      "totalDue": "應付金額",
+      "submitAndPay": "提交訂單並付款",
+      "submitting": "正在建立訂單",
+      "details": "商品詳情",
+      "errEmail": "請填寫正確的電子信箱",
+      "errPassword": "訂單查詢密碼至少 6 位",
+      "errChannel": "請選擇付款方式",
+      "errSubmit": "下單失敗，請稍後重試"
+    },
+    "tfa": {
+      "title": "動態驗證碼",
+      "desc": "貼上商品資料裡的 2FA 密鑰或 otpauth 連結，即時生成六位動態驗證碼（本地計算，不會上傳）。",
+      "placeholder": "例如：JBSWY3DPEHPK3PXP",
+      "generate": "生成",
+      "invalid": "密鑰格式不正確，請確認是否為 Base32 編碼",
+      "remaining": "剩餘 {seconds} 秒",
+      "copy": "複製",
+      "copied": "已複製",
+      "hint": "驗證碼每 30 秒自動更新，登入時請使用目前顯示的驗證碼。"
     }
   }
 }

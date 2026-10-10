@@ -1728,76 +1728,82 @@
     "authClear": "Clear saved info"
   },
   "tibo": {
-    "hero": {
-      "titleA": "Shop.",
-      "titleB": "Find the service that fits you.",
-      "subtitle": "AI subscriptions, language learning and tool services — pick what you need here."
-    },
-    "intro": {
-      "supportQuestion": "Questions before buying?",
-      "supportAction": "Contact support"
-    },
     "nav": {
-      "myOrders": "My orders",
-      "help": "Help center",
-      "support": "Contact support"
+      "shop": "Shop",
+      "orders": "Orders",
+      "tutorial": "Guides",
+      "tfa": "2FA Codes",
+      "support": "Support",
+      "notice": "News",
+      "about": "About",
+      "account": "Account"
     },
-    "home": {
-      "browse": "Browse",
-      "featuredTitle": "Picked for you.",
-      "searchPlaceholder": "Search products",
-      "myOrders": "Continue my orders",
-      "orderNote": "Payment, delivery and after-sales are all trackable in “My orders”.",
-      "orderNoteLink": "View orders"
+    "hero": {
+      "eyebrow": "DIGITAL SERVICES",
+      "titleB": "AI services, all in one place.",
+      "subtitle": "Digital goods delivered automatically — your credentials arrive right after payment.",
+      "shortlink": "Short link",
+      "searchPlaceholder": "Search products or keywords...",
+      "share": "Share",
+      "shared": "Copied"
+    },
+    "featured": {
+      "title": "Picked for you",
+      "unit": "items",
+      "months": "months",
+      "days": "days"
+    },
+    "catalog": {
+      "title": "Categories",
+      "unit": "items"
     },
     "card": {
-      "choosePlan": "Choose a plan",
-      "priceFrom": "from"
+      "priceFrom": "from",
+      "finalPrice": "Final price",
+      "choosePlan": "Choose a plan"
     },
-    "detail": {
-      "pickPlan": "01 / Choose a plan",
-      "available": "Available",
-      "headingFallback": "Digital goods service",
-      "planLabel": "Pick the plan that suits you",
-      "oneTime": "One-time purchase",
-      "perUnit": "/ unit",
-      "featureTrackable": "Order progress trackable",
-      "bottomNote": "No password required · Order progress trackable",
-      "orderTitle": "Your order",
-      "qty": "Quantity",
-      "delivery": "Delivery",
-      "payment": "Payment",
-      "onlinePayment": "Online payment",
-      "total": "Total",
-      "totalCaption": "One-time purchase",
-      "buyNow": "Buy now",
-      "secure": "Online payment · Order progress trackable",
-      "footNote": "Confirm your plan before paying, ",
-      "howItWorks": "How it works",
-      "steps": {
-        "step1k": "01 / Choose a plan",
-        "step1t": "Pick a plan",
-        "step1d": "Choose the plan and quantity that fit you.",
-        "step2k": "02 / Online payment",
-        "step2t": "Order and pay",
-        "step2d": "Fill in your email and complete payment online.",
-        "step3k": "03 / Track order",
-        "step3t": "Track your order",
-        "step3d": "Follow delivery progress in “My orders” after payment."
-      }
-    },
-    "notice": {
-      "title": "Before you order",
-      "emphasis": "Please confirm the product and plan before paying.",
-      "line1": "Choose a plan and quantity; track progress in “My orders” afterwards.",
-      "line2": "Check the delivery result in your order after payment.",
-      "cancel": "Not now",
-      "confirm": "Continue"
+    "contact": {
+      "title": "Live support",
+      "short": "Support",
+      "open": "Open",
+      "hint": "Include your order number for faster help."
     },
     "footer": {
-      "tagline": "Keep tools simple, let inspiration grow.",
-      "darkAppearance": "Dark appearance",
-      "lightAppearance": "Light appearance"
+      "rights": "All rights reserved"
+    },
+    "detail": {
+      "back": "Back to shop",
+      "share": "Share",
+      "spec": "Plan",
+      "email": "Email",
+      "emailPlaceholder": "For order notifications and lookups",
+      "orderPassword": "Order password",
+      "orderPasswordPlaceholder": "Set your own, at least 6 characters",
+      "captcha": "Verification",
+      "guestHint": "No account needed — look up orders with your email and order password. Already registered?",
+      "loginToBuy": "Sign in",
+      "loggedInHint": "Signed in — the order will be created for your account.",
+      "payTitle": "Payment method",
+      "fee": "Fee {rate}%",
+      "totalDue": "Amount due",
+      "submitAndPay": "Place order & pay",
+      "submitting": "Creating order",
+      "details": "Details",
+      "errEmail": "Please enter a valid email",
+      "errPassword": "Order password must be at least 6 characters",
+      "errChannel": "Please choose a payment method",
+      "errSubmit": "Failed to place the order, please retry"
+    },
+    "tfa": {
+      "title": "Two-factor codes",
+      "desc": "Paste the 2FA secret or otpauth link from your product data to generate 6-digit codes locally — nothing is uploaded.",
+      "placeholder": "e.g. JBSWY3DPEHPK3PXP",
+      "generate": "Generate",
+      "invalid": "Invalid secret — please check the Base32 format",
+      "remaining": "{seconds}s left",
+      "copy": "Copy",
+      "copied": "Copied",
+      "hint": "Codes refresh every 30 seconds — use the one currently shown when signing in."
     }
   }
 }

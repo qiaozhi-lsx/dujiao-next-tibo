@@ -1728,76 +1728,82 @@
     "guest": "游客可购"
   },
   "tibo": {
-    "hero": {
-      "titleA": "商店。",
-      "titleB": "找到适合你的服务。",
-      "subtitle": "AI 订阅、语言学习与工具服务，在这里按需选择。"
-    },
-    "intro": {
-      "supportQuestion": "选购遇到问题？",
-      "supportAction": "联系支持"
-    },
     "nav": {
-      "myOrders": "我的订单",
-      "help": "帮助中心",
-      "support": "联系支持"
+      "shop": "购物",
+      "orders": "查订单",
+      "tutorial": "使用教程",
+      "tfa": "动态验证码",
+      "support": "在线客服",
+      "notice": "公告",
+      "about": "关于",
+      "account": "个人中心"
     },
-    "home": {
-      "browse": "浏览商品",
-      "featuredTitle": "为你精选。",
-      "searchPlaceholder": "搜索商品",
-      "myOrders": "继续我的订单",
-      "orderNote": "付款、交付与售后，都可以在「我的订单」中跟进。",
-      "orderNoteLink": "查看订单"
+    "hero": {
+      "eyebrow": "DIGITAL SERVICES",
+      "titleB": "AI 服务，一站直达。",
+      "subtitle": "数字商品自动发货，付款后凭证即时送达。",
+      "shortlink": "本站短链",
+      "searchPlaceholder": "搜索商品名称或关键词...",
+      "share": "分享本站",
+      "shared": "已复制"
+    },
+    "featured": {
+      "title": "为你精选",
+      "unit": "个商品",
+      "months": "个月",
+      "days": "天"
+    },
+    "catalog": {
+      "title": "商品分类",
+      "unit": "件"
     },
     "card": {
-      "choosePlan": "选择套餐",
-      "priceFrom": "起"
+      "priceFrom": "起",
+      "finalPrice": "到手价",
+      "choosePlan": "选择套餐"
     },
-    "detail": {
-      "pickPlan": "01 / 选择套餐",
-      "available": "可购买",
-      "headingFallback": "数字商品服务",
-      "planLabel": "选择适合你的计划",
-      "oneTime": "一次购买",
-      "perUnit": "/ 份",
-      "featureTrackable": "订单进度可查",
-      "bottomNote": "无需提供密码 · 订单进度可查",
-      "orderTitle": "你的订单",
-      "qty": "数量",
-      "delivery": "交付方式",
-      "payment": "支付方式",
-      "onlinePayment": "在线支付",
-      "total": "合计",
-      "totalCaption": "一次购买",
-      "buyNow": "立即购买",
-      "secure": "在线付款 · 订单进度可查",
-      "footNote": "核对套餐后再付款，",
-      "howItWorks": "购买流程",
-      "steps": {
-        "step1k": "01 / 选择套餐",
-        "step1t": "选择套餐",
-        "step1d": "选择适合你的套餐与数量。",
-        "step2k": "02 / 在线支付",
-        "step2t": "下单并支付",
-        "step2d": "填写常用邮箱，通过在线支付完成付款。",
-        "step3k": "03 / 查看订单",
-        "step3t": "查看订单",
-        "step3d": "付款后在「我的订单」中跟进交付进度。"
-      }
-    },
-    "notice": {
-      "title": "下单须知",
-      "emphasis": "付款前请核对商品与套餐信息。",
-      "line1": "选择套餐并确认数量，下单后可在「我的订单」查看进度。",
-      "line2": "付款后在订单中查看交付结果。",
-      "cancel": "暂不购买",
-      "confirm": "继续下单"
+    "contact": {
+      "title": "在线客服",
+      "short": "在线客服",
+      "open": "打开",
+      "hint": "订单问题请带上订单号联系，处理更高效。"
     },
     "footer": {
-      "tagline": "让工具回归简单，让灵感自由生长。",
-      "darkAppearance": "深色外观",
-      "lightAppearance": "浅色外观"
+      "rights": "保留所有权利"
+    },
+    "detail": {
+      "back": "返回商品",
+      "share": "分享",
+      "spec": "商品规格",
+      "email": "电子邮箱",
+      "emailPlaceholder": "用于接收订单通知和查询订单",
+      "orderPassword": "订单查询密码",
+      "orderPasswordPlaceholder": "自己设置，至少 6 位，查订单时要用",
+      "captcha": "验证码",
+      "guestHint": "无需注册，凭邮箱和订单密码即可在「查订单」里重查订单。已有账号？",
+      "loginToBuy": "登录购买",
+      "loggedInHint": "已登录，将直接为当前账号创建订单。",
+      "payTitle": "支付方式",
+      "fee": "手续费 {rate}%",
+      "totalDue": "应付金额",
+      "submitAndPay": "提交订单并支付",
+      "submitting": "正在创建订单",
+      "details": "商品详情",
+      "errEmail": "请填写正确的电子邮箱",
+      "errPassword": "订单查询密码至少 6 位",
+      "errChannel": "请选择支付方式",
+      "errSubmit": "下单失败，请稍后重试"
+    },
+    "tfa": {
+      "title": "动态验证码",
+      "desc": "粘贴商品资料里的 2FA 密钥或 otpauth 链接，实时生成六位动态验证码（本地计算，不会上传）。",
+      "placeholder": "例如：JBSWY3DPEHPK3PXP",
+      "generate": "生成",
+      "invalid": "密钥格式不正确，请检查是否为 Base32 编码",
+      "remaining": "剩余 {seconds} 秒",
+      "copy": "复制",
+      "copied": "已复制",
+      "hint": "验证码每 30 秒自动刷新，登录时请使用当前显示的验证码。"
     }
   }
 }
