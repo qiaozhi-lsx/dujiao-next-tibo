@@ -1803,7 +1803,8 @@
       "remaining": "{seconds}s left",
       "copy": "Copy",
       "copied": "Copied",
-      "hint": "Codes refresh every 30 seconds — use the one currently shown when signing in."
+      "hint": "Codes refresh every 30 seconds — use the one currently shown when signing in.",
+      "codeAria": "Current code {code}"
     }
   }
 }

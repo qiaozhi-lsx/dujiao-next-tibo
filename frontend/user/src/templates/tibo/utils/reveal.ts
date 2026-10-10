@@ -29,5 +29,22 @@ export const setupReveal = (root: HTMLElement | null | undefined): (() => void) 
     { rootMargin: '0px 0px -6% 0px', threshold: 0.06 },
   )
   els.forEach((el) => io.observe(el))
-  return () => io.disconnect()
+
+  // 兜底：若观察器因异常未触发，1.8s 后强制显现首屏内的卡片，避免内容隐身
+  const fallback = window.setTimeout(() => {
+    for (const el of els) {
+      if (!el.classList.contains('is-pending')) continue
+      const rect = el.getBoundingClientRect()
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        el.classList.remove('is-pending')
+        el.classList.add('is-in')
+        io.unobserve(el)
+      }
+    }
+  }, 1800)
+
+  return () => {
+    window.clearTimeout(fallback)
+    io.disconnect()
+  }
 }

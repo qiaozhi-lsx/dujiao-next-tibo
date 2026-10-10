@@ -25,8 +25,8 @@
 
         <template v-if="activeSecret">
           <div class="tfa-code-box">
-            <div class="tfa-code">
-              <span v-for="(ch, i) in codeChars" :key="i" class="tfa-digit">{{ ch }}</span>
+            <div class="tfa-code" role="group" tabindex="0" :aria-label="code ? t('tibo.tfa.codeAria', { code }) : ''">
+              <span v-for="(ch, i) in codeChars" :key="i" class="tfa-digit" aria-hidden="true">{{ ch }}</span>
             </div>
             <div class="tfa-progress">
               <i :style="{ width: `${progress * 100}%` }" :class="{ 'is-warn': secondsLeft <= 5 }"></i>

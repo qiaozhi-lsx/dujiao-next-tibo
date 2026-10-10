@@ -97,11 +97,29 @@
               <template v-if="!userAuthStore.isAuthenticated">
                 <div class="j8-ic-field">
                   <label for="j8-ic-email">{{ t('tibo.detail.email') }}<b>*</b></label>
-                  <input id="j8-ic-email" v-model="email" type="email" autocomplete="email" :placeholder="t('tibo.detail.emailPlaceholder')" />
+                  <input
+                    id="j8-ic-email"
+                    v-model="email"
+                    type="email"
+                    autocomplete="email"
+                    :placeholder="t('tibo.detail.emailPlaceholder')"
+                    :aria-invalid="!!fieldErrors.email"
+                    :aria-describedby="fieldErrors.email ? 'j8-ic-email-err' : undefined"
+                  />
+                  <p v-if="fieldErrors.email" id="j8-ic-email-err" class="j8-ic-error">{{ fieldErrors.email }}</p>
                 </div>
                 <div class="j8-ic-field">
                   <label for="j8-ic-password">{{ t('tibo.detail.orderPassword') }}<b>*</b></label>
-                  <input id="j8-ic-password" v-model="orderPassword" type="password" autocomplete="new-password" :placeholder="t('tibo.detail.orderPasswordPlaceholder')" />
+                  <input
+                    id="j8-ic-password"
+                    v-model="orderPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    :placeholder="t('tibo.detail.orderPasswordPlaceholder')"
+                    :aria-invalid="!!fieldErrors.password"
+                    :aria-describedby="fieldErrors.password ? 'j8-ic-password-err' : undefined"
+                  />
+                  <p v-if="fieldErrors.password" id="j8-ic-password-err" class="j8-ic-error">{{ fieldErrors.password }}</p>
                 </div>
                 <div v-if="captchaProvider === 'image'" class="j8-ic-field">
                   <label>{{ t('tibo.detail.captcha') }}<b>*</b></label>
@@ -145,8 +163,8 @@
                 <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
               </div>
 
-              <p v-if="formError" class="j8-ic-alert is-error">{{ formError }}</p>
-              <p v-else-if="cannotPurchaseReason" class="j8-ic-alert">{{ cannotPurchaseReason }}</p>
+              <p v-if="formError" class="j8-ic-alert is-error" role="alert">{{ formError }}</p>
+              <p v-else-if="cannotPurchaseReason" class="j8-ic-alert" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="j8-pd-buttons">
                 <button type="button" class="j8-pd-cart" :disabled="!canPurchase" @click="onAddToCart">
@@ -355,11 +373,15 @@ const buildItems = () => [{
   fulfillment_type: product.value?.fulfillment_type || undefined,
 }]
 
+const fieldErrors = ref<{ email?: string; password?: string }>({})
+
 const validateForm = (): string => {
+  fieldErrors.value = {}
   if (!userAuthStore.isAuthenticated) {
     const mail = email.value.trim()
-    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return t('tibo.detail.errEmail')
-    if (orderPassword.value.trim().length < 6) return t('tibo.detail.errPassword')
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) fieldErrors.value.email = t('tibo.detail.errEmail')
+    if (orderPassword.value.trim().length < 6) fieldErrors.value.password = t('tibo.detail.errPassword')
+    if (Object.keys(fieldErrors.value).length) return ''
     if (captchaProvider.value === 'image' && (!captchaPayload.value.captcha_id || !captchaPayload.value.captcha_code)) {
       return t('auth.common.captchaRequired')
     }
@@ -384,6 +406,9 @@ const submitOrder = async () => {
     return
   }
   const err = validateForm()
+  if (Object.keys(fieldErrors.value).length) {
+    return
+  }
   if (err) {
     formError.value = err
     return

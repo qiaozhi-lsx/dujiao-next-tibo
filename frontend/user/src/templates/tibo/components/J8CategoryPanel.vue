@@ -6,7 +6,7 @@
       <h2>{{ t('tibo.catalog.title') }}</h2>
     </header>
     <div class="j8-cat-list">
-      <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" @click="emit('select', null)">
+      <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="emit('select', null)">
         <span class="j8-cat-logo hot"><Star /></span>
         <span>{{ t('products.allCategories') }}</span>
         <b>{{ totalCount }}</b>
@@ -17,6 +17,7 @@
         type="button"
         class="j8-cat-item"
         :class="{ 'is-active': selectedCategory === cat.id, 'is-child': cat.parentId > 0 }"
+        :aria-pressed="selectedCategory === cat.id"
         @click="emit('select', cat.id)"
       >
         <span class="j8-cat-logo">
@@ -51,7 +52,7 @@
             <button type="button" class="j8-drawer-close" :aria-label="t('common.cancel')" @click="drawerOpen = false"><X /></button>
           </header>
           <div class="j8-cat-list">
-            <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" @click="pick(null)">
+            <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="pick(null)">
               <span class="j8-cat-logo hot"><Star /></span>
               <span>{{ t('products.allCategories') }}</span>
               <b>{{ totalCount }}</b>
@@ -62,6 +63,7 @@
               type="button"
               class="j8-cat-item"
               :class="{ 'is-active': selectedCategory === cat.id, 'is-child': cat.parentId > 0 }"
+              :aria-pressed="selectedCategory === cat.id"
               @click="pick(cat.id)"
             >
               <span class="j8-cat-logo">
