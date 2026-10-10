@@ -1796,7 +1796,7 @@
     },
     "tfa": {
       "title": "动态验证码",
-      "desc": "粘贴商品资料里的 2FA 密钥或 otpauth 链接，实时生成六位动态验证码（本地计算，不会上传）。",
+      "desc": "粘贴商品资料里的 2FA 密钥或 otpauth 链接，立即显示动态验证码（完全本地计算，不会上传）。",
       "placeholder": "例如：JBSWY3DPEHPK3PXP",
       "generate": "生成",
       "invalid": "密钥格式不正确，请检查是否为 Base32 编码",
@@ -1804,7 +1804,11 @@
       "copy": "复制",
       "copied": "已复制",
       "hint": "验证码每 30 秒自动刷新，登录时请使用当前显示的验证码。",
-      "codeAria": "当前验证码 {code}"
+      "codeAria": "当前验证码 {code}",
+      "inputLabel": "请输入您的密钥或完整凭证",
+      "paste": "一键粘贴",
+      "idle": "请先输入密钥",
+      "copyFull": "一键复制验证码"
     }
   }
 }

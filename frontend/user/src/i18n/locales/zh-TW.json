@@ -1796,7 +1796,7 @@
     },
     "tfa": {
       "title": "動態驗證碼",
-      "desc": "貼上商品資料裡的 2FA 密鑰或 otpauth 連結，即時生成六位動態驗證碼（本地計算，不會上傳）。",
+      "desc": "貼上商品資料裡的 2FA 密鑰或 otpauth 連結，立即顯示動態驗證碼（完全本地計算，不會上傳）。",
       "placeholder": "例如：JBSWY3DPEHPK3PXP",
       "generate": "生成",
       "invalid": "密鑰格式不正確，請確認是否為 Base32 編碼",
@@ -1804,7 +1804,11 @@
       "copy": "複製",
       "copied": "已複製",
       "hint": "驗證碼每 30 秒自動更新，登入時請使用目前顯示的驗證碼。",
-      "codeAria": "目前驗證碼 {code}"
+      "codeAria": "目前驗證碼 {code}",
+      "inputLabel": "請輸入您的密鑰或完整憑證",
+      "paste": "一鍵貼上",
+      "idle": "請先輸入密鑰",
+      "copyFull": "一鍵複製驗證碼"
     }
   }
 }

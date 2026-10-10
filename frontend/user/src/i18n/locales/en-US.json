@@ -1796,7 +1796,7 @@
     },
     "tfa": {
       "title": "Two-factor codes",
-      "desc": "Paste the 2FA secret or otpauth link from your product data to generate 6-digit codes locally — nothing is uploaded.",
+      "desc": "Paste the 2FA secret or otpauth link from your product data to see the code instantly (all computed locally).",
       "placeholder": "e.g. JBSWY3DPEHPK3PXP",
       "generate": "Generate",
       "invalid": "Invalid secret — please check the Base32 format",
@@ -1804,7 +1804,11 @@
       "copy": "Copy",
       "copied": "Copied",
       "hint": "Codes refresh every 30 seconds — use the one currently shown when signing in.",
-      "codeAria": "Current code {code}"
+      "codeAria": "Current code {code}",
+      "inputLabel": "Paste your secret or full credential",
+      "paste": "Paste",
+      "idle": "Enter a secret to begin",
+      "copyFull": "Copy code"
     }
   }
 }
