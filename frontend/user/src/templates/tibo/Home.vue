@@ -5,7 +5,7 @@
       <div class="j8-hero-copy">
         <span class="j8-eyebrow">{{ t('tibo.hero.eyebrow') }}</span>
         <h1 class="j8-hero-title">
-          <span>{{ brandName }}。</span>
+          <span>{{ brandName }}</span>
           <span class="is-dim">{{ t('tibo.hero.titleB') }}</span>
         </h1>
         <p>{{ t('tibo.hero.subtitle') }}</p>
