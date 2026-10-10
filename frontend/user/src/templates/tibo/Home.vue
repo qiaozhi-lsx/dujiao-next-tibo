@@ -121,7 +121,6 @@ const shared = ref(false)
 let cleanupReveal: (() => void) | null = null
 let shareTimer: ReturnType<typeof setTimeout> | null = null
 
-const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || '商店')
 const siteDomain = computed(() => {
   try {
     return window.location.host.toUpperCase()
