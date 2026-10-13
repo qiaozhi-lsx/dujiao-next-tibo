@@ -9,7 +9,7 @@ import (
 )
 
 // TestPublicCacheHeaders_SetsExpectedHeader 验证中间件给响应写入
-// Cache-Control: public, max-age=60, s-maxage=60。
+// Cache-Control: public, max-age=10, s-maxage=10。
 func TestPublicCacheHeaders_SetsExpectedHeader(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
@@ -27,7 +27,7 @@ func TestPublicCacheHeaders_SetsExpectedHeader(t *testing.T) {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
 	got := w.Header().Get("Cache-Control")
-	want := "public, max-age=60, s-maxage=60"
+	want := "public, max-age=10, s-maxage=10"
 	if got != want {
 		t.Errorf("Cache-Control = %q, want %q", got, want)
 	}
