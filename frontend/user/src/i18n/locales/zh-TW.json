@@ -1831,7 +1831,9 @@
       "errEmail": "請填寫正確的電子信箱",
       "errPassword": "訂單查詢密碼至少 6 位",
       "errChannel": "請選擇付款方式",
-      "errSubmit": "下單失敗，請稍後重試"
+      "errSubmit": "下單失敗，請稍後重試",
+      "descExpand": "展開",
+      "descCollapse": "收起"
     },
     "payment": {
       "eyebrow": "PAYMENT",

@@ -1831,7 +1831,9 @@
       "errEmail": "Please enter a valid email",
       "errPassword": "Order password must be at least 6 characters",
       "errChannel": "Please choose a payment method",
-      "errSubmit": "Failed to place the order, please retry"
+      "errSubmit": "Failed to place the order, please retry",
+      "descExpand": "Expand",
+      "descCollapse": "Collapse"
     },
     "payment": {
       "eyebrow": "PAYMENT",

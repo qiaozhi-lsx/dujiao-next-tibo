@@ -467,8 +467,8 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-back { position: sticky; top: calc(var(--site-header-height) + 12px); z-index: 38; background: color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter: blur(14px); }
 }
 .qiaozhi-scope .j8-pd-card { display: grid; grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr); overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
-.qiaozhi-scope .j8-pd-media { display: flex; flex-direction: column; gap: 12px; padding: 22px; background: var(--surface-2); }
-.qiaozhi-scope .j8-pd-stage { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; max-height: 520px; width: 100%; margin: 0px auto; overflow: hidden; border-radius: 14px; background: var(--surface); }
+.qiaozhi-scope .j8-pd-media { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--surface-2); }
+.qiaozhi-scope .j8-pd-stage { position: relative; display: grid; place-items: center; aspect-ratio: 2 / 1; max-height: 320px; width: 100%; margin: 0px auto; overflow: hidden; border-radius: 14px; background: var(--surface); }
 .qiaozhi-scope .j8-pd-stage > img { position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: contain; }
 .qiaozhi-scope .j8-pd-logo.j8-brand-icon { width: 58%; height: 58%; background: transparent; box-shadow: none; color: var(--text); }
 .qiaozhi-scope .j8-pd-logo.j8-brand-icon :is(svg, img) { width: 100%; height: 100%; }
@@ -477,8 +477,8 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-thumbs button { flex: 0 0 auto; width: 64px; height: 64px; overflow: hidden; border: 2px solid transparent; border-radius: 11px; background: var(--surface); opacity: 0.65; }
 .qiaozhi-scope .j8-pd-thumbs button.is-active { border-color: var(--accent); opacity: 1; }
 .qiaozhi-scope .j8-pd-thumbs img { width: 100%; height: 100%; object-fit: cover; }
-.qiaozhi-scope .j8-pd-info { display: flex; flex-direction: column; gap: 16px; min-width: 0px; padding: 26px 24px 24px; }
-.qiaozhi-scope .j8-pd-info h1 { font-size: 25px; font-weight: 900; line-height: 1.3; color: var(--text); overflow-wrap: anywhere; }
+.qiaozhi-scope .j8-pd-info { display: flex; flex-direction: column; gap: 12px; min-width: 0px; padding: 20px 22px 20px; }
+.qiaozhi-scope .j8-pd-info h1 { font-size: 22px; font-weight: 900; line-height: 1.25; color: var(--text); overflow-wrap: anywhere; }
 .qiaozhi-scope .j8-pd-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -6px; }
 .qiaozhi-scope .j8-pd-chips > span, .qiaozhi-scope .j8-pd-share { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0px 9px; border-radius: 7px; font-size: 12px; font-weight: 700; }
 .qiaozhi-scope .j8-pd-chips svg { width: 12px; height: 12px; }
@@ -507,24 +507,28 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-note svg { width: 14px; height: 14px; }
 .qiaozhi-scope .j8-pd-note.is-accent { background: var(--accent-soft); color: var(--accent-strong); }
 .qiaozhi-scope .j8-pd-note.is-warm { background: var(--amber-soft); color: var(--amber); }
-.qiaozhi-scope .j8-pd-field > label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: var(--muted); }
-.qiaozhi-scope .j8-pd-skus { display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 10px; }
-.qiaozhi-scope .j8-pd-skus button { display: grid; gap: 4px; min-height: 58px; padding: 10px 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); text-align: left; transition: border-color 0.15s, background 0.15s; }
+.qiaozhi-scope .j8-pd-field > label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.qiaozhi-scope .j8-pd-skus { display: flex; flex-wrap: wrap; gap: 8px; }
+.qiaozhi-scope .j8-pd-skus button { display: inline-flex; align-items: center; gap: 8px; width: auto; min-height: 0; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); text-align: left; white-space: nowrap; line-height: 1.25; transition: border-color 0.15s, background 0.15s; }
 .qiaozhi-scope .j8-pd-skus button:hover:not(:disabled) { border-color: var(--accent-line); }
 .qiaozhi-scope .j8-pd-skus button.is-active { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent) inset; }
 .qiaozhi-scope .j8-pd-skus button.is-disabled { opacity: 0.5; border-style: dashed; cursor: not-allowed; }
-.qiaozhi-scope .j8-pd-skus b { font-size: 13.5px; font-weight: 800; color: var(--text); overflow-wrap: anywhere; }
-.qiaozhi-scope .j8-pd-skus small { font-size: 11.5px; color: var(--muted); }
+.qiaozhi-scope .j8-pd-skus b { font-size: 13px; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+.qiaozhi-scope .j8-pd-skus small { position: relative; font-size: 11px; color: var(--muted); }
+.qiaozhi-scope .j8-pd-skus small::before { content: "·"; margin-right: 6px; color: var(--line-strong); }
 .qiaozhi-scope .j8-pd-skus button.is-active small { color: var(--accent-strong); }
 .qiaozhi-scope .j8-pd-hint { margin-top: 6px; font-size: 12px; color: var(--amber); }
-.qiaozhi-scope .j8-pd-qty { display: grid; grid-template-columns: 58px minmax(0px, 1fr) 58px; height: 44px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); }
+.qiaozhi-scope .j8-pd-qty { display: inline-grid; grid-template-columns: 44px 56px 44px; height: 40px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); }
 .qiaozhi-scope .j8-pd-qty button { display: grid; place-items: center; background: var(--surface-2); color: var(--text); }
 .qiaozhi-scope .j8-pd-qty button:hover:not(:disabled) { background: var(--surface-3); }
 .qiaozhi-scope .j8-pd-qty button:disabled { color: var(--muted); opacity: 0.5; }
 .qiaozhi-scope .j8-pd-qty svg { width: 16px; height: 16px; }
-.qiaozhi-scope .j8-pd-qty input { min-width: 0px; border-inline: 1px solid var(--line); background: transparent; text-align: center; font-size: 17px; font-weight: 800; color: var(--text); outline: none; font-variant-numeric: tabular-nums; }
-.qiaozhi-scope .j8-pd-desc { padding: 11px 13px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.6; color: var(--ui-text-secondary); white-space: pre-line; }
-.qiaozhi-scope .j8-pd-actions { display: grid; gap: 10px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+.qiaozhi-scope .j8-pd-qty input { min-width: 0px; border-inline: 1px solid var(--line); background: transparent; text-align: center; font-size: 15px; font-weight: 800; color: var(--text); outline: none; font-variant-numeric: tabular-nums; }
+.qiaozhi-scope .j8-pd-desc { position: relative; padding: 9px 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.55; color: var(--ui-text-secondary); white-space: pre-line; }
+.qiaozhi-scope .j8-pd-desc--clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
+.qiaozhi-scope .j8-pd-desc-toggle { align-self: flex-start; margin-top: -4px; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; padding: 2px 0; }
+.qiaozhi-scope .j8-pd-desc-toggle:hover { color: var(--accent-strong); text-decoration: underline; }
+.qiaozhi-scope .j8-pd-actions { display: grid; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line); }
 .qiaozhi-scope .j8-pd-alert { padding: 10px 12px; border-radius: 11px; font-size: 12.5px; font-weight: 700; }
 .qiaozhi-scope .j8-pd-alert.is-danger { background: var(--red-soft); color: var(--red); }
 .qiaozhi-scope .j8-pd-alert.is-warm { background: var(--amber-soft); color: var(--amber); }
@@ -532,13 +536,19 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-total span { font-size: 14px; color: var(--muted); }
 .qiaozhi-scope .j8-pd-total strong { font-size: 24px; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; }
 .qiaozhi-scope .j8-pd-total-note { margin-top: -8px; text-align: right; font-size: 11px; color: var(--muted); }
-.qiaozhi-scope .j8-pd-buttons { display: grid; grid-template-columns: minmax(0px, 1fr) minmax(0px, 2fr); gap: 10px; }
-.qiaozhi-scope .j8-pd-cart, .qiaozhi-scope .j8-pd-buy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 48px; border-radius: 13px; font-size: 15px; font-weight: 800; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
+.qiaozhi-scope .j8-pd-buttons { display: grid; grid-template-columns: 44px minmax(0px, 1fr); gap: 8px; align-items: stretch; }
+.qiaozhi-scope .j8-pd-cart, .qiaozhi-scope .j8-pd-buy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border-radius: 12px; font-size: 14px; font-weight: 800; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
 .qiaozhi-scope .j8-pd-cart { border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--accent-strong); }
 .qiaozhi-scope .j8-pd-cart svg { width: 17px; height: 17px; }
+.qiaozhi-scope .j8-pd-cart-icon { width: 44px; height: 44px; padding: 0; display: inline-grid; place-items: center; border: 1px solid var(--accent-line); border-radius: 12px; background: var(--accent-soft); color: var(--accent-strong); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
+.qiaozhi-scope .j8-pd-cart-icon svg { width: 18px; height: 18px; }
+.qiaozhi-scope .j8-pd-cart-icon:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--accent); }
+.qiaozhi-scope .j8-pd-cart-icon:disabled { opacity: 0.45; cursor: not-allowed; }
 .qiaozhi-scope .j8-pd-buy { width: 100%; background: linear-gradient(90deg,var(--accent),var(--accent-strong)); color: var(--on-accent); box-shadow: var(--shadow-primary); }
 .qiaozhi-scope .j8-pd-buy:hover:not(:disabled), .qiaozhi-scope .j8-pd-cart:hover:not(:disabled) { transform: translateY(-1px); }
 .qiaozhi-scope .j8-pd-buy:disabled, .qiaozhi-scope .j8-pd-cart:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.qiaozhi-scope .j8-ic-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .qiaozhi-scope .j8-ic-row { grid-template-columns: 1fr; } }
 .qiaozhi-scope .j8-pd-detail { padding: 24px 28px 28px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
 .qiaozhi-scope .j8-pd-detail > h2 { margin-bottom: 14px; font-size: 18px; font-weight: 900; color: var(--text); }
 .qiaozhi-scope .j8-pd-prose { max-width: none; font-size: 14px; line-height: 1.75; }
@@ -574,7 +584,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-card { grid-template-columns: minmax(0px, 1fr); }
 }
 @media (max-width: 1023px) {
-.qiaozhi-scope .j8-pd-stage, .qiaozhi-scope .j8-pd-sk-block { max-height: 360px; }
+.qiaozhi-scope .j8-pd-stage, .qiaozhi-scope .j8-pd-sk-block { max-height: 260px; }
 }
 @media (max-width: 1023px) {
 .qiaozhi-scope .j8-pd { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
@@ -583,25 +593,22 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-media { padding: 14px; }
 }
 @media (max-width: 640px) {
-.qiaozhi-scope .j8-pd-stage { aspect-ratio: 4 / 3; }
+.qiaozhi-scope .j8-pd-stage { aspect-ratio: 16 / 9; }
 }
 @media (max-width: 640px) {
-.qiaozhi-scope .j8-pd-info { padding: 18px 16px; gap: 14px; }
+.qiaozhi-scope .j8-pd-info { padding: 16px 14px; gap: 12px; }
 }
 @media (max-width: 640px) {
-.qiaozhi-scope .j8-pd-info h1 { font-size: 20px; }
+.qiaozhi-scope .j8-pd-info h1 { font-size: 18px; }
 }
 @media (max-width: 640px) {
-.qiaozhi-scope .j8-pd-price strong { font-size: 30px; }
+.qiaozhi-scope .j8-pd-price strong { font-size: 28px; }
 }
 @media (max-width: 640px) {
 .qiaozhi-scope .j8-pd-promo { min-width: 0px; width: 100%; }
 }
 @media (max-width: 640px) {
-.qiaozhi-scope .j8-pd-skus { grid-template-columns: minmax(0px, 1fr); }
-}
-@media (max-width: 640px) {
-.qiaozhi-scope .j8-pd-buttons { grid-template-columns: 1fr 1.6fr; }
+.qiaozhi-scope .j8-pd-buttons { grid-template-columns: 44px minmax(0px, 1fr); }
 }
 @media (max-width: 640px) {
 .qiaozhi-scope .j8-pd-detail { padding: 18px 16px 20px; }
@@ -610,11 +617,11 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-notice.is-first { margin-top: 0px; padding-top: 0px; border-top: 0px; }
 .qiaozhi-scope .j8-pd-notice > h2 { margin-bottom: 10px; font-size: 18px; font-weight: 900; color: var(--text); }
 .qiaozhi-scope .j8-pd-notice > p { font-size: 14px; line-height: 1.7; color: var(--ui-text-secondary); }
-.qiaozhi-scope .j8-ic { display: grid; gap: 14px; }
-.qiaozhi-scope .j8-ic-field { display: grid; gap: 6px; }
-.qiaozhi-scope .j8-ic-field > label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.qiaozhi-scope .j8-ic { display: grid; gap: 10px; }
+.qiaozhi-scope .j8-ic-field { display: grid; gap: 4px; }
+.qiaozhi-scope .j8-ic-field > label { font-size: 12px; font-weight: 700; color: var(--muted); }
 .qiaozhi-scope .j8-ic-field > label b { margin-left: 3px; color: var(--red); }
-.qiaozhi-scope .j8-ic-field input:not([type="radio"]):not([type="checkbox"]), .qiaozhi-scope .j8-ic-field textarea, .qiaozhi-scope .j8-ic-field select { width: 100%; min-width: 0px; min-height: 46px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-size: 14px; outline: 0px; transition: border-color 0.15s, box-shadow 0.15s; }
+.qiaozhi-scope .j8-ic-field input:not([type="radio"]):not([type="checkbox"]), .qiaozhi-scope .j8-ic-field textarea, .qiaozhi-scope .j8-ic-field select { width: 100%; min-width: 0px; min-height: 42px; padding: 9px 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-size: 14px; outline: 0px; transition: border-color 0.15s, box-shadow 0.15s; }
 .qiaozhi-scope .j8-ic-field textarea { resize: vertical; }
 .qiaozhi-scope .j8-ic-field input:focus, .qiaozhi-scope .j8-ic-field textarea:focus, .qiaozhi-scope .j8-ic-field select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .qiaozhi-scope .j8-ic-field input::placeholder, .qiaozhi-scope .j8-ic-field textarea::placeholder { color: var(--muted); }
@@ -627,11 +634,11 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-ic-hint a { margin-left: 4px; color: var(--accent-strong); font-weight: 700; }
 .qiaozhi-scope .j8-ic-hint.is-ok { margin: 0px; color: var(--accent-strong); }
 .qiaozhi-scope .j8-ic-hint.is-right { margin-top: -10px; text-align: right; }
-.qiaozhi-scope .j8-ic-pay { display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line); }
-.qiaozhi-scope .j8-ic-pay h3 { display: flex; align-items: center; gap: 6px; margin: 0px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.qiaozhi-scope .j8-ic-pay { display: grid; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+.qiaozhi-scope .j8-ic-pay h3 { display: flex; align-items: center; gap: 6px; margin: 0px; font-size: 12px; font-weight: 700; color: var(--muted); }
 .qiaozhi-scope .j8-ic-pay h3 svg { width: 15px; height: 15px; }
 .qiaozhi-scope .j8-ic-channels { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
-.qiaozhi-scope .j8-ic-channel, .qiaozhi-scope .j8-ic-balance { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 10px 12px; text-align: left; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.qiaozhi-scope .j8-ic-channel, .qiaozhi-scope .j8-ic-balance { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 7px 10px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .qiaozhi-scope .j8-ic-channel:hover:not(:disabled), .qiaozhi-scope .j8-ic-balance:hover { border-color: var(--accent-line); }
 .qiaozhi-scope .j8-ic-channel:disabled { opacity: 0.5; cursor: not-allowed; }
 .qiaozhi-scope .j8-ic-channel.is-active, .qiaozhi-scope .j8-ic-balance.is-active { border-color: var(--accent); background: var(--accent-soft); }
@@ -644,9 +651,9 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-ic-balance input { accent-color: var(--accent); width: 16px; height: 16px; }
 .qiaozhi-scope .j8-ic-balance svg { flex: 0 0 auto; width: 20px; height: 20px; color: var(--accent-strong); }
 .qiaozhi-scope .j8-ic-balance em { margin-left: auto; font-size: 11px; font-style: normal; color: var(--amber); text-align: right; }
-.qiaozhi-scope .j8-ic-total { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line); }
-.qiaozhi-scope .j8-ic-total span { font-size: 14px; color: var(--muted); }
-.qiaozhi-scope .j8-ic-total strong { font-size: 24px; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; }
+.qiaozhi-scope .j8-ic-total { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--line); }
+.qiaozhi-scope .j8-ic-total span { font-size: 13px; color: var(--muted); }
+.qiaozhi-scope .j8-ic-total strong { font-size: 20px; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; }
 .qiaozhi-scope .j8-ic-alert { margin: 0px; padding: 10px 12px; border-radius: 12px; font-size: 13px; background: var(--amber-soft); color: var(--amber); }
 .qiaozhi-scope .j8-ic-alert.is-error { background: var(--red-soft); color: var(--red); }
 .qiaozhi-scope .j8-ic-spin { width: 16px; height: 16px; animation: 1s linear 0s infinite normal none running j8-ic-spin; }
