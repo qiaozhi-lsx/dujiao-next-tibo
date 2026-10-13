@@ -1,7 +1,7 @@
 <template>
-  <div class="j8-container">
+  <div ref="rootEl" class="j8-container">
     <div class="tfa-wrap">
-      <div class="tfa-card">
+      <div class="tfa-card j8-reveal is-pending">
         <span class="j8-eyebrow">TWO-FACTOR AUTHENTICATOR</span>
         <h1>{{ t('qiaozhi.tfa.title') }}</h1>
         <p class="tfa-desc">{{ t('qiaozhi.tfa.desc') }}</p>
@@ -48,7 +48,6 @@
                 </svg>
                 <span class="tfa-ring-num">{{ secondsLeft }}</span>
               </div>
-              <span class="tfa-ring-label">{{ t('qiaozhi.tfa.remaining', { seconds: secondsLeft }) }}</span>
             </div>
           </template>
         </div>
@@ -67,9 +66,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Check, ClipboardPaste, Copy } from 'lucide-vue-next'
+import { setupReveal } from './utils/reveal'
 
 const { t } = useI18n()
 
@@ -232,14 +232,26 @@ const copyCode = async () => {
   }
 }
 
+// 入场动画
+const rootEl = ref<HTMLElement | null>(null)
+let cleanupReveal: (() => void) | null = null
+const armReveal = () => {
+  cleanupReveal?.()
+  void nextTick(() => {
+    cleanupReveal = setupReveal(rootEl.value)
+  })
+}
+
 onMounted(() => {
   void refresh(true)
   timer = setInterval(() => void refresh(), 200)
+  armReveal()
 })
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
   if (copyTimer) clearTimeout(copyTimer)
+  cleanupReveal?.()
 })
 </script>
 
@@ -423,7 +435,7 @@ onUnmounted(() => {
 .tfa-ring-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
 .tfa-ring {
@@ -462,12 +474,6 @@ onUnmounted(() => {
   font-weight: 800;
   color: var(--text);
   font-variant-numeric: tabular-nums;
-}
-
-.tfa-ring-label {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .tfa-copy-btn {

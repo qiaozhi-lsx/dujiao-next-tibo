@@ -1,6 +1,6 @@
 {
   "common": {
-    "siteName": "Dujiao-Next",
+    "siteName": "Qiaozhi&Ai",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -114,7 +114,7 @@
   },
   "home": {
     "hero": {
-      "title": "Dujiao-Next",
+      "title": "Qiaozhi&Ai",
       "subtitle": "Professional Products and Services Provider",
       "cta": "Browse Products",
       "badge": "Next Gen Digital Store"
@@ -193,6 +193,7 @@
     "description": "Description",
     "details": "Details",
     "quantity": "Quantity",
+    "quantityAria": "Quantity {count}",
     "notFound": "Product not found",
     "backToProducts": "Back to Products",
     "relatedPosts": "Related Articles",
@@ -261,8 +262,8 @@
   },
   "about": {
     "title": "About Us",
-    "subtitle": "Learn about Dujiao-Next",
-    "introduction": "Dujiao-Next is a professional online studio dedicated to providing high-quality products and services to our customers. Innovation, professionalism, and efficiency are our core values, and we constantly pursue excellence to create value for our customers.",
+    "subtitle": "Learn about Qiaozhi&Ai",
+    "introduction": "Qiaozhi&Ai is a professional online studio dedicated to providing high-quality products and services to our customers. Innovation, professionalism, and efficiency are our core values, and we constantly pursue excellence to create value for our customers.",
     "ourServices": "Our Services",
     "service1": "Premium Product Recommendations & Sales",
     "service2": "Professional Pre-sales Consulting",
