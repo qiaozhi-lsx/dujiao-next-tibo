@@ -22,6 +22,10 @@ func TestInjectInitialConfigEscapesScriptTag(t *testing.T) {
 	if strings.Contains(got, "</script>") && !strings.Contains(got, `<\/script>`) {
 		t.Fatalf("script tag not escaped: %s", got)
 	}
+	// 必须带 data-cfasync="false"，否则 Cloudflare Rocket Loader 会异步化这段 inline script
+	if !strings.Contains(got, `data-cfasync="false"`) {
+		t.Fatalf("expected data-cfasync=\"false\" to opt out of Cloudflare Rocket Loader, got: %s", got)
+	}
 }
 
 // TestInjectIntoHTMLHead 验证 HTML head 中注入了脚本。

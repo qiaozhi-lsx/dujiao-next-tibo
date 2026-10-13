@@ -22,7 +22,9 @@ func renderInitialConfigScript(payload map[string]interface{}) (string, error) {
 	// json.Encoder.Encode 会追加换行符，去掉以便单行嵌入 <script>
 	raw := strings.TrimRight(buf.String(), "\n")
 	safe := strings.ReplaceAll(raw, "</script>", `<\/script>`)
-	return `<script>window.__PUBLIC_CONFIG__=` + safe + `;</script>`, nil
+	// data-cfasync="false" 阻止 Cloudflare Rocket Loader 把这段 inline script 异步化；
+	// 否则 Rocket Loader 会推迟它到 Vue bundle 之后执行，fast-path 读到 undefined，相当于 T4 失效。
+	return `<script data-cfasync="false">window.__PUBLIC_CONFIG__=` + safe + `;</script>`, nil
 }
 
 // injectInitialConfigIntoHTML 把 initial config 脚本插入到 </head> 之前。
