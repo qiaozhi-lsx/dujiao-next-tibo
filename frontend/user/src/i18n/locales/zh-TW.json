@@ -1757,6 +1757,18 @@
       "title": "商品分類",
       "unit": "件"
     },
+    "products": {
+      "hero": {
+        "eyebrow": "SHOP ALL",
+        "title": "一次收齊所有的訂閱好物",
+        "subtitle": "按分類瀏覽，或用搜尋框直達目標商品，付款後憑證即時送達。",
+        "searchPlaceholder": "搜尋商品名稱或關鍵詞..."
+      },
+      "catalog": {
+        "eyebrow": "CATALOG",
+        "unit": "款商品"
+      }
+    },
     "card": {
       "priceFrom": "起",
       "finalPrice": "到手價",
@@ -1770,6 +1782,33 @@
     },
     "footer": {
       "rights": "保留所有權利"
+    },
+    "login": {
+      "eyebrow": "SIGN IN",
+      "subtitle": "歡迎回來，幾秒內完成登入繼續你的訂單。",
+      "noAccountPrefix": "還沒有帳號？",
+      "goRegister": "立即註冊"
+    },
+    "register": {
+      "eyebrow": "JOIN US",
+      "subtitle": "註冊即可自動發貨、隨時查單、同步購物車。",
+      "hasAccountPrefix": "已有帳號？",
+      "goLogin": "直接登入"
+    },
+    "cart": {
+      "eyebrow": "CART",
+      "back": "返回首頁",
+      "emptyHint": "挑一件心儀的，放進購物車再來結算吧。"
+    },
+    "checkout": {
+      "eyebrow": "CHECKOUT",
+      "subtitle": "確認資訊、核對金額，立即建立訂單並前往付款。",
+      "backToCart": "返回購物車",
+      "emptyHint": "您的購物車暫時是空的，先去挑幾件心儀的商品吧。",
+      "sectionItems": "ORDER",
+      "sectionInfo": "DETAILS",
+      "sectionSummary": "SUMMARY",
+      "infoTitle": "填寫訂單資訊"
     },
     "detail": {
       "back": "返回商品",
@@ -1793,6 +1832,11 @@
       "errPassword": "訂單查詢密碼至少 6 位",
       "errChannel": "請選擇付款方式",
       "errSubmit": "下單失敗，請稍後重試"
+    },
+    "payment": {
+      "eyebrow": "PAYMENT",
+      "summaryTitle": "訂單摘要",
+      "scanEyebrow": "SCAN TO PAY"
     },
     "tfa": {
       "title": "動態驗證碼",
