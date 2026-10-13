@@ -324,7 +324,7 @@ onUnmounted(() => {
 .j8-auth-hero h1 {
   margin: 2px 0 0;
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text);
 }

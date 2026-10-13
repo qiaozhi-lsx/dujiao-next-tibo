@@ -56,14 +56,13 @@
           </div>
           <div class="j8-ic-field">
             <label for="j8-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
-            <select
+            <J8Select
               id="j8-wallet-channel"
-              v-model="rechargeForm.channelId"
+              :model-value="rechargeForm.channelId"
+              :items="[{ value: 0, label: t('personalCenter.wallet.channelPlaceholder') }, ...channels.map((channel: any) => ({ value: Number(channel.id), label: String(channel.name) }))]"
               :disabled="!hasChannels || channelLoading || recharging"
-            >
-              <option :value="0">{{ t('personalCenter.wallet.channelPlaceholder') }}</option>
-              <option v-for="channel in channels" :key="channel.id" :value="channel.id">{{ channel.name }}</option>
-            </select>
+              @update:model-value="rechargeForm.channelId = $event as number"
+            />
           </div>
         </div>
 
@@ -183,6 +182,7 @@ import {
   rateToBasisPoints,
 } from '../../../utils/money'
 import J8Button from '../components/J8Button.vue'
+import J8Select from '../components/J8Select.vue'
 import { formatDate, formatMoney, type MePillTone } from './support'
 
 const { t } = useI18n()

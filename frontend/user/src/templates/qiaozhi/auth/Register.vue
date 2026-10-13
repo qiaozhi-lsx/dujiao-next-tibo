@@ -38,15 +38,12 @@
                 :aria-invalid="formValidation.hasError('email') || undefined"
                 @blur="touchRegistrationEmail"
               />
-              <select
+              <J8Select
                 v-model="selectedEmailDomain"
                 class="j8-auth-email-domain"
+                :items="allowedEmailDomains.map((domain: string) => ({ value: domain, label: '@' + domain }))"
                 @change="touchRegistrationEmail"
-              >
-                <option v-for="domain in allowedEmailDomains" :key="domain" :value="domain">
-                  @{{ domain }}
-                </option>
-              </select>
+              />
             </div>
             <input
               v-else
@@ -204,6 +201,7 @@ import ImageCaptcha from '../../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../../components/captcha/TurnstileCaptcha.vue'
 import { useRegister } from '../../../composables/useRegister'
 import { setupReveal } from '../utils/reveal'
+import J8Select from '../components/J8Select.vue'
 
 const { t } = useI18n()
 
@@ -265,7 +263,7 @@ onUnmounted(() => {
 .j8-auth-hero h1 {
   margin: 2px 0 0;
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text);
 }

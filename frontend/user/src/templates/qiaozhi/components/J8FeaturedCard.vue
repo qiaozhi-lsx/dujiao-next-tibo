@@ -253,7 +253,7 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 
 .tool-letter {
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 800;
   color: var(--accent-strong);
 }
 </style>

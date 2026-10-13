@@ -305,7 +305,7 @@ onUnmounted(() => {
 .j8-cart-summary h2 {
   margin: 0;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
 }
 
