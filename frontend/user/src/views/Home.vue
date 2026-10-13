@@ -508,7 +508,7 @@ const showAnnouncementIfNeeded = () => {
 }
 
 onMounted(async () => {
-  await appStore.loadConfig()
+  if (!appStore.config) void appStore.loadConfig()
   if (templateMode.value === 'list') {
     await Promise.all([loadBanners(), listInitialize()])
   } else {

@@ -60,10 +60,8 @@ export function useAbout() {
   const hasContactLinks = computed(() => !!(contactConfig.value?.telegram || contactConfig.value?.whatsapp || contactConfig.value?.email || contactConfig.value?.support_url))
   const hasContact = computed(() => contactTitle.value !== '' || contactText.value !== '' || hasContactLinks.value)
 
-  onMounted(async () => {
-    if (!appStore.config) {
-      await appStore.loadConfig()
-    }
+  onMounted(() => {
+    if (!appStore.config) void appStore.loadConfig()
   })
 
   return {

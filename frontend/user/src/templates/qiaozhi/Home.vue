@@ -249,10 +249,10 @@ const armReveal = () => {
 }
 
 onMounted(async () => {
-  await appStore.loadConfig()
+  if (!appStore.config) void appStore.loadConfig()
   try {
     const [prodRes, catRes] = await Promise.all([
-      productAPI.list({ page: 1, page_size: 100 }),
+      productAPI.list({ page: 1, page_size: 20 }),
       categoryAPI.list(),
     ])
     allProducts.value = prodRes.data.data || []

@@ -466,7 +466,7 @@ const goBack = () => {
   else router.push('/')
 }
 
-onMounted(async () => {
-  await appStore.loadConfig()
+onMounted(() => {
+  if (!appStore.config) void appStore.loadConfig()
 })
 </script>
