@@ -1210,11 +1210,11 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 }
 
 /* ---------- Arc 按钮语言（参考 uiarc.dev Button）：全站胶囊化 + 按压缩放 ---------- */
-.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share, .j8-pd-back-link) {
+.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-me-act, .j8-me-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share, .j8-pd-back-link) {
   border-radius: var(--r-pill);
   transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
-.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share, .j8-pd-back-link):not(:disabled):active {
+.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-me-act, .j8-me-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share, .j8-pd-back-link):not(:disabled):active {
   transform: scale(0.97);
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1222,3 +1222,126 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 /* 按钮光标：原生 button 默认是箭头，统一对齐成小手；禁用态 not-allowed */
 .qiaozhi-scope button { cursor: pointer; }
 .qiaozhi-scope button:disabled { cursor: not-allowed; }
+
+/* ---------- 个人中心（/me/* · j8-me-* 壳与面板） ---------- */
+.qiaozhi-scope .j8-me { width: min(1180px, 94vw); margin: 0 auto; padding: 26px 0 64px; display: flex; flex-direction: column; gap: 16px; }
+.qiaozhi-scope .j8-me-profile { display: flex; align-items: center; justify-content: space-between; gap: 14px 18px; flex-wrap: wrap; padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
+.qiaozhi-scope .j8-me-ident { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.qiaozhi-scope .j8-me-avatar { flex: 0 0 auto; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px; background: var(--accent-soft); color: var(--accent-strong); font-size: 20px; font-weight: 900; }
+.qiaozhi-scope .j8-me-idtext { min-width: 0; }
+.qiaozhi-scope .j8-me-name { font-size: 19px; font-weight: 900; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qiaozhi-scope .j8-me-mail { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qiaozhi-scope .j8-me-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qiaozhi-scope .j8-me-pill { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.qiaozhi-scope .j8-me-pill svg { width: 13px; height: 13px; }
+.qiaozhi-scope .j8-me-pill img { width: 13px; height: 13px; object-fit: contain; }
+.qiaozhi-scope .j8-me-pill.is-ok { background: var(--accent-soft); color: var(--accent-strong); }
+.qiaozhi-scope .j8-me-pill.is-warn { background: var(--amber-soft); color: var(--amber); }
+.qiaozhi-scope .j8-me-pill.is-danger { background: var(--red-soft); color: var(--red); }
+.qiaozhi-scope .j8-me-pill.is-info { background: var(--blue-soft); color: var(--blue); }
+.qiaozhi-scope .j8-me-alert { margin: 0; padding: 10px 13px; border-radius: 12px; background: var(--red-soft); color: var(--red); font-size: 12.5px; font-weight: 650; }
+.qiaozhi-scope .j8-me-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 16px; align-items: start; }
+.qiaozhi-scope .j8-me-nav { position: sticky; top: calc(var(--site-header-height) + 16px); padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
+.qiaozhi-scope .j8-me-content { min-width: 0; }
+.qiaozhi-scope .j8-me-panel { display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 1023px) {
+  .qiaozhi-scope .j8-me-layout { grid-template-columns: 1fr; }
+  .qiaozhi-scope .j8-me-nav { position: static; padding: 6px; }
+}
+
+/* Tabs 导航（J8Tabs）：滑动高亮 + 溢出箭头 */
+.qiaozhi-scope .j8-tabs { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.qiaozhi-scope .j8-tabs-viewport { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.qiaozhi-scope .j8-tabs-viewport::-webkit-scrollbar { display: none; }
+.qiaozhi-scope .j8-tabs-list { position: relative; display: flex; gap: 2px; width: 100%; }
+.qiaozhi-scope .j8-tabs[data-orientation="vertical"] .j8-tabs-list { flex-direction: column; }
+.qiaozhi-scope .j8-tabs[data-orientation="horizontal"] .j8-tabs-list { width: max-content; }
+.qiaozhi-scope .j8-tabs-tab { position: relative; z-index: 1; flex: 1 0 auto; display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 13px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); font-size: 13px; font-weight: 750; white-space: nowrap; text-align: left; transition: color 0.18s; }
+.qiaozhi-scope .j8-tabs[data-orientation="horizontal"] .j8-tabs-tab { flex: 0 0 auto; }
+.qiaozhi-scope .j8-tabs-tab:hover { color: var(--text); }
+.qiaozhi-scope .j8-tabs-tab.is-active { color: var(--on-accent); }
+.qiaozhi-scope .j8-tabs-tab svg { flex: 0 0 auto; width: 16px; height: 16px; }
+.qiaozhi-scope .j8-tabs-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.qiaozhi-scope .j8-tabs-glow { position: absolute; top: 0; left: 0; z-index: 0; width: 0; height: 0; border-radius: var(--r-pill); background: var(--accent); transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), width 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), height 0.42s cubic-bezier(0.34, 1.45, 0.64, 1); }
+.qiaozhi-scope .j8-tabs-glow.is-instant { transition: none; }
+.qiaozhi-scope .j8-tabs-arrow { flex: 0 0 auto; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--muted); transition: border-color 0.15s, color 0.15s, opacity 0.15s; }
+.qiaozhi-scope .j8-tabs-arrow:hover:not(:disabled) { border-color: var(--accent-line); color: var(--text); }
+.qiaozhi-scope .j8-tabs-arrow:disabled { opacity: 0.35; }
+.qiaozhi-scope .j8-tabs-arrow svg { width: 15px; height: 15px; }
+@media (prefers-reduced-motion: reduce) {
+  .qiaozhi-scope .j8-tabs-glow, .qiaozhi-scope .j8-seg-glow { transition: none; }
+}
+
+/* 分段控件（J8Segment）：黑滑块滑动 */
+.qiaozhi-scope .j8-seg { position: relative; display: flex; padding: 3px; border-radius: var(--r-pill); background: var(--surface-3); }
+.qiaozhi-scope .j8-seg button { position: relative; z-index: 1; flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 800; white-space: nowrap; transition: color 0.18s; }
+.qiaozhi-scope .j8-seg button:hover { color: var(--text); }
+.qiaozhi-scope .j8-seg button.is-active,
+.qiaozhi-scope .j8-seg button.is-active:hover { color: var(--on-accent); }
+.qiaozhi-scope .j8-seg-glow { position: absolute; top: 0; left: 0; z-index: 0; width: 0; height: 0; border-radius: var(--r-pill); background: var(--accent); transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), width 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), height 0.42s cubic-bezier(0.34, 1.45, 0.64, 1); }
+.qiaozhi-scope .j8-seg-glow.is-instant { transition: none; }
+
+/* 面板卡片 / 统计 / 行 / 进度（j8-me-*） */
+.qiaozhi-scope .j8-me-card { padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
+.qiaozhi-scope .j8-me-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.qiaozhi-scope .j8-me-card-head > div { min-width: 0; }
+.qiaozhi-scope .j8-me-card-head h2 { font-size: 15.5px; font-weight: 900; letter-spacing: -0.01em; color: var(--text); }
+.qiaozhi-scope .j8-me-card-head small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.qiaozhi-scope .j8-me-card-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qiaozhi-scope .j8-me-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.qiaozhi-scope .j8-me-stat { display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 14px; background: var(--surface-2); min-width: 0; }
+.qiaozhi-scope .j8-me-stat b { display: flex; align-items: center; gap: 6px; font-size: 19px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--text); min-width: 0; }
+.qiaozhi-scope .j8-me-stat b img { width: 18px; height: 18px; object-fit: contain; }
+.qiaozhi-scope .j8-me-stat b .j8-me-stat-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qiaozhi-scope .j8-me-stat span { font-size: 11.5px; font-weight: 650; color: var(--muted); }
+@media (max-width: 900px) {
+  .qiaozhi-scope .j8-me-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.qiaozhi-scope .j8-me-rows { display: flex; flex-direction: column; gap: 8px; }
+.qiaozhi-scope .j8-me-row { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: border-color 0.15s, box-shadow 0.15s; }
+.qiaozhi-scope .j8-me-row:hover { border-color: var(--line-strong); box-shadow: var(--shadow-soft); }
+.qiaozhi-scope .j8-me-row-main { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.qiaozhi-scope .j8-me-row-main b { font-size: 13.5px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.qiaozhi-scope .j8-me-row-main small { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.qiaozhi-scope .j8-me-row-side { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qiaozhi-scope .j8-me-price { font-size: 19px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+.qiaozhi-scope .j8-me-discounts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.qiaozhi-scope .j8-me-act { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 750; white-space: nowrap; text-decoration: none; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+.qiaozhi-scope .j8-me-act:hover { background: var(--surface-2); border-color: var(--accent-line); }
+.qiaozhi-scope .j8-me-act.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.qiaozhi-scope .j8-me-act.is-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.qiaozhi-scope .j8-me-act:disabled { opacity: 0.5; }
+.qiaozhi-scope .j8-me-act svg { width: 14px; height: 14px; }
+.qiaozhi-scope .j8-me-pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 4px; }
+.qiaozhi-scope .j8-me-pager button { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--text); transition: background 0.15s; }
+.qiaozhi-scope .j8-me-pager button:hover:not(:disabled) { background: var(--surface-2); }
+.qiaozhi-scope .j8-me-pager button:disabled { opacity: 0.4; }
+.qiaozhi-scope .j8-me-pager button svg { width: 15px; height: 15px; }
+.qiaozhi-scope .j8-me-pager span { font-size: 12.5px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.qiaozhi-scope .j8-me-progress { display: flex; flex-direction: column; gap: 6px; }
+.qiaozhi-scope .j8-me-progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.qiaozhi-scope .j8-me-progress-head b { color: var(--text); font-variant-numeric: tabular-nums; }
+.qiaozhi-scope .j8-me-progress-track { height: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.qiaozhi-scope .j8-me-progress-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+.qiaozhi-scope .j8-me-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) 190px auto; gap: 10px; align-items: end; }
+.qiaozhi-scope .j8-me-toolbar-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .qiaozhi-scope .j8-me-toolbar { grid-template-columns: 1fr; }
+}
+.qiaozhi-scope .j8-me-hint { margin: 0; font-size: 12px; color: var(--muted); }
+.qiaozhi-scope .j8-me-kv { display: grid; gap: 8px; }
+.qiaozhi-scope .j8-me-kv-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 12.5px; }
+.qiaozhi-scope .j8-me-kv-row > span { color: var(--muted); white-space: nowrap; }
+.qiaozhi-scope .j8-me-kv-row > b { color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right; min-width: 0; }
+.qiaozhi-scope .j8-me-level-when { display: flex; flex-direction: column; gap: 4px; }
+
+/* 面板切换过渡（方向滑动） */
+.j8-me-fwd-enter-active { transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.j8-me-fwd-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.j8-me-fwd-enter-from { opacity: 0; transform: translateX(12px); }
+.j8-me-fwd-leave-to { opacity: 0; transform: translateX(-8px); }
+.j8-me-back-enter-active { transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.j8-me-back-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.j8-me-back-enter-from { opacity: 0; transform: translateX(-12px); }
+.j8-me-back-leave-to { opacity: 0; transform: translateX(8px); }
+.qiaozhi-scope .j8-me-sk { height: 64px; border-radius: 14px; background: var(--surface-3); animation: j8-pd-pulse 1.4s ease-in-out infinite; }

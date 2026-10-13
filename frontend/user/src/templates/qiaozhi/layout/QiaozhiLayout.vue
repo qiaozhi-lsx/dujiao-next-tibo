@@ -35,7 +35,7 @@
         <RouterLink v-if="aboutEnabled" to="/about" :class="{ 'is-active': route.path === '/about' }">
           <Info />{{ t('qiaozhi.nav.about') }}
         </RouterLink>
-        <RouterLink :to="accountPath" :class="{ 'is-active': route.path.startsWith('/me') || route.path.startsWith('/auth') }">
+        <RouterLink :to="accountPath" :class="{ 'is-active': isAccountNav }">
           <User />{{ t('qiaozhi.nav.account') }}
         </RouterLink>
       </nav>
@@ -145,7 +145,7 @@
       <RouterLink to="/cart"><ShoppingCart /><span>{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="j8-cart-count">{{ cartCount }}</span></RouterLink>
       <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }"><Megaphone /><span>{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
       <RouterLink v-else to="/2fa" :class="{ 'is-active': route.path === '/2fa' }"><ShieldCheck /><span>{{ t('qiaozhi.nav.tfa') }}</span></RouterLink>
-      <RouterLink :to="accountPath" :class="{ 'is-active': route.path.startsWith('/me') || route.path.startsWith('/auth') }"><User /><span>{{ t('qiaozhi.nav.account') }}</span></RouterLink>
+      <RouterLink :to="accountPath" :class="{ 'is-active': isAccountNav }"><User /><span>{{ t('qiaozhi.nav.account') }}</span></RouterLink>
     </nav>
 
     <!-- 回到顶部 -->
@@ -206,6 +206,8 @@ const brandLogo = computed(() => {
 
 const isProductPage = computed(() => route.name === 'product-detail')
 const ordersPath = computed(() => (userAuthStore.isAuthenticated ? '/me/orders' : '/guest/orders'))
+// 查订单拥有 /me/orders，个人中心拥有其余 /me/* 与 /auth（避免同时高亮两项）
+const isAccountNav = computed(() => (route.path.startsWith('/me') && !route.path.startsWith('/me/orders')) || route.path.startsWith('/auth'))
 const accountPath = computed(() => (userAuthStore.isAuthenticated ? '/me' : '/auth/login'))
 const cartCount = computed(() => cartStore.totalItems)
 
