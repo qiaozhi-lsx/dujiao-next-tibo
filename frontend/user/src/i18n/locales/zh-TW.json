@@ -1705,6 +1705,7 @@
     "empty": "暫無訂單紀錄",
     "emptyOrderNo": "未找到匹配訂單",
     "viewDetails": "查看詳情",
+    "moreItems": "等 {count} 件",
     "payNow": "去支付",
     "prevPage": "上一頁",
     "nextPage": "下一頁",

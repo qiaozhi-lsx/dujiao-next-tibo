@@ -6,10 +6,6 @@
         <ArrowLeft />
         {{ t('qiaozhi.orderDetail.backToOrders') }}
       </RouterLink>
-      <RouterLink class="j8-btn-primary" to="/">
-        {{ t('qiaozhi.orderDetail.backToShop') }}
-        <ArrowRight />
-      </RouterLink>
     </div>
 
     <!-- 标题 -->
@@ -122,6 +118,7 @@
               {{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}
             </button>
             <button
+              v-if="isFulfillmentTruncated(singleFulfillment.fulfillment)"
               type="button"
               class="j8-order-btn"
               :disabled="fulfillmentDownloading"
@@ -157,6 +154,7 @@
               {{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}
             </button>
             <button
+              v-if="isFulfillmentTruncated(unit.fulfillment)"
               type="button"
               class="j8-order-btn"
               :disabled="fulfillmentDownloading"
@@ -377,12 +375,13 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  AlertTriangle, ArrowLeft, ArrowRight, Check, Clock, Copy, Download,
+  AlertTriangle, ArrowLeft, Check, Clock, Copy, Download,
   Hourglass, Image as ImageIcon, Info, PackageOpen, X,
 } from 'lucide-vue-next'
 import { useAppStore } from '../../stores/app'
 import { useGuestOrderDetail } from '../../composables/useGuestOrderDetail'
 import { setupReveal } from './utils/reveal'
+import { buildDeliveryUnits, type DeliveryUnit } from './utils/deliveryUnits'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -399,49 +398,7 @@ const {
   fulfillmentCopied, handleCopyFulfillment,
 } = useGuestOrderDetail()
 
-interface DeliveryUnit {
-  key: string
-  orderNo: string
-  orderAmount: string | undefined
-  currency: string
-  status: string | null
-  isChild: boolean
-  items: any[]
-  fulfillment: any | null
-}
-
-const deliveryUnits = computed<DeliveryUnit[]>(() => {
-  const o = order.value
-  if (!o) return []
-  const units: DeliveryUnit[] = []
-  const children = Array.isArray(o.children) ? o.children : []
-  for (const child of children) {
-    units.push({
-      key: `child-${String(child?.id ?? child?.order_no ?? units.length)}`,
-      orderNo: String(child?.order_no || o.order_no || ''),
-      orderAmount: child?.total_amount ?? undefined,
-      currency: child?.currency || o.currency || '',
-      status: child ? resolvedChildStatus(child) : null,
-      isChild: true,
-      items: Array.isArray(child?.items) ? child.items : [],
-      fulfillment: child?.fulfillment || null,
-    })
-  }
-  const items = Array.isArray(o.items) ? o.items : []
-  if (!units.length || items.length || o.fulfillment) {
-    units.push({
-      key: 'main',
-      orderNo: String(o.order_no || ''),
-      orderAmount: undefined,
-      currency: o.currency || '',
-      status: o.status || null,
-      isChild: false,
-      items,
-      fulfillment: o.fulfillment || null,
-    })
-  }
-  return units
-})
+const deliveryUnits = computed<DeliveryUnit[]>(() => buildDeliveryUnits(order.value, resolvedChildStatus))
 
 /** 单单元（无子订单或多交付）时，卡头直接放复制 / 下载按钮。 */
 const singleFulfillment = computed<{ orderNo: string; fulfillment: any } | null>(() => {

@@ -1658,6 +1658,7 @@
     "empty": "暂无订单记录",
     "emptyOrderNo": "未找到匹配订单",
     "viewDetails": "查看详情",
+    "moreItems": "等 {count} 件",
     "payNow": "去支付",
     "prevPage": "上一页",
     "nextPage": "下一页",
