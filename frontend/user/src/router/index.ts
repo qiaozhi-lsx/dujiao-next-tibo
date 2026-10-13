@@ -338,9 +338,10 @@ router.beforeEach(async (to, _from, next) => {
     const appStore = useAppStore()
     void captureAffiliateFromRoute(to)
 
-    // Ensure config is loaded before checking template mode
+    // Fire-and-forget config load: 不等 config 返回就放行路由挂载，避免 RTT 阻塞首帧；
+    // 组件按需从 appStore.config?.xxx 响应式读取，getActiveTemplate() 在 config=null 时回落 classic。
     if (!appStore.config) {
-        await appStore.loadConfig()
+        void appStore.loadConfig()
     }
 
     if (to.meta.requiresUserAuth) {
