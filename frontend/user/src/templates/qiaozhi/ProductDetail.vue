@@ -58,7 +58,7 @@
           <!-- 规格 -->
           <div v-if="plans.length" class="j8-pd-field">
             <label>{{ t('qiaozhi.detail.spec') }}</label>
-            <div class="j8-pd-skus" :class="{ 'is-single': plans.length === 1 }">
+            <div class="j8-pd-skus">
               <button
                 v-for="plan in plans"
                 :key="plan.id"
@@ -88,38 +88,45 @@
             </div>
           </div>
 
-          <p v-if="pitchLine" class="j8-pd-desc">{{ pitchLine }}</p>
+          <template v-if="pitchLine">
+            <p class="j8-pd-desc" :class="{ 'j8-pd-desc--clamp': !descExpanded }">{{ pitchLine }}</p>
+            <button type="button" class="j8-pd-desc-toggle" @click="descExpanded = !descExpanded">
+              {{ descExpanded ? t('qiaozhi.detail.descCollapse') : t('qiaozhi.detail.descExpand') }}
+            </button>
+          </template>
 
           <!-- 内嵌下单 -->
           <div class="j8-pd-actions">
             <form class="j8-ic" novalidate @submit.prevent="submitOrder">
               <!-- 游客字段 -->
               <template v-if="!userAuthStore.isAuthenticated">
-                <div class="j8-ic-field">
-                  <label for="j8-ic-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
-                  <input
-                    id="j8-ic-email"
-                    v-model="email"
-                    type="email"
-                    autocomplete="email"
-                    :placeholder="t('qiaozhi.detail.emailPlaceholder')"
-                    :aria-invalid="!!fieldErrors.email"
-                    :aria-describedby="fieldErrors.email ? 'j8-ic-email-err' : undefined"
-                  />
-                  <p v-if="fieldErrors.email" id="j8-ic-email-err" class="j8-ic-error">{{ fieldErrors.email }}</p>
-                </div>
-                <div class="j8-ic-field">
-                  <label for="j8-ic-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
-                  <input
-                    id="j8-ic-password"
-                    v-model="orderPassword"
-                    type="password"
-                    autocomplete="new-password"
-                    :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
-                    :aria-invalid="!!fieldErrors.password"
-                    :aria-describedby="fieldErrors.password ? 'j8-ic-password-err' : undefined"
-                  />
-                  <p v-if="fieldErrors.password" id="j8-ic-password-err" class="j8-ic-error">{{ fieldErrors.password }}</p>
+                <div class="j8-ic-row">
+                  <div class="j8-ic-field">
+                    <label for="j8-ic-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
+                    <input
+                      id="j8-ic-email"
+                      v-model="email"
+                      type="email"
+                      autocomplete="email"
+                      :placeholder="t('qiaozhi.detail.emailPlaceholder')"
+                      :aria-invalid="!!fieldErrors.email"
+                      :aria-describedby="fieldErrors.email ? 'j8-ic-email-err' : undefined"
+                    />
+                    <p v-if="fieldErrors.email" id="j8-ic-email-err" class="j8-ic-error">{{ fieldErrors.email }}</p>
+                  </div>
+                  <div class="j8-ic-field">
+                    <label for="j8-ic-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
+                    <input
+                      id="j8-ic-password"
+                      v-model="orderPassword"
+                      type="password"
+                      autocomplete="new-password"
+                      :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
+                      :aria-invalid="!!fieldErrors.password"
+                      :aria-describedby="fieldErrors.password ? 'j8-ic-password-err' : undefined"
+                    />
+                    <p v-if="fieldErrors.password" id="j8-ic-password-err" class="j8-ic-error">{{ fieldErrors.password }}</p>
+                  </div>
                 </div>
                 <div v-if="captchaProvider === 'image'" class="j8-ic-field">
                   <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
@@ -167,8 +174,15 @@
               <p v-else-if="cannotPurchaseReason" class="j8-ic-alert" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="j8-pd-buttons">
-                <button type="button" class="j8-pd-cart" :disabled="!canPurchase" @click="onAddToCart">
-                  <ShoppingCart />{{ t('productDetail.addToCart') }}
+                <button
+                  type="button"
+                  class="j8-pd-cart-icon"
+                  :disabled="!canPurchase"
+                  :aria-label="t('productDetail.addToCart')"
+                  :title="t('productDetail.addToCart')"
+                  @click="onAddToCart"
+                >
+                  <ShoppingCart />
                 </button>
                 <button type="submit" class="j8-pd-buy" :disabled="!canPurchase || submitting">
                   <Loader2 v-if="submitting" class="j8-ic-spin" />
@@ -315,6 +329,7 @@ const pitchLine = computed(() => {
   if (!raw) return ''
   return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)
 })
+const descExpanded = ref(false)
 
 // 详情 HTML
 const detailHtml = computed(() => {

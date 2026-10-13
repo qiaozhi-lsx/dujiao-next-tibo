@@ -1831,7 +1831,9 @@
       "errEmail": "请填写正确的电子邮箱",
       "errPassword": "订单查询密码至少 6 位",
       "errChannel": "请选择支付方式",
-      "errSubmit": "下单失败，请稍后重试"
+      "errSubmit": "下单失败，请稍后重试",
+      "descExpand": "展开",
+      "descCollapse": "收起"
     },
     "payment": {
       "eyebrow": "PAYMENT",
