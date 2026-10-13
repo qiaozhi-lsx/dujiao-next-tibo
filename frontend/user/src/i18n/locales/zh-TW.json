@@ -1749,6 +1749,14 @@
       "share": "分享本站",
       "shared": "已複製"
     },
+    "search": {
+      "label": "搜尋商品",
+      "emptyTitle": "沒有找到「{query}」相關商品",
+      "emptyHint": "換個更短的關鍵詞試試",
+      "results": "{count} 個結果",
+      "groupProducts": "商品",
+      "clear": "清除"
+    },
     "featured": {
       "title": "為你精選",
       "unit": "個商品",

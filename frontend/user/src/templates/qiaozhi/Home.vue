@@ -11,18 +11,18 @@
       </div>
       <p class="j8-shortlink">{{ t('qiaozhi.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
       <div class="j8-hero-actions">
-        <label class="j8-search" role="search">
-          <Search />
-          <input
-            v-model="searchQuery"
-            type="search"
-            :placeholder="t('qiaozhi.hero.searchPlaceholder')"
-            :aria-label="t('products.searchLabel')"
-          />
-          <button v-if="searchQuery" type="button" class="j8-search-clear" :aria-label="t('products.clearFilters')" @click="searchQuery = ''">
-            <X />
-          </button>
-        </label>
+        <J8Search
+          v-model="searchQuery"
+          :items="searchItems"
+          :label="t('qiaozhi.search.label')"
+          :placeholder="t('qiaozhi.hero.searchPlaceholder')"
+          :empty-title="(q) => t('qiaozhi.search.emptyTitle', { query: q })"
+          :empty-hint="t('qiaozhi.search.emptyHint')"
+          :results-text="(n) => t('qiaozhi.search.results', { count: n })"
+          :group-label="t('qiaozhi.search.groupProducts')"
+          :clear-label="t('qiaozhi.search.clear')"
+          @select="onSearchSelect"
+        />
         <button type="button" class="j8-share" @click="shareSite">
           <Share2 />
           {{ shared ? t('qiaozhi.hero.shared') : t('qiaozhi.hero.share') }}
@@ -97,8 +97,9 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { PackageOpen, Search, Share2, X } from 'lucide-vue-next'
+import { PackageOpen, Share2 } from 'lucide-vue-next'
 import { categoryAPI, productAPI } from '../../api'
 import { useAppStore } from '../../stores/app'
 import { useLocalized } from '../../composables/useProduct'
@@ -110,10 +111,13 @@ import AnnouncementModal from '../../components/AnnouncementModal.vue'
 import J8FeaturedCard from './components/J8FeaturedCard.vue'
 import J8ProductCard from './components/J8ProductCard.vue'
 import J8CategoryPanel, { type PanelCategory } from './components/J8CategoryPanel.vue'
+import J8Search from './components/J8Search.vue'
+import type { SearchableItem } from './utils/searchRank'
 import { setupReveal } from './utils/reveal'
 import { useQiaozhiPrice } from './utils/price'
 
 const { t } = useI18n()
+const router = useRouter()
 const appStore = useAppStore()
 const { getLocalizedText } = useLocalized()
 const { format: formatPrice } = useQiaozhiPrice()
@@ -125,6 +129,20 @@ const allCategories = ref<any[]>([])
 const selectedCategory = ref<number | null>(null)
 const searchQuery = ref('')
 const shared = ref(false)
+
+// ==================== 展开式搜索 ====================
+const searchItems = computed<SearchableItem[]>(() => allProducts.value.map((p: any) => ({
+  id: p.id,
+  slug: String(p.slug || ''),
+  title: getLocalizedText(p.title),
+  meta: formatPrice(p.price_amount),
+  keywords: [String(p.slug || ''), String(p.id ?? '')],
+})))
+
+const onSearchSelect = (item: SearchableItem) => {
+  const slug = String(item.slug || '')
+  if (slug) void router.push(`/products/${slug}`)
+}
 
 let cleanupReveal: (() => void) | null = null
 let shareTimer: ReturnType<typeof setTimeout> | null = null

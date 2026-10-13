@@ -1749,6 +1749,14 @@
       "share": "Share",
       "shared": "Copied"
     },
+    "search": {
+      "label": "Search products",
+      "emptyTitle": "No results for “{query}”",
+      "emptyHint": "Try a shorter keyword.",
+      "results": "{count} results",
+      "groupProducts": "Products",
+      "clear": "Clear"
+    },
     "featured": {
       "title": "Picked for you",
       "unit": "items",

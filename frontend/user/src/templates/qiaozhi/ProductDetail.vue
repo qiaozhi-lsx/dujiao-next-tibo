@@ -17,22 +17,24 @@
 
     <template v-else-if="product">
       <div class="j8-pd-card">
-        <!-- 左：媒体区 -->
+        <!-- 左：媒体区（粘性居中，滚动长表单时图片保持可见） -->
         <div class="j8-pd-media">
-          <div class="j8-pd-stage">
-            <img v-if="currentImage" :src="currentImage" :alt="title" />
-            <span v-else class="j8-pd-logo j8-brand-icon"><b>{{ title.slice(0, 1) }}</b></span>
-          </div>
-          <div v-if="gallery.length > 1" class="j8-pd-thumbs">
-            <button
-              v-for="(img, i) in gallery"
-              :key="i"
-              type="button"
-              :class="{ 'is-active': i === currentIndex }"
-              @click="currentIndex = i"
-            >
-              <img :src="img" :alt="`${i + 1}`" loading="lazy" />
-            </button>
+          <div class="j8-pd-media-sticky">
+            <div class="j8-pd-stage">
+              <img v-if="currentImage" :src="currentImage" :alt="title" />
+              <span v-else class="j8-pd-logo j8-brand-icon"><b>{{ title.slice(0, 1) }}</b></span>
+            </div>
+            <div v-if="gallery.length > 1" class="j8-pd-thumbs">
+              <button
+                v-for="(img, i) in gallery"
+                :key="i"
+                type="button"
+                :class="{ 'is-active': i === currentIndex }"
+                @click="currentIndex = i"
+              >
+                <img :src="img" :alt="`${i + 1}`" loading="lazy" />
+              </button>
+            </div>
           </div>
         </div>
 
