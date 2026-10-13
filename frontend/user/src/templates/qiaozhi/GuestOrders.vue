@@ -44,30 +44,47 @@
     <!-- 订单列表 -->
     <div v-else class="j8-orders-list">
       <article
-        v-for="order in orders"
-        :key="order.order_no"
+        v-for="row in rows"
+        :key="row.order.order_no"
         class="j8-orders-item j8-reveal is-pending"
       >
+        <div v-if="row.product" class="j8-orders-prod">
+          <span class="j8-orders-thumb">
+            <img
+              v-if="row.product.image"
+              :src="row.product.image"
+              :alt="row.product.title"
+              loading="lazy"
+              decoding="async"
+            />
+            <template v-else>{{ row.product.initial }}</template>
+          </span>
+          <b class="j8-orders-pname">{{ row.product.title }}</b>
+          <span v-if="row.product.extraCount" class="j8-orders-pextra">
+            {{ t('guestOrders.moreItems', { count: row.product.extraCount }) }}
+          </span>
+          <span v-else-if="row.product.quantity > 1" class="j8-orders-pqty">× {{ row.product.quantity }}</span>
+        </div>
         <div class="j8-orders-main">
-          <b class="j8-orders-sn">{{ order.order_no }}</b>
-          <span class="j8-orders-time">{{ formatDate(order.created_at) }}</span>
+          <b class="j8-orders-sn">{{ row.order.order_no }}</b>
+          <span class="j8-orders-time">{{ formatDate(row.order.created_at) }}</span>
         </div>
         <div class="j8-orders-amt">
-          <b>{{ formatMoney(order.total_amount, order.currency) }}</b>
-          <small v-if="discountText(order)" class="is-rose">{{ discountText(order) }}</small>
+          <b>{{ formatMoney(row.order.total_amount, row.order.currency) }}</b>
+          <small v-if="discountText(row.order)" class="is-rose">{{ discountText(row.order) }}</small>
         </div>
         <div class="j8-orders-acts">
-          <span class="j8-order-badge" :class="toneClass(order.status)">{{ statusLabel(order.status) }}</span>
+          <span class="j8-order-badge" :class="toneClass(row.order.status)">{{ statusLabel(row.order.status) }}</span>
           <RouterLink
             class="j8-orders-act"
-            :to="{ name: 'guest-order-detail', params: { order_no: order.order_no } }"
+            :to="{ name: 'guest-order-detail', params: { order_no: row.order.order_no } }"
           >
             {{ t('guestOrders.viewDetails') }}
           </RouterLink>
           <RouterLink
-            v-if="order.status === 'pending_payment'"
+            v-if="row.order.status === 'pending_payment'"
             class="j8-orders-act is-primary"
-            :to="`/pay?guest=1&order_no=${encodeURIComponent(order.order_no)}`"
+            :to="`/pay?guest=1&order_no=${encodeURIComponent(row.order.order_no)}`"
           >
             {{ t('guestOrders.payNow') }}
           </RouterLink>
@@ -99,13 +116,17 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronLeft, ChevronRight, PackageOpen, Search } from 'lucide-vue-next'
+import { useAppStore } from '../../stores/app'
 import { useGuestOrders } from '../../composables/useGuestOrders'
 import { setupReveal } from './utils/reveal'
+import { getImageUrl } from '../../utils/image'
+import { getLocalizedText } from '../../utils/resellerSiteConfig'
 
 const { t } = useI18n()
+const appStore = useAppStore()
 
 const {
   savedAuth, email, orderPassword, orderNo, loading, error, orders, pagination,
@@ -132,6 +153,34 @@ const discountText = (order: Record<string, any>) => {
   if (total <= 0) return ''
   return formatDiscountMoney(total.toFixed(2), order?.currency)
 }
+
+interface OrderProductBrief {
+  image: string
+  initial: string
+  title: string
+  quantity: number
+  extraCount: number
+}
+
+/** 列表行商品摘要：缩略图 + 首个商品名 + 数量 / 其余件数提示。 */
+const resolveOrderProduct = (order: Record<string, any>): OrderProductBrief | null => {
+  const items = Array.isArray(order?.items) ? order.items : []
+  const first = items[0]
+  if (!first) return null
+  const title = getLocalizedText(first.title, appStore.locale)
+  return {
+    image: getImageUrl(String(first?.sku_snapshot?.image || '').trim()),
+    initial: title.slice(0, 1).toUpperCase(),
+    title,
+    quantity: Number(first.quantity) || 1,
+    extraCount: items.length > 1 ? items.length - 1 : 0,
+  }
+}
+
+const rows = computed(() => orders.value.map((order: Record<string, any>) => ({
+  order,
+  product: resolveOrderProduct(order),
+})))
 
 // 入场动画
 const rootEl = ref<HTMLElement | null>(null)

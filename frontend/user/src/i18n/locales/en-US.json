@@ -1705,6 +1705,7 @@
     "empty": "No order records",
     "emptyOrderNo": "No matching order found",
     "viewDetails": "View details",
+    "moreItems": "+{count} more",
     "payNow": "Pay now",
     "prevPage": "Prev",
     "nextPage": "Next",
