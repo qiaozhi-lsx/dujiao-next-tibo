@@ -27,59 +27,152 @@
         <span class="pay-modal__tag">{{ t('qiaozhi.payment.modal.tag') }}</span>
         <h2 class="pay-modal__title">{{ t('qiaozhi.payment.modal.title') }}</h2>
 
-        <div class="pay-modal__sn">
-          <span>{{ order?.sn || '—' }}</span>
-          <span v-if="showCountdown" class="pay-modal__countdown" :class="{ 'is-danger': countdownExpired }">
-            <Clock />
-            <b>{{ countdownText }}</b>
-          </span>
-        </div>
-
-        <div class="pay-modal__time">
-          <span>{{ t('qiaozhi.payment.modal.created') }} <b>{{ createdAtText }}</b></span>
-          <span>{{ t('qiaozhi.payment.modal.expiresAt') }} <b>{{ expiresAtText }}</b></span>
-        </div>
-
-        <div class="pay-modal__sum">
-          <div v-for="(line, idx) in summaryLines" :key="idx" class="pay-modal__sum-row">
-            <span>{{ line.label }}</span>
-            <span>{{ line.value }}</span>
+        <!-- 金额卡 -->
+        <div class="pay-modal__amount-card">
+          <div class="pay-modal__amount-top">
+            <small class="pay-modal__amount-label">{{ t('qiaozhi.payment.modal.amountDue') }}</small>
+            <div class="pay-modal__amount-value">
+              <b>{{ amountBigText }}</b>
+              <span v-if="cryptoChainLabel" class="pay-modal__chain-chip">{{ cryptoChainLabel }}</span>
+            </div>
           </div>
-          <div class="pay-modal__sum-row pay-modal__sum-row--total">
-            <span>{{ t('qiaozhi.payment.modal.total') }}</span>
-            <span>{{ totalText }}</span>
-          </div>
-        </div>
-
-        <div v-if="qrSupported" class="pay-modal__qr-wrap">
-          <div class="pay-modal__qr">
-            <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR" />
-            <div v-else class="pay-modal__qr-placeholder">
-              <Loader2 class="pay-modal__spin" />
+          <div class="pay-modal__amount-meta">
+            <div class="pay-modal__meta-row">
+              <span>{{ t('qiaozhi.payment.modal.orderAmount') }}</span>
+              <b>{{ totalText }}</b>
+            </div>
+            <div class="pay-modal__meta-row">
+              <span>{{ t('qiaozhi.payment.modal.orderNoLabel') }}</span>
+              <b>{{ order?.sn || '—' }}</b>
             </div>
           </div>
         </div>
 
-        <div v-else-if="!orderPastExpire" class="pay-modal__redirect-hint">
-          <ExternalLink />
-          <span>{{ t('qiaozhi.payment.modal.notQrCapable') }}</span>
-        </div>
-
-        <div v-if="cryptoDetails.length" class="pay-modal__crypto">
-          <div v-for="item in cryptoDetails" :key="item.key" class="pay-modal__crypto-row">
-            <small>{{ item.label }}</small>
-            <b>
-              {{ item.value }}
-              <em v-if="item.detail">({{ item.detail }})</em>
-            </b>
+        <!-- 支付卡：二维码 / 倒计时 / 收款地址 -->
+        <div class="pay-modal__pay-card">
+          <div class="pay-modal__pay-head">
+            <b>{{ payCardTitle }}</b>
+            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="{ 'is-danger': countdownExpired }">
+              <svg viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="t" cx="18" cy="18" r="15.5" />
+                <circle
+                  class="p"
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                  pathLength="100"
+                  :style="{ '--p': countdownProgress }"
+                />
+              </svg>
+              <em>{{ countdownText }}</em>
+            </span>
           </div>
-          <div v-if="order?.walletAddress" class="pay-modal__crypto-action">
-            <button type="button" class="pay-modal__copy-btn" @click="handleCopyWalletAddress">
-              <Copy />
-              {{ t('payment.copyWalletAddress') }}
-            </button>
+
+          <div v-if="qrSupported" class="pay-modal__qr-wrap">
+            <div class="pay-modal__qr">
+              <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR" />
+              <div v-else class="pay-modal__qr-placeholder">
+                <Loader2 class="pay-modal__spin" />
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="!orderPastExpire" class="pay-modal__redirect-hint">
+            <ExternalLink />
+            <span>{{ t('qiaozhi.payment.modal.notQrCapable') }}</span>
+          </div>
+
+          <div v-if="order?.walletAddress" class="pay-modal__addr">
+            <div class="pay-modal__addr-label">{{ t('payment.walletAddress') }}</div>
+            <div class="pay-modal__addr-body">
+              <b>{{ order.walletAddress }}</b>
+              <button
+                type="button"
+                class="pay-modal__addr-copy"
+                :aria-label="t('payment.copyWalletAddress')"
+                @click="handleCopyWalletAddress"
+              >
+                <Copy />
+              </button>
+            </div>
             <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
           </div>
+        </div>
+
+        <!-- 加密货币操作：切换网络或币种 / 已转账但未到账 -->
+        <div
+          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire"
+          class="pay-modal__crypto-actions"
+        >
+          <button
+            v-if="switchableChannels.length"
+            type="button"
+            class="pay-modal__action-btn"
+            :disabled="switchBusy"
+            @click="toggleSwitchPanel"
+          >
+            <ArrowLeftRight />
+            {{ t('qiaozhi.payment.modal.switchNetwork') }}
+          </button>
+
+          <button type="button" class="pay-modal__action-btn is-solid" @click="toggleTxPanel">
+            <CheckCircle2 />
+            {{ t('qiaozhi.payment.modal.txHashBtn') }}
+          </button>
+
+          <div v-if="switchPanelOpen" class="pay-modal__panel">
+            <div class="pay-modal__chip-list">
+              <button
+                v-for="ch in switchableChannels"
+                :key="ch.id"
+                type="button"
+                class="pay-modal__chip"
+                :class="{ 'is-active': ch.id === order?.channelId }"
+                :disabled="switchBusy || ch.id === order?.channelId"
+                @click="handleSwitchChannel(ch.id)"
+              >
+                {{ ch.name }}
+              </button>
+            </div>
+            <p v-if="switchBusy" class="pay-modal__panel-msg">{{ t('qiaozhi.payment.modal.switching') }}</p>
+            <p v-else-if="switchError" class="pay-modal__panel-msg is-err">{{ switchError }}</p>
+          </div>
+
+          <div v-if="txPanelOpen" class="pay-modal__panel">
+            <input
+              v-model="txHashInput"
+              class="pay-modal__input"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              :placeholder="t('qiaozhi.payment.modal.txHashPlaceholder')"
+              :disabled="txBusy"
+              @keydown.enter.prevent="handleSubmitTx"
+            />
+            <button
+              type="button"
+              class="pay-modal__action-btn is-solid"
+              :disabled="txBusy || !txHashInput.trim()"
+              @click="handleSubmitTx"
+            >
+              {{ txBusy ? t('qiaozhi.payment.modal.txHashSubmitting') : t('qiaozhi.payment.modal.txHashSubmit') }}
+            </button>
+            <p v-if="txFeedback" class="pay-modal__panel-msg" :class="{ 'is-err': !txFeedback.ok }">
+              {{ txFeedback.ok ? t('qiaozhi.payment.modal.txHashOk') : (txFeedback.message || t('qiaozhi.payment.modal.txHashFailed')) }}
+            </p>
+          </div>
+        </div>
+
+        <div v-if="stage === 'waiting' && !orderPastExpire && order?.h5PayUrl" class="pay-modal__link-row">
+          <button type="button" class="pay-modal__link-btn" @click="handleOpenPayLink">
+            <ExternalLink />
+            {{ t('qiaozhi.payment.modal.openPayLink') }}
+          </button>
+          <button type="button" class="pay-modal__copy-btn" @click="handleCopyPayLink">
+            <Copy />
+            {{ t('qiaozhi.payment.modal.copyPayLink') }}
+          </button>
+          <span v-if="copied" class="pay-modal__copied">{{ t('qiaozhi.payment.modal.copied') }}</span>
         </div>
 
         <div class="pay-modal__steps">
@@ -108,18 +201,6 @@
           <svg class="pay-modal__ck" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
-        </div>
-
-        <div v-if="stage === 'waiting' && !orderPastExpire && order?.h5PayUrl" class="pay-modal__link-row">
-          <button type="button" class="pay-modal__link-btn" @click="handleOpenPayLink">
-            <ExternalLink />
-            {{ t('qiaozhi.payment.modal.openPayLink') }}
-          </button>
-          <button type="button" class="pay-modal__copy-btn" @click="handleCopyPayLink">
-            <Copy />
-            {{ t('qiaozhi.payment.modal.copyPayLink') }}
-          </button>
-          <span v-if="copied" class="pay-modal__copied">{{ t('qiaozhi.payment.modal.copied') }}</span>
         </div>
 
         <div class="pay-modal__rec" :aria-hidden="stage !== 'success'">
@@ -166,7 +247,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Clock, Copy, ExternalLink, Loader2, X } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, Loader2, X } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 
@@ -174,6 +255,11 @@ export interface PaymentModalItem {
   title: string
   amount: string
   quantity?: number
+}
+
+export interface PaymentModalChannel {
+  id: number
+  name: string
 }
 
 export interface PaymentModalOrder {
@@ -193,17 +279,26 @@ export interface PaymentModalOrder {
   chainAmount?: string
   chain?: string
   tokenId?: string
+  channelId?: number
+  paymentId?: number
   guestCredentials?: { email: string; order_password: string } | null
 }
 
 const props = defineProps<{
   open: boolean
   order: PaymentModalOrder | null
+  channels?: PaymentModalChannel[]
+  switchBusy?: boolean
+  switchError?: string
+  txBusy?: boolean
+  txFeedback?: { ok: boolean; message?: string } | null
 }>()
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
   (e: 'paid', order: PaymentModalOrder): void
+  (e: 'switch-channel', channelId: number): void
+  (e: 'submit-tx-hash', txHash: string): void
 }>()
 
 const { t } = useI18n()
@@ -216,6 +311,9 @@ const copied = ref(false)
 const copiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const walletAddressCopied = ref(false)
 const walletCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const switchPanelOpen = ref(false)
+const txPanelOpen = ref(false)
+const txHashInput = ref('')
 const now = ref(Date.now())
 const nowTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
@@ -273,6 +371,16 @@ const countdownText = computed(() => {
   const s = String(remain % 60).padStart(2, '0')
   return `${m}:${s}`
 })
+const countdownProgress = computed(() => {
+  const end = expireMs.value
+  if (end === null) return 100
+  const rawCreated = props.order?.createdAt
+  const created = rawCreated ? new Date(rawCreated as string | number).getTime() : NaN
+  const total = Number.isFinite(created) && end > created ? end - created : 0
+  if (!total) return 100
+  const remain = Math.max(0, end - now.value)
+  return Math.max(0, Math.min(100, (remain / total) * 100))
+})
 
 const formatCurrency = (amount?: string | number | null, currency?: string) => {
   if (amount === null || amount === undefined || amount === '') return '-'
@@ -283,20 +391,7 @@ const formatCurrency = (amount?: string | number | null, currency?: string) => {
 
 const totalText = computed(() => formatCurrency(props.order?.amount, props.order?.currency))
 
-const summaryLines = computed(() => {
-  const o = props.order
-  if (!o || !Array.isArray(o.items)) return [] as Array<{ label: string; value: string }>
-  const lines = o.items.map((it) => {
-    const label = it.quantity && it.quantity > 1 ? `${it.title} × ${it.quantity}` : it.title
-    return { label, value: formatCurrency(it.amount, o.currency) }
-  })
-  if (o.feeAmount && Number(o.feeAmount) > 0) {
-    lines.push({ label: t('qiaozhi.payment.modal.fee'), value: formatCurrency(o.feeAmount, o.currency) })
-  }
-  return lines
-})
-
-// 加密货币支付：币种 / 链 / 链上应付数量 / 收款地址。金额与地址仅在 api 返回 crypto 字段时展示。
+// 加密货币支付：币种 / 链 / 链上应付数量 / 收款地址。
 const formatCryptoChain = (value: string) => {
   const normalized = value.trim().toLowerCase()
   const labels: Record<string, string> = {
@@ -319,28 +414,27 @@ const cryptoTokenLabel = computed(() => {
   const parts = tokenId.split('-').filter(Boolean)
   return String(parts[parts.length - 1] || tokenId).toUpperCase()
 })
-const cryptoTokenDetail = computed(() => {
-  const tokenId = (props.order?.tokenId || '').trim()
-  if (!tokenId) return ''
-  return tokenId.toUpperCase() === cryptoTokenLabel.value ? '' : tokenId
-})
-const cryptoDetails = computed(() => {
+
+const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
+
+const cryptoChainLabel = computed(() => (props.order?.chain ? formatCryptoChain(props.order.chain) : ''))
+
+const amountBigText = computed(() => {
   const o = props.order
-  const details: Array<{ key: string; label: string; value: string; detail?: string }> = []
-  if (!o) return details
-  if (cryptoTokenLabel.value) {
-    details.push({ key: 'token', label: t('payment.cryptoToken'), value: cryptoTokenLabel.value, detail: cryptoTokenDetail.value })
-  }
-  if (o.chain) {
-    details.push({ key: 'chain', label: t('payment.cryptoChain'), value: formatCryptoChain(o.chain) })
-  }
-  if (o.chainAmount) {
-    details.push({ key: 'amount', label: t('payment.cryptoAmount'), value: o.chainAmount })
-  }
-  if (o.walletAddress) {
-    details.push({ key: 'wallet_address', label: t('payment.walletAddress'), value: o.walletAddress })
-  }
-  return details
+  if (!o) return '-'
+  if (o.chainAmount) return `${o.chainAmount} ${cryptoTokenLabel.value || 'USDT'}`
+  return formatCurrency(o.amount, o.currency)
+})
+
+const payCardTitle = computed(() => (
+  hasCryptoPayment.value
+    ? t('qiaozhi.payment.modal.scanOrCopy')
+    : t('qiaozhi.payment.modal.scanTitle')
+))
+
+const switchableChannels = computed(() => {
+  const list = props.channels || []
+  return list.filter((ch) => Number.isFinite(ch.id) && ch.id > 0)
 })
 
 const receiptItems = computed(() => {
@@ -362,8 +456,6 @@ const formatDateText = (raw?: number | string | null) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const createdAtText = computed(() => formatDateText(props.order?.createdAt))
-const expiresAtText = computed(() => formatDateText(props.order?.expireAt))
 const receiptTimeText = computed(() => formatDateText(now.value))
 
 const shortSn = computed(() => {
@@ -588,6 +680,28 @@ const handleCopyWalletAddress = async () => {
   }
 }
 
+const toggleSwitchPanel = () => {
+  switchPanelOpen.value = !switchPanelOpen.value
+  if (switchPanelOpen.value) txPanelOpen.value = false
+}
+
+const handleSwitchChannel = (channelId: number) => {
+  if (props.switchBusy) return
+  if (channelId === props.order?.channelId) return
+  emit('switch-channel', channelId)
+}
+
+const toggleTxPanel = () => {
+  txPanelOpen.value = !txPanelOpen.value
+  if (txPanelOpen.value) switchPanelOpen.value = false
+}
+
+const handleSubmitTx = () => {
+  const hash = txHashInput.value.trim()
+  if (!hash || props.txBusy) return
+  emit('submit-tx-hash', hash)
+}
+
 const handleViewDetail = () => {
   const order = props.order
   if (!order) return
@@ -600,6 +714,9 @@ const resetState = () => {
   qrImageUrl.value = ''
   copied.value = false
   walletAddressCopied.value = false
+  switchPanelOpen.value = false
+  txPanelOpen.value = false
+  txHashInput.value = ''
 }
 
 watch(() => props.open, async (opened) => {
@@ -631,7 +748,14 @@ watch(() => props.open, async (opened) => {
 
 watch(() => props.order, async () => {
   if (!props.open) return
+  switchPanelOpen.value = false
+  txPanelOpen.value = false
+  txHashInput.value = ''
   await renderQRCode()
+})
+
+watch(() => props.txFeedback, (feedback) => {
+  if (feedback?.ok) txHashInput.value = ''
 })
 
 onBeforeUnmount(() => {
@@ -673,7 +797,8 @@ onBeforeUnmount(() => {
   position: relative;
   width: min(380px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--ux-surface);
   border-radius: 24px;
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
@@ -711,84 +836,95 @@ onBeforeUnmount(() => {
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
 
-.pay-modal__sn {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 10px;
-  font-size: 11px; color: var(--ux-ink-3);
-  margin-bottom: 10px;
-  font-variant-numeric: tabular-nums;
-  transition: opacity .4s;
-}
-.pay-modal__sn > span:first-child {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.pay-modal__countdown {
-  flex-shrink: 0;
-  padding: 3px 9px; background: #fff7e6; color: var(--ux-warn);
-  border-radius: 999px; font-size: 11px; font-weight: 600;
-  display: inline-flex; align-items: center; gap: 4px;
-  font-variant-numeric: tabular-nums;
-}
-.pay-modal__countdown.is-danger { background: #fde8e8; color: #b02020; }
-.pay-modal__countdown svg { width: 11px; height: 11px; }
-
-.pay-modal__time {
-  display: flex; justify-content: space-between; gap: 10px;
-  font-size: 10.5px; color: var(--ux-ink-3);
-  margin-bottom: 12px;
-  font-variant-numeric: tabular-nums;
-  transition: opacity .4s;
-}
-.pay-modal__time b { color: var(--ux-ink-2); font-weight: 600; }
-
-.pay-modal__sum {
-  padding: 12px 14px; border-radius: 14px;
+/* ---- 金额卡 ---- */
+.pay-modal__amount-card {
+  padding: 16px 16px 12px;
+  border-radius: 16px;
   background: var(--ux-surface-2);
   margin-bottom: 12px;
-  display: flex; flex-direction: column; gap: 4px;
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
-.pay-modal__sum-row {
-  display: flex; justify-content: space-between; gap: 10px;
-  font-size: 12.5px; color: var(--ux-ink-2); font-weight: 600;
+.pay-modal__amount-label {
+  display: block;
+  font-size: 12px; color: var(--ux-ink-3); font-weight: 600;
+  margin-bottom: 6px;
 }
-.pay-modal__sum-row span:first-child {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.pay-modal__amount-value {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 12px;
 }
-.pay-modal__sum-row--total {
-  padding-top: 8px; margin-top: 4px;
+.pay-modal__amount-value b {
+  font-size: 26px; font-weight: 850; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pay-modal__chain-chip {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 999px;
+  background: var(--ux-surface); color: var(--ux-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line-2);
+  font-size: 11.5px; font-weight: 700;
+}
+.pay-modal__amount-meta {
   border-top: 1px dashed var(--ux-line-2);
-  font-size: 15px; color: var(--text, #0a0a0a); font-weight: 800;
+  padding-top: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pay-modal__meta-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  font-size: 12.5px; color: var(--ux-ink-3);
+}
+.pay-modal__meta-row b {
+  color: var(--ux-ink-2); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere; text-align: right;
 }
 
-.pay-modal__crypto {
-  padding: 12px 14px; border-radius: 14px;
-  background: var(--ux-surface-2);
+/* ---- 支付卡 ---- */
+.pay-modal__pay-card {
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--ux-line);
+  padding: 14px 16px;
   margin-bottom: 12px;
-  display: flex; flex-direction: column; gap: 8px;
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
-.pay-modal__crypto-row {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+.pay-modal__pay-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
 }
-.pay-modal__crypto-row small {
-  flex: 0 0 auto; font-size: 11.5px; color: var(--ux-ink-3); font-weight: 600;
-  padding-top: 1px;
+.pay-modal__pay-head b { font-size: 13.5px; font-weight: 700; }
+
+.pay-modal__cd-ring {
+  position: relative;
+  width: 40px; height: 40px;
+  flex-shrink: 0;
+  display: grid; place-items: center;
 }
-.pay-modal__crypto-row b {
-  min-width: 0; text-align: right; font-size: 13px; font-weight: 800;
-  color: var(--text, #0a0a0a); overflow-wrap: anywhere; word-break: break-all;
+.pay-modal__cd-ring svg {
+  position: absolute; inset: 0;
+  width: 40px; height: 40px;
+  transform: rotate(-90deg);
 }
-.pay-modal__crypto-row em {
-  font-style: normal; font-weight: 500; color: var(--ux-ink-3); margin-left: 4px;
+.pay-modal__cd-ring circle { fill: none; stroke-width: 2.6; stroke-linecap: round; }
+.pay-modal__cd-ring .t { stroke: var(--ux-surface-3); }
+.pay-modal__cd-ring .p {
+  stroke: var(--ux-mint);
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--p, 0));
+  transition: stroke-dashoffset .5s linear, stroke .3s;
 }
-.pay-modal__crypto-action {
-  display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
+.pay-modal__cd-ring.is-danger .p { stroke: #b02020; }
+.pay-modal__cd-ring em {
+  position: relative;
+  font-style: normal; font-weight: 700; font-size: 9.5px;
+  color: var(--ux-ink-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
 }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
-  margin: 4px 0 12px;
+  margin: 2px 0 10px;
   transition: filter .4s, opacity .4s;
 }
 .pay-modal__qr {
@@ -796,9 +932,9 @@ onBeforeUnmount(() => {
   border: 1px solid var(--ux-line-2);
   border-radius: 12px;
 }
-.pay-modal__qr img { display: block; width: 150px; height: 150px; }
+.pay-modal__qr img { display: block; width: 168px; height: 168px; }
 .pay-modal__qr-placeholder {
-  width: 150px; height: 150px;
+  width: 168px; height: 168px;
   display: grid; place-items: center;
   color: var(--ux-ink-3);
 }
@@ -810,12 +946,100 @@ onBeforeUnmount(() => {
 
 .pay-modal__redirect-hint {
   display: flex; align-items: flex-start; gap: 8px;
-  padding: 10px 12px; margin-bottom: 12px;
+  padding: 10px 12px; margin-bottom: 10px;
   border-radius: 10px;
   background: #fff7e6; color: var(--ux-warn);
   font-size: 12px; line-height: 1.5;
 }
 .pay-modal__redirect-hint svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
+
+.pay-modal__addr { margin-top: 4px; }
+.pay-modal__addr-label {
+  font-size: 11.5px; color: var(--ux-ink-3); font-weight: 600;
+  margin-bottom: 4px;
+}
+.pay-modal__addr-body {
+  display: flex; align-items: center; gap: 8px;
+}
+.pay-modal__addr-body b {
+  flex: 1; min-width: 0;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--ux-ink-2);
+  overflow-wrap: anywhere; word-break: break-all;
+}
+.pay-modal__addr-copy {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  border: 0; border-radius: 8px;
+  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line);
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.pay-modal__addr-copy svg { width: 13px; height: 13px; }
+.pay-modal__addr-copy:hover { color: #000; }
+
+/* ---- 加密货币操作区 ---- */
+.pay-modal__crypto-actions {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 12px;
+}
+.pay-modal__action-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; height: 42px;
+  border: 0; border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px; font-weight: 750;
+  background: var(--ux-surface); color: var(--ux-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line-2);
+}
+.pay-modal__action-btn:hover:not(:disabled) { color: #000; background: var(--ux-surface-2); }
+.pay-modal__action-btn.is-solid {
+  background: var(--ux-accent); color: #fff;
+  box-shadow: none;
+}
+.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: #fff; background: #1c1c1c; }
+.pay-modal__action-btn:disabled { opacity: .55; cursor: not-allowed; }
+.pay-modal__action-btn svg { width: 15px; height: 15px; }
+
+.pay-modal__panel {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--ux-surface-2);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.pay-modal__chip-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.pay-modal__chip {
+  padding: 7px 12px;
+  border: 0; border-radius: 999px;
+  background: var(--ux-surface); color: var(--ux-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line-2);
+  font-size: 12.5px; font-weight: 700;
+  cursor: pointer;
+}
+.pay-modal__chip.is-active {
+  background: var(--ux-accent); color: #fff;
+  box-shadow: none;
+}
+.pay-modal__chip:disabled { cursor: default; opacity: .9; }
+.pay-modal__input {
+  width: 100%; height: 40px;
+  border: 0; border-radius: 10px;
+  padding: 0 12px;
+  background: var(--ux-surface);
+  box-shadow: inset 0 0 0 1px var(--ux-line-2);
+  font-size: 12.5px; color: var(--text, #0a0a0a);
+  outline: none;
+}
+.pay-modal__input:focus { box-shadow: inset 0 0 0 1.5px var(--ux-accent); }
+.pay-modal__panel-msg {
+  margin: 0;
+  font-size: 11.5px; color: var(--ux-mint); font-weight: 600;
+  line-height: 1.5;
+}
+.pay-modal__panel-msg.is-err { color: #b02020; }
 
 .pay-modal__steps {
   display: flex; gap: 14px; justify-content: center;
@@ -1061,12 +1285,9 @@ onBeforeUnmount(() => {
 
 .is-rec .pay-modal__tag,
 .is-rec .pay-modal__title,
-.is-rec .pay-modal__sn,
-.is-rec .pay-modal__time,
-.is-rec .pay-modal__sum,
-.is-rec .pay-modal__qr-wrap,
-.is-rec .pay-modal__redirect-hint,
-.is-rec .pay-modal__crypto,
+.is-rec .pay-modal__amount-card,
+.is-rec .pay-modal__pay-card,
+.is-rec .pay-modal__crypto-actions,
 .is-rec .pay-modal__steps,
 .is-rec .pay-modal__stage,
 .is-rec .pay-modal__link-row {
@@ -1082,4 +1303,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-
