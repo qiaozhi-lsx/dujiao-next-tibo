@@ -460,8 +460,12 @@ const buildPaymentOrderPayload = (
 
 const handlePaymentPaid = (order: PaymentModalOrder) => {
   showPaymentModal.value = false
-  if (order?.sn) {
-    router.push(`/orders/${encodeURIComponent(order.sn)}`)
+  if (!order?.sn) return
+  const sn = encodeURIComponent(order.sn)
+  if (order.guestCredentials?.email) {
+    router.push(`/guest/orders/${sn}`)
+  } else {
+    router.push(`/orders/${sn}`)
   }
 }
 
