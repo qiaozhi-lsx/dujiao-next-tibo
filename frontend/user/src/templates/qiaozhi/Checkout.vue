@@ -130,17 +130,15 @@
                       @input="setManualFieldValue(product.itemKey, field.key, ($event.target as HTMLTextAreaElement).value)"
                     ></textarea>
 
-                    <select
+                    <J8Select
                       v-else-if="field.type === 'select'"
                       :id="manualFieldId(product.itemKey, field.key)"
-                      :value="getManualFieldValue(product.itemKey, field.key)"
+                      :model-value="getManualFieldValue(product.itemKey, field.key)"
+                      :items="[{ value: '', label: t('checkout.manualFormSelectPlaceholder') }, ...(field.options || []).map((option: string) => ({ value: option, label: option }))]"
                       :aria-invalid="manualFieldHasError(product.itemKey, field.key)"
                       :aria-describedby="manualFieldHasError(product.itemKey, field.key) ? manualFieldErrId(product.itemKey, field.key) : undefined"
-                      @change="setManualFieldValue(product.itemKey, field.key, ($event.target as HTMLSelectElement).value)"
-                    >
-                      <option value="">{{ t('checkout.manualFormSelectPlaceholder') }}</option>
-                      <option v-for="option in field.options" :key="option" :value="option">{{ option }}</option>
-                    </select>
+                      @update:model-value="setManualFieldValue(product.itemKey, field.key, String($event))"
+                    />
 
                     <div
                       v-else-if="field.type === 'radio'"
@@ -488,6 +486,7 @@ import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useCheckout } from '../../composables/useCheckout'
 import { useLocalized } from '../../composables/useProduct'
 import { setupReveal } from './utils/reveal'
+import J8Select from './components/J8Select.vue'
 
 const { t } = useI18n()
 const router = useRouter()

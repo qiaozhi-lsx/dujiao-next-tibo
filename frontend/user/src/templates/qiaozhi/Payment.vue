@@ -415,8 +415,8 @@ const goBack = () => {
 .j8-pd-pay-card { display: grid; gap: 16px; padding: 24px 24px 20px; grid-template-columns: minmax(0, 1fr); }
 .j8-pd-pay-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .j8-pd-pay-head > div:first-child { display: grid; gap: 6px; min-width: 0; }
-.j8-pd-pay-head h1 { font-size: 24px; font-weight: 900; line-height: 1.3; color: var(--text); }
-.j8-pd-pay-head h2 { font-size: 20px; font-weight: 900; line-height: 1.3; color: var(--text); }
+.j8-pd-pay-head h1 { font-size: 24px; font-weight: 700; line-height: 1.3; color: var(--text); }
+.j8-pd-pay-head h2 { font-size: 20px; font-weight: 700; line-height: 1.3; color: var(--text); }
 .j8-pd-pay-sub { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .j8-pd-pay-sub code { font-family: inherit; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .j8-pd-pay-head-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -447,7 +447,7 @@ const goBack = () => {
 .j8-pd-pay-qr-title { font-size: 15px; font-weight: 800; color: var(--text); }
 .j8-pd-pay-qr-amount { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
 .j8-pd-pay-qr-amount span { font-size: 12px; color: var(--muted); font-weight: 600; }
-.j8-pd-pay-qr-amount strong { font-size: 20px; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; }
+.j8-pd-pay-qr-amount strong { font-size: 20px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 .j8-pd-pay-polling { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 11px; background: var(--accent-soft); color: var(--accent-strong); font-size: 13px; font-weight: 700; }
 .j8-pd-pay-polling .j8-ic-spin { width: 16px; height: 16px; }
 
@@ -463,13 +463,13 @@ const goBack = () => {
 .j8-pd-pay-link .j8-pd-buy { width: auto; min-width: 200px; padding: 0 20px; }
 
 .j8-pd-pay-channel { display: grid; gap: 0; }
-.j8-pd-pay-channel h2 { font-size: 18px; font-weight: 900; color: var(--text); margin-bottom: 4px; }
+.j8-pd-pay-channel h2 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .j8-pd-pay-walletinfo { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; font-size: 12px; color: var(--muted); }
 .j8-pd-pay-walletinfo .is-warn { color: var(--amber); font-weight: 700; }
 
 .j8-pd-pay-total { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
 .j8-pd-pay-total span { font-size: 13px; color: var(--muted); font-weight: 600; }
-.j8-pd-pay-total strong { font-size: 22px; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; }
+.j8-pd-pay-total strong { font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 
 .j8-pd-pay-actions { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; margin-top: 14px; }
 .j8-pd-pay-actions .j8-pd-buy { width: 100%; }

@@ -498,8 +498,8 @@ onMounted(() => {
 }
 
 .j8-me-modal h3 {
-  font-size: 15.5px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 

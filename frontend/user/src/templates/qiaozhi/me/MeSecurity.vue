@@ -1437,7 +1437,7 @@ button.j8-me-act:disabled {
 .j8-sec-modal h4 {
   margin: 0 0 8px;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text);
 }
 .j8-sec-codes {

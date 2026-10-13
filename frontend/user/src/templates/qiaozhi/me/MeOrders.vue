@@ -59,11 +59,12 @@
           </div>
           <div class="j8-ic-field">
             <label for="j8-me-order-status">{{ t('orders.filters.status') }}</label>
-            <select id="j8-me-order-status" v-model="orderStatusProxy">
-              <option v-for="item in orderStatusOptions" :key="item.value || 'all'" :value="item.value || 'all'">
-                {{ item.label }}
-              </option>
-            </select>
+            <J8Select
+              id="j8-me-order-status"
+              :model-value="orderStatusProxy"
+              :items="orderStatusOptions.map((item: any) => ({ value: item.value || 'all', label: item.label }))"
+              @update:model-value="orderStatusProxy = $event as string"
+            />
           </div>
           <div class="j8-me-toolbar-acts">
             <button type="button" class="j8-me-act is-primary" @click="applyOrderFilters">
@@ -172,11 +173,12 @@
           </div>
           <div class="j8-ic-field">
             <label for="j8-me-recharge-status">{{ t('orders.filters.status') }}</label>
-            <select id="j8-me-recharge-status" v-model="rechargeStatusProxy">
-              <option v-for="item in rechargeStatusOptions" :key="item.value || 'all'" :value="item.value || 'all'">
-                {{ item.label }}
-              </option>
-            </select>
+            <J8Select
+              id="j8-me-recharge-status"
+              :model-value="rechargeStatusProxy"
+              :items="rechargeStatusOptions.map((item: any) => ({ value: item.value || 'all', label: item.label }))"
+              @update:model-value="rechargeStatusProxy = $event as string"
+            />
           </div>
           <div class="j8-me-toolbar-acts">
             <button type="button" class="j8-me-act is-primary" @click="applyRechargeFilters">
@@ -253,6 +255,7 @@ import { type BadgeTone } from '../../../utils/status'
 import { debounceAsync } from '../../../utils/debounce'
 import { amountToCents } from '../../../utils/money'
 import J8Segment, { type J8SegmentItem } from '../components/J8Segment.vue'
+import J8Select from '../components/J8Select.vue'
 import { formatDate, formatMoney, statusLabel, statusPillTone, type MePillTone } from './support'
 
 const { t } = useI18n()

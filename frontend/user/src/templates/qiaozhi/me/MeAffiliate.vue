@@ -96,10 +96,14 @@
         <div class="j8-ic-row">
           <div class="j8-ic-field">
             <label for="j8-aff-channel">{{ t('personalCenter.affiliate.withdrawChannelLabel') }}</label>
-            <select v-if="channelOptions.length > 0" id="j8-aff-channel" v-model="withdrawForm.channel">
-              <option value="" disabled>{{ t('personalCenter.affiliate.withdrawChannelPlaceholder') }}</option>
-              <option v-for="channel in channelOptions" :key="channel" :value="channel">{{ channel }}</option>
-            </select>
+            <J8Select
+              v-if="channelOptions.length > 0"
+              id="j8-aff-channel"
+              :model-value="withdrawForm.channel"
+              :items="channelOptions.map((channel: string) => ({ value: channel, label: channel }))"
+              :placeholder="t('personalCenter.affiliate.withdrawChannelPlaceholder')"
+              @update:model-value="withdrawForm.channel = $event as string"
+            />
             <input
               v-else
               id="j8-aff-channel"
@@ -258,6 +262,7 @@ import {
 import { useAppStore } from '../../../stores/app'
 import type { PageAlert } from '../../../utils/alerts'
 import J8Button from '../components/J8Button.vue'
+import J8Select from '../components/J8Select.vue'
 import { formatDate, type MePillTone } from './support'
 
 const { t } = useI18n()
@@ -528,7 +533,7 @@ onMounted(() => {
 
 .j8-me-stat small {
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--muted);
 }
 
