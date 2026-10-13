@@ -33,7 +33,7 @@
             <small class="pay-modal__amount-label">{{ t('qiaozhi.payment.modal.amountDue') }}</small>
             <div class="pay-modal__amount-value">
               <b>{{ amountBigText }}</b>
-              <span v-if="cryptoChainLabel" class="pay-modal__chain-chip">{{ cryptoChainLabel }}</span>
+              <span v-if="paymentChipLabel" class="pay-modal__chain-chip">{{ paymentChipLabel }}</span>
             </div>
           </div>
           <div class="pay-modal__amount-meta">
@@ -304,6 +304,8 @@ export interface PaymentModalOrder {
   chain?: string
   tokenId?: string
   channelId?: number
+  channelName?: string
+  providerType?: string
   paymentId?: number
   guestCredentials?: { email: string; order_password: string } | null
 }
@@ -445,6 +447,14 @@ const cryptoTokenLabel = computed(() => {
 const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
 const cryptoChainLabel = computed(() => (props.order?.chain ? formatCryptoChain(props.order.chain) : ''))
+
+// 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
+const paymentChipLabel = computed(() => {
+  if (cryptoChainLabel.value) return cryptoChainLabel.value
+  const name = (props.order?.channelName || '').trim()
+  if (!name) return ''
+  return /支付宝|alipay/i.test(name) ? 'Alipay' : name
+})
 
 // 非加密渠道：pay_url 作为"支付链接"直接展示（可点击跳转 + 复制）。
 const payLink = computed(() => {
@@ -884,7 +894,7 @@ onBeforeUnmount(() => {
   margin-bottom: 6px;
 }
 .pay-modal__amount-value {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
   margin-bottom: 12px;
 }
 .pay-modal__amount-value b {
