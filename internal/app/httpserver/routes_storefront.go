@@ -72,6 +72,10 @@ func registerStorefrontRoutes(
 
 	// 公开接口
 	public := storefront.Group("/public")
+	// 给 /api/v1/public/* 全体响应打 Cache-Control: public, max-age=60, s-maxage=60,
+	// 让 Cloudflare 边缘节点能缓存 60s,消除冷启动跨太平洋回源 RTT。
+	// 鉴权路径(/user、/auth)不挂此中间件,避免误把用户数据写进共享缓存。
+	public.Use(middleware.PublicCacheHeaders())
 	{
 		publicconfigtransport.RegisterPublicRoutes(public, publicConfigHandler)
 		producthttp.RegisterPublicRoutes(public, publicCatalogHandler)
