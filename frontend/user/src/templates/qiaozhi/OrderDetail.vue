@@ -1,27 +1,17 @@
 <template>
   <div ref="rootEl" class="j8-container j8-order">
-    <!-- 顶部返回栏 -->
+    <!-- 顶部：返回 + 订单状态 -->
     <div class="j8-order-topbar">
       <RouterLink class="j8-order-back" to="/me/orders">
         <ArrowLeft />
         {{ t('qiaozhi.orderDetail.backToOrders') }}
       </RouterLink>
-      <RouterLink class="j8-btn-primary" to="/">
-        {{ t('qiaozhi.orderDetail.backToShop') }}
-        <ArrowRight />
-      </RouterLink>
+      <span v-if="showOrderTitle" class="j8-order-status" :class="toneClass(order?.status)">
+        <component :is="statusIcon" />
+        {{ statusLabel(order?.status) }}
+      </span>
     </div>
-
-    <!-- 标题 -->
-    <div class="j8-order-hero">
-      <h1 class="j8-order-title">
-        <span v-if="showOrderTitle" class="j8-order-title-ic" :class="toneClass(order?.status)">
-          <component :is="statusIcon" />
-        </span>
-        {{ showOrderTitle ? heroTitle : t('orderDetail.title') }}
-      </h1>
-      <p class="j8-order-sub">{{ t('orderDetail.subtitle') }}</p>
-    </div>
+    <h1 class="j8-sr-only">{{ t('orderDetail.title') }}</h1>
 
     <!-- 骨架 -->
     <div v-if="loading" class="j8-pd-skeleton">
@@ -58,7 +48,7 @@
           </div>
           <div class="j8-order-row">
             <span>{{ t('orderDetail.amountTotal') }}</span>
-            <b>{{ formatMoney(order.total_amount, order.currency) }}</b>
+            <b>{{ formatPaidTotal(order) }}</b>
           </div>
         </div>
         <div v-if="order.status === 'pending_payment'" class="j8-order-card-actions">
@@ -87,6 +77,7 @@
               {{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}
             </button>
             <button
+              v-if="isFulfillmentTruncated(singleFulfillment.fulfillment)"
               type="button"
               class="j8-order-btn"
               :disabled="fulfillmentDownloading"
@@ -122,6 +113,7 @@
               {{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}
             </button>
             <button
+              v-if="isFulfillmentTruncated(unit.fulfillment)"
               type="button"
               class="j8-order-btn"
               :disabled="fulfillmentDownloading"
@@ -242,11 +234,11 @@
           </div>
           <div class="j8-order-amount-cell">
             <div class="lbl">{{ t('orderDetail.amountTotal') }}</div>
-            <div class="val">{{ formatMoney(order.total_amount, order.currency) }}</div>
+            <div class="val">{{ formatPaidTotal(order) }}</div>
           </div>
         </div>
         <div
-          v-if="hasAmount(order.wallet_paid_amount) || hasAmount(order.online_paid_amount) || hasAmount(order.refunded_amount)"
+          v-if="hasActualPayment(order) && (hasAmount(order.wallet_paid_amount) || hasAmount(order.online_paid_amount) || hasAmount(order.refunded_amount))"
           class="j8-order-amount-grid is-secondary"
         >
           <div v-if="hasAmount(order.wallet_paid_amount)" class="j8-order-amount-cell">
@@ -342,12 +334,13 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  AlertTriangle, ArrowLeft, ArrowRight, Check, Clock, Copy, Download,
+  AlertTriangle, ArrowLeft, Check, Clock, Copy, Download,
   Hourglass, Image as ImageIcon, Info, PackageOpen, X,
 } from 'lucide-vue-next'
 import { useAppStore } from '../../stores/app'
 import { useOrderDetail } from '../../composables/useOrderDetail'
 import { setupReveal } from './utils/reveal'
+import { buildDeliveryUnits, type DeliveryUnit } from './utils/deliveryUnits'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -357,6 +350,7 @@ const {
   fulfillmentDownloading, handleDownloadFulfillment,
   statusLabel, statusVariant, fulfillmentTypeLabelText, fulfillmentStatusLabelText,
   formatDate, getLocalizedText, formatMoney, formatDiscountMoney, hasDiscountAmount, hasAmount,
+  hasActualPayment, formatPaidTotal,
   refundReasonText, showRefundRecordsCard, refundRecords, showTimeCard,
   orderItemImage, orderItemSkuText, manualSubmissionRows,
   hasItemDiscount, formatItemPaidAmount, resolvedChildStatus,
@@ -364,49 +358,7 @@ const {
   fulfillmentCopied, handleCopyFulfillment,
 } = useOrderDetail()
 
-interface DeliveryUnit {
-  key: string
-  orderNo: string
-  orderAmount: string | undefined
-  currency: string
-  status: string | null
-  isChild: boolean
-  items: any[]
-  fulfillment: any | null
-}
-
-const deliveryUnits = computed<DeliveryUnit[]>(() => {
-  const o = order.value
-  if (!o) return []
-  const units: DeliveryUnit[] = []
-  const children = Array.isArray(o.children) ? o.children : []
-  for (const child of children) {
-    units.push({
-      key: `child-${String(child?.id ?? child?.order_no ?? units.length)}`,
-      orderNo: String(child?.order_no || o.order_no || ''),
-      orderAmount: child?.total_amount ?? undefined,
-      currency: child?.currency || o.currency || '',
-      status: child ? resolvedChildStatus(child) : null,
-      isChild: true,
-      items: Array.isArray(child?.items) ? child.items : [],
-      fulfillment: child?.fulfillment || null,
-    })
-  }
-  const items = Array.isArray(o.items) ? o.items : []
-  if (!units.length || items.length || o.fulfillment) {
-    units.push({
-      key: 'main',
-      orderNo: String(o.order_no || ''),
-      orderAmount: undefined,
-      currency: o.currency || '',
-      status: o.status || null,
-      isChild: false,
-      items,
-      fulfillment: o.fulfillment || null,
-    })
-  }
-  return units
-})
+const deliveryUnits = computed<DeliveryUnit[]>(() => buildDeliveryUnits(order.value, resolvedChildStatus))
 
 /** 单单元（无子订单或多交付）时，卡头直接放复制 / 下载按钮。 */
 const singleFulfillment = computed<{ orderNo: string; fulfillment: any } | null>(() => {
@@ -440,14 +392,6 @@ const statusIcon = computed(() => {
 })
 
 const showOrderTitle = computed(() => !loading.value && !!order.value)
-
-const heroTitle = computed(() => {
-  const status = String(order.value?.status || '')
-  if (!status || status === 'completed' || status === 'delivered') {
-    return t('qiaozhi.orderDetail.pageTitleCompleted')
-  }
-  return statusLabel(status)
-})
 
 const supportHref = computed(() => {
   const c = appStore.config?.contact as { telegram?: string; whatsapp?: string; email?: string; support_url?: string } | undefined
