@@ -65,6 +65,23 @@
           <span>{{ t('qiaozhi.payment.modal.notQrCapable') }}</span>
         </div>
 
+        <div v-if="cryptoDetails.length" class="pay-modal__crypto">
+          <div v-for="item in cryptoDetails" :key="item.key" class="pay-modal__crypto-row">
+            <small>{{ item.label }}</small>
+            <b>
+              {{ item.value }}
+              <em v-if="item.detail">({{ item.detail }})</em>
+            </b>
+          </div>
+          <div v-if="order?.walletAddress" class="pay-modal__crypto-action">
+            <button type="button" class="pay-modal__copy-btn" @click="handleCopyWalletAddress">
+              <Copy />
+              {{ t('payment.copyWalletAddress') }}
+            </button>
+            <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
+          </div>
+        </div>
+
         <div class="pay-modal__steps">
           <span :class="{ on: stepIdx >= 0 }">{{ t('qiaozhi.payment.modal.stepWaiting') }}</span>
           <span :class="{ on: stepIdx >= 1 }">{{ t('qiaozhi.payment.modal.stepConfirming') }}</span>
@@ -172,6 +189,10 @@ export interface PaymentModalOrder {
   maskedEmail?: string
   interactionMode?: 'qr' | 'redirect' | string
   feeAmount?: string
+  walletAddress?: string
+  chainAmount?: string
+  chain?: string
+  tokenId?: string
   guestCredentials?: { email: string; order_password: string } | null
 }
 
@@ -193,6 +214,8 @@ const modalRef = ref<HTMLElement | null>(null)
 const qrImageUrl = ref('')
 const copied = ref(false)
 const copiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const walletAddressCopied = ref(false)
+const walletCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const now = ref(Date.now())
 const nowTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
@@ -271,6 +294,53 @@ const summaryLines = computed(() => {
     lines.push({ label: t('qiaozhi.payment.modal.fee'), value: formatCurrency(o.feeAmount, o.currency) })
   }
   return lines
+})
+
+// 加密货币支付：币种 / 链 / 链上应付数量 / 收款地址。金额与地址仅在 api 返回 crypto 字段时展示。
+const formatCryptoChain = (value: string) => {
+  const normalized = value.trim().toLowerCase()
+  const labels: Record<string, string> = {
+    tron: 'TRON',
+    trc20: 'TRON',
+    base: 'Base',
+    ethereum: 'Ethereum',
+    eth: 'Ethereum',
+    bsc: 'BNB Smart Chain',
+    binance: 'BNB Smart Chain',
+    polygon: 'Polygon',
+    solana: 'Solana',
+  }
+  return labels[normalized] || value
+}
+
+const cryptoTokenLabel = computed(() => {
+  const tokenId = (props.order?.tokenId || '').trim()
+  if (!tokenId) return ''
+  const parts = tokenId.split('-').filter(Boolean)
+  return String(parts[parts.length - 1] || tokenId).toUpperCase()
+})
+const cryptoTokenDetail = computed(() => {
+  const tokenId = (props.order?.tokenId || '').trim()
+  if (!tokenId) return ''
+  return tokenId.toUpperCase() === cryptoTokenLabel.value ? '' : tokenId
+})
+const cryptoDetails = computed(() => {
+  const o = props.order
+  const details: Array<{ key: string; label: string; value: string; detail?: string }> = []
+  if (!o) return details
+  if (cryptoTokenLabel.value) {
+    details.push({ key: 'token', label: t('payment.cryptoToken'), value: cryptoTokenLabel.value, detail: cryptoTokenDetail.value })
+  }
+  if (o.chain) {
+    details.push({ key: 'chain', label: t('payment.cryptoChain'), value: formatCryptoChain(o.chain) })
+  }
+  if (o.chainAmount) {
+    details.push({ key: 'amount', label: t('payment.cryptoAmount'), value: o.chainAmount })
+  }
+  if (o.walletAddress) {
+    details.push({ key: 'wallet_address', label: t('payment.walletAddress'), value: o.walletAddress })
+  }
+  return details
 })
 
 const receiptItems = computed(() => {
@@ -505,6 +575,19 @@ const handleCopyPayLink = async () => {
   }
 }
 
+const handleCopyWalletAddress = async () => {
+  const address = (props.order?.walletAddress || '').trim()
+  if (!address) return
+  try {
+    await navigator.clipboard.writeText(address)
+    walletAddressCopied.value = true
+    if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
+    walletCopiedTimer.value = setTimeout(() => { walletAddressCopied.value = false }, 1500)
+  } catch {
+    // 复制失败静默
+  }
+}
+
 const handleViewDetail = () => {
   const order = props.order
   if (!order) return
@@ -516,6 +599,7 @@ const resetState = () => {
   ringProgress.value = 0
   qrImageUrl.value = ''
   copied.value = false
+  walletAddressCopied.value = false
 }
 
 watch(() => props.open, async (opened) => {
@@ -536,6 +620,10 @@ watch(() => props.open, async (opened) => {
       clearTimeout(copiedTimer.value)
       copiedTimer.value = null
     }
+    if (walletCopiedTimer.value !== null) {
+      clearTimeout(walletCopiedTimer.value)
+      walletCopiedTimer.value = null
+    }
     document.body.style.overflow = ''
     previouslyFocused.value?.focus?.()
   }
@@ -551,6 +639,7 @@ onBeforeUnmount(() => {
   stopPolling()
   cancelAnimation()
   if (copiedTimer.value !== null) clearTimeout(copiedTimer.value)
+  if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
   document.body.style.overflow = ''
 })
 </script>
@@ -670,6 +759,31 @@ onBeforeUnmount(() => {
   padding-top: 8px; margin-top: 4px;
   border-top: 1px dashed var(--ux-line-2);
   font-size: 15px; color: var(--text, #0a0a0a); font-weight: 800;
+}
+
+.pay-modal__crypto {
+  padding: 12px 14px; border-radius: 14px;
+  background: var(--ux-surface-2);
+  margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: opacity .4s, transform .5s var(--ux-ease);
+}
+.pay-modal__crypto-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.pay-modal__crypto-row small {
+  flex: 0 0 auto; font-size: 11.5px; color: var(--ux-ink-3); font-weight: 600;
+  padding-top: 1px;
+}
+.pay-modal__crypto-row b {
+  min-width: 0; text-align: right; font-size: 13px; font-weight: 800;
+  color: var(--text, #0a0a0a); overflow-wrap: anywhere; word-break: break-all;
+}
+.pay-modal__crypto-row em {
+  font-style: normal; font-weight: 500; color: var(--ux-ink-3); margin-left: 4px;
+}
+.pay-modal__crypto-action {
+  display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 
 .pay-modal__qr-wrap {
@@ -952,6 +1066,7 @@ onBeforeUnmount(() => {
 .is-rec .pay-modal__sum,
 .is-rec .pay-modal__qr-wrap,
 .is-rec .pay-modal__redirect-hint,
+.is-rec .pay-modal__crypto,
 .is-rec .pay-modal__steps,
 .is-rec .pay-modal__stage,
 .is-rec .pay-modal__link-row {

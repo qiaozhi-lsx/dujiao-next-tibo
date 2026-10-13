@@ -455,6 +455,10 @@ const buildPaymentOrderPayload = (
     maskedEmail: resolvedEmail ? maskEmail(resolvedEmail) : '',
     interactionMode: String(payData?.interaction_mode || ''),
     feeAmount: String(payData?.fee_amount || ''),
+    walletAddress: String(payData?.wallet_address || ''),
+    chainAmount: String(payData?.chain_amount || ''),
+    chain: String(payData?.chain || ''),
+    tokenId: String(payData?.token_id || ''),
     guestCredentials,
   }
 }

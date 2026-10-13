@@ -235,7 +235,9 @@ export function usePayment() {
       ethereum: 'Ethereum',
       eth: 'Ethereum',
       bsc: 'BNB Smart Chain',
+      binance: 'BNB Smart Chain',
       polygon: 'Polygon',
+      solana: 'Solana',
     }
     return labels[normalized] || value
   }
