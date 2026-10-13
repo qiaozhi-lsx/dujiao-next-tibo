@@ -8,6 +8,7 @@ import { amountToCents, centsToAmount } from '../utils/money'
 import { buildSkuDisplayTextFromSnapshot } from '../utils/sku'
 import { getImageUrl } from '../utils/image'
 import { copyText } from '../utils/clipboard'
+import { hasActualPayment } from '../utils/orderPayment'
 
 interface ManualFormSnapshotField {
   key: string
@@ -173,6 +174,12 @@ export function useOrderDisplayHelpers(order: Ref<any>) {
     return formatMoney(centsToAmount(itemPaidAmountCents(item)), currency)
   }
 
+  /** 实付金额展示：未实际支付（待支付 / 已取消 / 已过期）的订单显示 0，不展示支付意图金额。 */
+  const formatPaidTotal = (order: any) => {
+    if (!hasActualPayment(order)) return formatMoney('0.00', order?.currency)
+    return formatMoney(order?.total_amount, order?.currency)
+  }
+
   const hasAmount = (amount?: string) => {
     if (amount === null || amount === undefined || amount === '') return false
     const valueCents = amountToCents(amount)
@@ -318,9 +325,11 @@ export function useOrderDisplayHelpers(order: Ref<any>) {
     formatDiscountMoney,
     hasDiscountAmount,
     hasAmount,
+    hasActualPayment,
     hasItemDiscount,
     formatItemDiscountTotal,
     formatItemPaidAmount,
+    formatPaidTotal,
     manualSubmissionRows,
     fulfillmentDeliveryLines,
     instructionBlocks,

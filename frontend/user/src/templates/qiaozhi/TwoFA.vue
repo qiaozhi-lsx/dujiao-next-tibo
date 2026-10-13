@@ -200,9 +200,10 @@ const codeChars = computed(() => {
 })
 
 const RING_LENGTH = 94.2
+// 倒计时圆环按剩余时间绘制：每个周期从满圈开始，随后逆时针消退（此前公式画反，呈涨满方向）。
 const ringOffset = computed(() => {
   const period = parsed.value?.period || 30
-  return (RING_LENGTH * secondsLeft.value) / period
+  return RING_LENGTH * (1 - secondsLeft.value / period)
 })
 
 // ---------- 操作 ----------

@@ -1,23 +1,17 @@
 <template>
   <div ref="rootEl" class="j8-container j8-order">
-    <!-- 顶部返回栏 -->
+    <!-- 顶部：返回 + 订单状态 -->
     <div class="j8-order-topbar">
       <RouterLink class="j8-order-back" to="/guest/orders">
         <ArrowLeft />
         {{ t('qiaozhi.orderDetail.backToOrders') }}
       </RouterLink>
+      <span v-if="showOrderTitle" class="j8-order-status" :class="toneClass(order?.status)">
+        <component :is="statusIcon" />
+        {{ statusLabel(order?.status) }}
+      </span>
     </div>
-
-    <!-- 标题 -->
-    <div class="j8-order-hero">
-      <h1 class="j8-order-title">
-        <span v-if="showOrderTitle" class="j8-order-title-ic" :class="toneClass(order?.status)">
-          <component :is="statusIcon" />
-        </span>
-        {{ showOrderTitle ? heroTitle : t('guestOrderDetail.title') }}
-      </h1>
-      <p class="j8-order-sub">{{ subtitleText }}</p>
-    </div>
+    <h1 class="j8-sr-only">{{ t('guestOrderDetail.title') }}</h1>
 
     <!-- 游客鉴权 -->
     <section v-if="viewState === 'auth'" class="j8-order-auth j8-reveal is-pending">
@@ -92,7 +86,7 @@
           </div>
           <div class="j8-order-row">
             <span>{{ t('orderDetail.amountTotal') }}</span>
-            <b>{{ formatMoney(order.total_amount, order.currency) }}</b>
+            <b>{{ formatPaidTotal(order) }}</b>
           </div>
         </div>
         <div v-if="order.status === 'pending_payment'" class="j8-order-card-actions">
@@ -129,6 +123,8 @@
             </button>
           </div>
         </div>
+
+        <p v-if="deliveredEmailHint" class="j8-order-deliver-hint">{{ deliveredEmailHint }}</p>
 
         <div v-for="unit in deliveryUnits" :key="unit.key" class="j8-order-unit">
           <!-- 子订单头 -->
@@ -275,11 +271,11 @@
           </div>
           <div class="j8-order-amount-cell">
             <div class="lbl">{{ t('orderDetail.amountTotal') }}</div>
-            <div class="val">{{ formatMoney(order.total_amount, order.currency) }}</div>
+            <div class="val">{{ formatPaidTotal(order) }}</div>
           </div>
         </div>
         <div
-          v-if="hasAmount(order.wallet_paid_amount) || hasAmount(order.online_paid_amount) || hasAmount(order.refunded_amount)"
+          v-if="hasActualPayment(order) && (hasAmount(order.wallet_paid_amount) || hasAmount(order.online_paid_amount) || hasAmount(order.refunded_amount))"
           class="j8-order-amount-grid is-secondary"
         >
           <div v-if="hasAmount(order.wallet_paid_amount)" class="j8-order-amount-cell">
@@ -391,6 +387,7 @@ const {
   fulfillmentDownloading, handleDownloadFulfillment,
   statusLabel, statusVariant, fulfillmentTypeLabelText, fulfillmentStatusLabelText,
   formatDate, getLocalizedText, formatMoney, formatDiscountMoney, hasDiscountAmount, hasAmount,
+  hasActualPayment, formatPaidTotal,
   refundReasonText, showRefundRecordsCard, refundRecords, showTimeCard,
   orderItemImage, orderItemSkuText, manualSubmissionRows,
   hasItemDiscount, formatItemPaidAmount, resolvedChildStatus,
@@ -433,14 +430,6 @@ const statusIcon = computed(() => {
 
 const showOrderTitle = computed(() => viewState.value === 'detail' && !!order.value)
 
-const heroTitle = computed(() => {
-  const status = String(order.value?.status || '')
-  if (!status || status === 'completed' || status === 'delivered') {
-    return t('qiaozhi.orderDetail.pageTitleCompleted')
-  }
-  return statusLabel(status)
-})
-
 const maskedEmail = computed(() => {
   const email = String(order.value?.guest_email || auth.value.email || '').trim()
   const at = email.indexOf('@')
@@ -455,11 +444,10 @@ const hasDeliveredFulfillment = computed(() => {
   return Array.isArray(o.children) && o.children.some((child: any) => child?.fulfillment?.status === 'delivered')
 })
 
-const subtitleText = computed(() => {
-  if (viewState.value === 'detail' && maskedEmail.value && hasDeliveredFulfillment.value) {
-    return t('qiaozhi.orderDetail.emailDeliveredHint', { email: maskedEmail.value })
-  }
-  return t('guestOrderDetail.subtitle')
+/** 交付成功后展示「卡密已发送至邮箱」提示（原顶部副标题迁入交付卡片）。 */
+const deliveredEmailHint = computed(() => {
+  if (!maskedEmail.value || !hasDeliveredFulfillment.value) return ''
+  return t('qiaozhi.orderDetail.emailDeliveredHint', { email: maskedEmail.value })
 })
 
 const supportHref = computed(() => {

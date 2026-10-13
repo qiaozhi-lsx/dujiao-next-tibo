@@ -1025,18 +1025,15 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-order-back { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0px 14px; border: 1px solid var(--line-strong); border-radius: 11px; background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text); font-size: 13px; font-weight: 700; white-space: nowrap; transition: border-color 0.15s, background 0.15s; }
 .qiaozhi-scope .j8-order-back svg { width: 15px; height: 15px; }
 .qiaozhi-scope .j8-order-back:hover { background: var(--surface-2); border-color: var(--accent-line); }
-.qiaozhi-scope .j8-order-topbar .j8-btn-primary { min-height: 38px; height: 38px; padding: 0px 14px; border-radius: 11px; font-size: 13px; font-weight: 700; }
-.qiaozhi-scope .j8-order-hero { display: grid; gap: 6px; }
-.qiaozhi-scope .j8-order-title { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: 900; line-height: 1.25; letter-spacing: -0.02em; color: var(--text); overflow-wrap: anywhere; }
-.qiaozhi-scope .j8-order-title-ic { flex: 0 0 auto; display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--muted); color: rgb(255, 255, 255); }
-.qiaozhi-scope .j8-order-title-ic svg { width: 15px; height: 15px; }
-.qiaozhi-scope .j8-order-title-ic.is-ok { background: var(--ok); }
-.qiaozhi-scope .j8-order-title-ic.is-warn { background: var(--amber); }
-.qiaozhi-scope .j8-order-title-ic.is-info { background: var(--blue); }
-.qiaozhi-scope .j8-order-title-ic.is-danger { background: var(--red); }
-.qiaozhi-scope .j8-order-title-ic.is-accent { background: var(--accent-strong); }
-.qiaozhi-scope .j8-order-title-ic.is-neutral { background: var(--muted); }
-.qiaozhi-scope .j8-order-sub { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.qiaozhi-scope .j8-order-status { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0px 15px; border-radius: var(--r-pill); background: var(--surface-3); color: var(--muted); font-size: 13px; font-weight: 800; white-space: nowrap; }
+.qiaozhi-scope .j8-order-status svg { width: 14px; height: 14px; }
+.qiaozhi-scope .j8-order-status.is-ok { background: var(--ok-soft); color: var(--ok); }
+.qiaozhi-scope .j8-order-status.is-warn { background: var(--amber-soft); color: var(--amber); }
+.qiaozhi-scope .j8-order-status.is-info { background: var(--blue-soft); color: var(--blue); }
+.qiaozhi-scope .j8-order-status.is-danger { background: var(--red-soft); color: var(--red); }
+.qiaozhi-scope .j8-order-status.is-accent { background: var(--accent-soft); color: var(--accent-strong); }
+.qiaozhi-scope .j8-order-deliver-hint { margin: -6px 0px 12px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.qiaozhi-scope .j8-sr-only { position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0px; }
 .qiaozhi-scope .j8-order-card { padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
 .qiaozhi-scope .j8-order-card-tag { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
 .qiaozhi-scope .j8-order-card-h2 { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; font-size: 15px; font-weight: 800; color: var(--text); }
