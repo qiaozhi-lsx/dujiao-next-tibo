@@ -205,6 +205,13 @@
       <b>{{ t('productDetail.notFound') }}</b>
       <button type="button" class="j8-btn-primary" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
     </div>
+
+    <!-- 当页支付 Modal -->
+    <PaymentModal
+      v-model:open="showPaymentModal"
+      :order="paymentOrder"
+      @paid="handlePaymentPaid"
+    />
   </div>
 </template>
 
@@ -226,6 +233,7 @@ import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useQiaozhiPrice } from './utils/price'
+import PaymentModal, { type PaymentModalItem, type PaymentModalOrder } from './PaymentModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -375,6 +383,67 @@ const buildItems = () => [{
 
 const fieldErrors = ref<{ email?: string; password?: string }>({})
 
+// 当页支付 Modal 状态
+const showPaymentModal = ref(false)
+const paymentOrder = ref<PaymentModalOrder | null>(null)
+
+const maskEmail = (raw: string): string => {
+  const mail = (raw || '').trim()
+  if (!mail || !mail.includes('@')) return mail
+  const [local, domain] = mail.split('@')
+  if (!local) return mail
+  if (local.length <= 2) return `${local.slice(0, 1)}***@${domain}`
+  return `${local.slice(0, 1)}***${local.slice(-1)}@${domain}`
+}
+
+const buildPaymentOrderPayload = (
+  payData: any,
+  orderNo: string,
+  guestCredentials: { email: string; order_password: string } | null,
+): PaymentModalOrder => {
+  const order = payData?.order || {}
+  const currency = String(order.currency || '')
+  const rawItems = Array.isArray(order.items) ? order.items : []
+  const items: PaymentModalItem[] = rawItems.length
+    ? rawItems.map((it: any) => ({
+      title: String(it?.title || it?.product_title || title.value || ''),
+      amount: String(it?.total_price ?? it?.unit_price ?? order.total_amount ?? '0'),
+      quantity: Number(it?.quantity || 0) || undefined,
+    }))
+    : [{
+      title: title.value || '',
+      amount: String(order.total_amount || payData?.online_pay_amount || '0'),
+      quantity: quantity.value,
+    }]
+  const expireRaw = payData?.expires_at || order.expires_at || null
+  const createdRaw = order.created_at || null
+  const resolvedEmail = userAuthStore.isAuthenticated
+    ? (userAuthStore.user?.email || '')
+    : (guestCredentials?.email || '')
+  return {
+    sn: orderNo,
+    amount: String(order.total_amount || payData?.online_pay_amount || '0'),
+    currency,
+    items,
+    qrCodeContent: String(payData?.qr_code || ''),
+    payUrl: String(payData?.pay_url || ''),
+    h5PayUrl: String(payData?.pay_url || ''),
+    expireAt: expireRaw,
+    createdAt: createdRaw,
+    maskedEmail: resolvedEmail ? maskEmail(resolvedEmail) : '',
+    interactionMode: String(payData?.interaction_mode || ''),
+    feeAmount: String(payData?.fee_amount || ''),
+    guestCredentials,
+  }
+}
+
+const handlePaymentPaid = (order: PaymentModalOrder) => {
+  showPaymentModal.value = false
+  if (order?.sn) {
+    router.push(`/orders/${encodeURIComponent(order.sn)}`)
+  }
+}
+
 const validateForm = (): string => {
   fieldErrors.value = {}
   if (!userAuthStore.isAuthenticated) {
@@ -417,28 +486,45 @@ const submitOrder = async () => {
   submitting.value = true
   try {
     const items = buildItems()
-    let orderNo = ''
+    let payData: any = null
+    const guestEmailInput = email.value.trim()
+    const guestPasswordInput = orderPassword.value
     if (userAuthStore.isAuthenticated) {
       const res = await userOrderAPI.createAndPay({ items, channel_id: selectedChannelId.value || undefined })
-      orderNo = res.data?.data?.order_no || ''
+      payData = res.data?.data
     } else {
       const res = await guestOrderAPI.createAndPay({
         items,
         channel_id: selectedChannelId.value || undefined,
-        email: email.value.trim(),
-        order_password: orderPassword.value,
+        email: guestEmailInput,
+        order_password: guestPasswordInput,
         captcha_payload: captchaProvider.value === 'image'
           ? captchaPayload.value
           : (turnstileToken.value ? { turnstile_token: turnstileToken.value } : {}),
       })
-      saveGuestOrderAuth({ email: email.value.trim(), order_password: orderPassword.value })
-      orderNo = res.data?.data?.order_no || ''
+      saveGuestOrderAuth({ email: guestEmailInput, order_password: guestPasswordInput })
+      payData = res.data?.data
     }
+    const orderNo = payData?.order_no || ''
     if (!orderNo) throw new Error(t('qiaozhi.detail.errSubmit'))
-    const query = userAuthStore.isAuthenticated
-      ? `order_no=${encodeURIComponent(orderNo)}`
-      : `guest=1&order_no=${encodeURIComponent(orderNo)}`
-    router.push(`/pay?${query}`)
+
+    // 后端 /orders/create-and-pay 已直接返回支付字段:qr_code / pay_url /
+    // expires_at / interaction_mode。拿到完整响应就当页弹 Modal,不再跳 /pay。
+    // 没有支付字段(例如 channel_id 为 0、全额钱包抵扣、通道返错)时 fallback 到
+    // 旧的 /pay 独立页,保留原流程不丢失。
+    if (payData && (payData.qr_code || payData.pay_url) && !payData.order_paid) {
+      paymentOrder.value = buildPaymentOrderPayload(
+        payData,
+        orderNo,
+        userAuthStore.isAuthenticated ? null : { email: guestEmailInput, order_password: guestPasswordInput },
+      )
+      showPaymentModal.value = true
+    } else {
+      const query = userAuthStore.isAuthenticated
+        ? `order_no=${encodeURIComponent(orderNo)}`
+        : `guest=1&order_no=${encodeURIComponent(orderNo)}`
+      router.push(`/pay?${query}`)
+    }
   } catch (e: any) {
     formError.value = e?.message || t('qiaozhi.detail.errSubmit')
     imageCaptchaRef.value?.refresh()
