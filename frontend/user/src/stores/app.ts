@@ -75,6 +75,34 @@ export const useAppStore = defineStore('app', () => {
             applyCustomScripts(config.value?.scripts)
             return
         }
+        // Fast path：服务端已经把 initial config 注入到 window.__PUBLIC_CONFIG__，
+        // 首次直接同步使用，省掉首帧 /public/config RTT。
+        // 后台 refetch 一次拿完整响应（payment_channels / server_time / app_version 等
+        // 为了减小首屏 payload 没有被 inline 的字段）。
+        if (!force && typeof window !== 'undefined' && (window as any).__PUBLIC_CONFIG__) {
+            config.value = (window as any).__PUBLIC_CONFIG__
+            applySEO()
+            applyCustomScripts(config.value?.scripts)
+            void (async () => {
+                try {
+                    const requestTime = Date.now()
+                    const response = await configAPI.get()
+                    config.value = response.data.data
+                    if (config.value?.server_time) {
+                        const responseTime = Date.now()
+                        const roundTripTime = responseTime - requestTime
+                        const estimatedServerNow = config.value.server_time + roundTripTime / 2
+                        serverTimeOffset.value = estimatedServerNow - responseTime
+                    }
+                    applySEO()
+                    applyCustomScripts(config.value?.scripts)
+                } catch (error) {
+                    // 后台 refresh 失败不影响首帧；下次 force=true 的调用会重试
+                    console.error('Background config refresh failed:', error)
+                }
+            })()
+            return
+        }
         if (!force) loading.value = true
         try {
             const requestTime = Date.now()

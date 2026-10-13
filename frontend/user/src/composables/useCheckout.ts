@@ -924,9 +924,7 @@ export function useCheckout() {
   }
 
   onMounted(async () => {
-    if (!appStore.config) {
-      await appStore.loadConfig()
-    }
+    if (!appStore.config) void appStore.loadConfig()
     await syncCartStockSnapshots()
     debouncedLoadPreview()
     loadWalletBalance()

@@ -341,7 +341,7 @@ const reloadOpenedData = async () => {
 const initialize = async () => {
   loading.value = true
   panelAlert.value = null
-  await appStore.loadConfig()
+  if (!appStore.config) void appStore.loadConfig()
   await loadDashboard()
   await reloadOpenedData()
   loading.value = false
