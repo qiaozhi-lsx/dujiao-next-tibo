@@ -411,6 +411,12 @@ const maskEmail = (raw: string): string => {
   return `${local.slice(0, 1)}***${local.slice(-1)}@${domain}`
 }
 
+const resolveItemTitle = (raw: unknown): string => {
+  if (typeof raw === 'string') return raw
+  if (raw && typeof raw === 'object') return getLocalizedText(raw as Record<string, string>)
+  return ''
+}
+
 const buildPaymentOrderPayload = (
   payData: any,
   orderNo: string,
@@ -421,7 +427,7 @@ const buildPaymentOrderPayload = (
   const rawItems = Array.isArray(order.items) ? order.items : []
   const items: PaymentModalItem[] = rawItems.length
     ? rawItems.map((it: any) => ({
-      title: String(it?.title || it?.product_title || title.value || ''),
+      title: resolveItemTitle(it?.title) || resolveItemTitle(it?.product_title) || title.value || '',
       amount: String(it?.total_price ?? it?.unit_price ?? order.total_amount ?? '0'),
       quantity: Number(it?.quantity || 0) || undefined,
     }))
