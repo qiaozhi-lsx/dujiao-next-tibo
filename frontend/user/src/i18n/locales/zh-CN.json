@@ -1757,6 +1757,18 @@
       "title": "商品分类",
       "unit": "件"
     },
+    "products": {
+      "hero": {
+        "eyebrow": "SHOP ALL",
+        "title": "一次收齐所有的订阅好物",
+        "subtitle": "按分类浏览，或用搜索框直达目标商品，付款后凭证即时送达。",
+        "searchPlaceholder": "搜索商品名称或关键词..."
+      },
+      "catalog": {
+        "eyebrow": "CATALOG",
+        "unit": "款商品"
+      }
+    },
     "card": {
       "priceFrom": "起",
       "finalPrice": "到手价",
@@ -1770,6 +1782,33 @@
     },
     "footer": {
       "rights": "保留所有权利"
+    },
+    "login": {
+      "eyebrow": "SIGN IN",
+      "subtitle": "欢迎回来，几秒内完成登录继续你的订单。",
+      "noAccountPrefix": "还没有账号？",
+      "goRegister": "立即注册"
+    },
+    "register": {
+      "eyebrow": "JOIN US",
+      "subtitle": "注册即可自动发货、随时查单、同步购物车。",
+      "hasAccountPrefix": "已有账号？",
+      "goLogin": "直接登录"
+    },
+    "cart": {
+      "eyebrow": "CART",
+      "back": "返回首页",
+      "emptyHint": "挑一件心仪的，放进购物车再来结算吧。"
+    },
+    "checkout": {
+      "eyebrow": "CHECKOUT",
+      "subtitle": "确认信息，核对金额，立即创建订单并前往支付。",
+      "backToCart": "返回购物车",
+      "emptyHint": "你的购物车暂时空着，先去选几件心仪的商品吧。",
+      "sectionItems": "ORDER",
+      "sectionInfo": "DETAILS",
+      "sectionSummary": "SUMMARY",
+      "infoTitle": "填写订单信息"
     },
     "detail": {
       "back": "返回商品",
@@ -1793,6 +1832,11 @@
       "errPassword": "订单查询密码至少 6 位",
       "errChannel": "请选择支付方式",
       "errSubmit": "下单失败，请稍后重试"
+    },
+    "payment": {
+      "eyebrow": "PAYMENT",
+      "summaryTitle": "订单摘要",
+      "scanEyebrow": "SCAN TO PAY"
     },
     "tfa": {
       "title": "动态验证码",

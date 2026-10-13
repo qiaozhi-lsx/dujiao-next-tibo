@@ -1757,6 +1757,18 @@
       "title": "Categories",
       "unit": "items"
     },
+    "products": {
+      "hero": {
+        "eyebrow": "SHOP ALL",
+        "title": "Every subscription you need, in one place.",
+        "subtitle": "Browse by category or jump straight in with search — credentials arrive the moment payment lands.",
+        "searchPlaceholder": "Search products or keywords..."
+      },
+      "catalog": {
+        "eyebrow": "CATALOG",
+        "unit": "items"
+      }
+    },
     "card": {
       "priceFrom": "from",
       "finalPrice": "Final price",
@@ -1770,6 +1782,33 @@
     },
     "footer": {
       "rights": "All rights reserved"
+    },
+    "login": {
+      "eyebrow": "SIGN IN",
+      "subtitle": "Welcome back — sign in to pick up your orders.",
+      "noAccountPrefix": "No account yet?",
+      "goRegister": "Create one"
+    },
+    "register": {
+      "eyebrow": "JOIN US",
+      "subtitle": "Register once for instant delivery, order tracking and a synced cart.",
+      "hasAccountPrefix": "Already have an account?",
+      "goLogin": "Sign in"
+    },
+    "cart": {
+      "eyebrow": "CART",
+      "back": "Back to home",
+      "emptyHint": "Pick something you like and bring it back here to check out."
+    },
+    "checkout": {
+      "eyebrow": "CHECKOUT",
+      "subtitle": "Confirm your details, review the amount and head to payment.",
+      "backToCart": "Back to cart",
+      "emptyHint": "Your cart is empty for now — pick something you like first.",
+      "sectionItems": "ORDER",
+      "sectionInfo": "DETAILS",
+      "sectionSummary": "SUMMARY",
+      "infoTitle": "Order details"
     },
     "detail": {
       "back": "Back to shop",
@@ -1793,6 +1832,11 @@
       "errPassword": "Order password must be at least 6 characters",
       "errChannel": "Please choose a payment method",
       "errSubmit": "Failed to place the order, please retry"
+    },
+    "payment": {
+      "eyebrow": "PAYMENT",
+      "summaryTitle": "Order summary",
+      "scanEyebrow": "SCAN TO PAY"
     },
     "tfa": {
       "title": "Two-factor codes",
