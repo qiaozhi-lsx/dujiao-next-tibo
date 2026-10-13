@@ -188,7 +188,7 @@ const showBackTop = ref(false)
 const langEl = ref<HTMLElement | null>(null)
 const year = new Date().getFullYear()
 
-const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'D&J Studio')
+const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'Qiaozhi&Ai')
 const brandDomain = computed(() => {
   const domain = String(appStore.config?.brand?.site_domain || '').trim()
   if (domain) return domain.replace(/^https?:\/\//, '')

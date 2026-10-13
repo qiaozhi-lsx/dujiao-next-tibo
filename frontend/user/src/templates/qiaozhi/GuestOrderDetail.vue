@@ -73,7 +73,6 @@
       <section class="j8-order-card j8-reveal is-pending">
         <div class="j8-order-card-tag">
           <span>{{ t('qiaozhi.orderDetail.sectionOrder') }}</span>
-          <span class="j8-order-badge" :class="toneClass(order.status)">{{ statusLabel(order.status) }}</span>
         </div>
         <div class="j8-order-rows">
           <div class="j8-order-row">
@@ -101,26 +100,25 @@
         <div class="j8-order-card-h2">
           <span>{{ t('qiaozhi.orderDetail.sectionDelivery') }}</span>
           <div v-if="singleFulfillment" class="j8-order-actions">
-            <button
+            <J8Button
               v-if="canCopy(singleFulfillment.fulfillment)"
-              type="button"
-              class="j8-order-btn is-primary"
+              size="sm"
               @click="handleCopyFulfillment(singleFulfillment.fulfillment)"
             >
               <Check v-if="fulfillmentCopied" />
               <Copy v-else />
-              {{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}
-            </button>
-            <button
+              <span>{{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}</span>
+            </J8Button>
+            <J8Button
               v-if="isFulfillmentTruncated(singleFulfillment.fulfillment)"
-              type="button"
-              class="j8-order-btn"
+              size="sm"
+              variant="secondary"
               :disabled="fulfillmentDownloading"
               @click="handleDownloadFulfillment(singleFulfillment.orderNo)"
             >
               <Download />
-              {{ fulfillmentDownloading ? t('orderDetail.fulfillmentDownloading') : t('orderDetail.fulfillmentDownload') }}
-            </button>
+              <span>{{ fulfillmentDownloading ? t('orderDetail.fulfillmentDownloading') : t('orderDetail.fulfillmentDownload') }}</span>
+            </J8Button>
           </div>
         </div>
 
@@ -134,31 +132,30 @@
               <b>{{ unit.orderNo }}</b>
               <span>· {{ t('orderDetail.childOrderAmount') }} {{ formatMoney(unit.orderAmount, unit.currency) }}</span>
             </div>
-            <span v-if="unit.status" class="j8-order-badge" :class="toneClass(unit.status)">{{ statusLabel(unit.status) }}</span>
+            <span v-if="unit.status && unit.status !== order.status" class="j8-order-badge" :class="toneClass(unit.status)">{{ statusLabel(unit.status) }}</span>
           </div>
 
           <!-- 多单元时每单自己的复制 / 下载 -->
           <div v-if="deliveryUnits.length > 1 && unit.fulfillment" class="j8-order-actions">
-            <button
+            <J8Button
               v-if="canCopy(unit.fulfillment)"
-              type="button"
-              class="j8-order-btn is-primary"
+              size="sm"
               @click="handleCopyFulfillment(unit.fulfillment)"
             >
               <Check v-if="fulfillmentCopied" />
               <Copy v-else />
-              {{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}
-            </button>
-            <button
+              <span>{{ fulfillmentCopied ? t('orderDetail.fulfillmentCopied') : t('qiaozhi.orderDetail.copyPayload') }}</span>
+            </J8Button>
+            <J8Button
               v-if="isFulfillmentTruncated(unit.fulfillment)"
-              type="button"
-              class="j8-order-btn"
+              size="sm"
+              variant="secondary"
               :disabled="fulfillmentDownloading"
               @click="handleDownloadFulfillment(unit.orderNo)"
             >
               <Download />
-              {{ fulfillmentDownloading ? t('orderDetail.fulfillmentDownloading') : t('orderDetail.fulfillmentDownload') }}
-            </button>
+              <span>{{ fulfillmentDownloading ? t('orderDetail.fulfillmentDownloading') : t('orderDetail.fulfillmentDownload') }}</span>
+            </J8Button>
           </div>
 
           <!-- 商品回显 -->
@@ -378,6 +375,7 @@ import { useAppStore } from '../../stores/app'
 import { useGuestOrderDetail } from '../../composables/useGuestOrderDetail'
 import { setupReveal } from './utils/reveal'
 import { buildDeliveryUnits, type DeliveryUnit } from './utils/deliveryUnits'
+import J8Button from './components/J8Button.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
