@@ -79,58 +79,7 @@
           <!-- 数量 -->
           <div class="j8-pd-field">
             <label>{{ t('productDetail.quantity') }}</label>
-            <div
-              class="j8-qty"
-              :class="{ 'is-shake': qtyShake }"
-              role="group"
-              :aria-label="t('productDetail.quantity')"
-              @keydown="handleQtyKeydown"
-            >
-              <button
-                type="button"
-                class="j8-qty-btn"
-                :aria-disabled="quantity <= quantityEffectiveMin"
-                :aria-label="t('common.previous')"
-                @click="stepQuantity(-1)"
-              >
-                <Minus />
-              </button>
-              <span class="j8-qty-num" aria-live="polite" aria-atomic="true">
-                <span class="j8-sr-only">{{ t('productDetail.quantityAria', { count: quantity }) }}</span>
-                <span
-                  class="j8-qty-col"
-                  :class="{ 'is-hide': rollDigits.hundreds === null }"
-                  :style="{ transform: `translateY(${-(rollDigits.hundreds || 0) * 26}px)` }"
-                  aria-hidden="true"
-                >
-                  <span v-for="d in 10" :key="`h-${d}`">{{ d - 1 }}</span>
-                </span>
-                <span
-                  class="j8-qty-col"
-                  :class="{ 'is-hide': rollDigits.tens === null }"
-                  :style="{ transform: `translateY(${-(rollDigits.tens || 0) * 26}px)` }"
-                  aria-hidden="true"
-                >
-                  <span v-for="d in 10" :key="`t-${d}`">{{ d - 1 }}</span>
-                </span>
-                <span
-                  class="j8-qty-col"
-                  :style="{ transform: `translateY(${-rollDigits.ones * 26}px)` }"
-                  aria-hidden="true"
-                >
-                  <span v-for="d in 10" :key="`o-${d}`">{{ d - 1 }}</span>
-                </span>
-              </span>
-              <button
-                type="button"
-                class="j8-qty-btn is-plus"
-                :aria-disabled="quantityEffectiveLimit !== null && quantity >= quantityEffectiveLimit"
-                :aria-label="t('common.next')"
-                @click="stepQuantity(1)"
-              >
-                <Plus />
-              </button>
-            </div>
+            <J8QtyStepper v-model="quantity" :min="quantityEffectiveMin" :max="quantityEffectiveLimit" />
           </div>
 
           <template v-if="pitchLine">
@@ -280,11 +229,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  ChevronLeft, CreditCard, Minus, PackageOpen, Plus, Share2, ShoppingCart, Wallet, Zap,
+  ChevronLeft, CreditCard, PackageOpen, Share2, ShoppingCart, Wallet, Zap,
 } from 'lucide-vue-next'
 import { useAppStore } from '../../stores/app'
 import { useUserAuthStore } from '../../stores/userAuth'
@@ -299,6 +248,7 @@ import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useQiaozhiPrice } from './utils/price'
 import PaymentModal, { type PaymentModalItem, type PaymentModalOrder } from './PaymentModal.vue'
 import J8Button from './components/J8Button.vue'
+import J8QtyStepper from './components/J8QtyStepper.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -324,52 +274,6 @@ const soldOut = computed(() => product.value?.stock_status === 'out_of_stock' ||
 const fulfillmentLabel = computed(() => getFulfillmentTypeLabel(product.value?.fulfillment_type))
 const purchaseTypeLabel = computed(() => getPurchaseTypeLabel(product.value?.purchase_type))
 const stockLabel = computed(() => (soldOut.value ? t('products.stockStatus.outOfStock') : getStockStatusLabel(product.value)))
-
-// ==================== 数量步进器（滚动数字） ====================
-const rollDigits = computed(() => {
-  const q = Math.max(0, Number(quantity.value) || 0)
-  return {
-    hundreds: q >= 100 ? Math.floor(q / 100) : null,
-    tens: q >= 10 ? Math.floor(q / 10) % 10 : null,
-    ones: q % 10,
-  }
-})
-
-const qtyShake = ref(false)
-let qtyShakeTimer: ReturnType<typeof setTimeout> | null = null
-const triggerQtyShake = () => {
-  qtyShake.value = false
-  void nextTick(() => {
-    qtyShake.value = true
-    if (qtyShakeTimer) clearTimeout(qtyShakeTimer)
-    qtyShakeTimer = setTimeout(() => { qtyShake.value = false }, 460)
-  })
-}
-
-const stepQuantity = (delta: number) => {
-  const min = quantityEffectiveMin.value
-  const limit = quantityEffectiveLimit.value
-  if (delta < 0 && quantity.value <= min) {
-    triggerQtyShake()
-    return
-  }
-  if (delta > 0 && limit !== null && quantity.value >= limit) {
-    triggerQtyShake()
-    return
-  }
-  const next = quantity.value + delta
-  quantity.value = limit !== null ? Math.min(Math.max(min, next), limit) : Math.max(min, next)
-}
-
-const handleQtyKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'ArrowUp' || event.key === 'ArrowRight') {
-    event.preventDefault()
-    stepQuantity(1)
-  } else if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') {
-    event.preventDefault()
-    stepQuantity(-1)
-  }
-}
 
 // ==================== 图库 ====================
 const gallery = computed(() => {
@@ -676,9 +580,5 @@ const goBack = () => {
 
 onMounted(() => {
   if (!appStore.config) void appStore.loadConfig()
-})
-
-onUnmounted(() => {
-  if (qtyShakeTimer) clearTimeout(qtyShakeTimer)
 })
 </script>

@@ -15,6 +15,7 @@
           v-model="searchQuery"
           :items="searchItems"
           :label="t('qiaozhi.search.label')"
+          :trigger-label="t('qiaozhi.search.trigger')"
           :placeholder="t('qiaozhi.hero.searchPlaceholder')"
           :empty-title="(q) => t('qiaozhi.search.emptyTitle', { query: q })"
           :empty-hint="t('qiaozhi.search.emptyHint')"

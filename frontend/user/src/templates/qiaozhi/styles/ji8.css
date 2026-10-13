@@ -123,7 +123,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .qiaozhi-scope .j8-search input::-webkit-search-cancel-button, .qiaozhi-scope .j8-search input::-webkit-search-decoration, .qiaozhi-scope .j8-search input::-webkit-search-results-button, .qiaozhi-scope .j8-search input::-webkit-search-results-decoration { appearance: none; display: none; }
 .qiaozhi-scope .j8-search .j8-search-clear { flex: 0 0 auto; border: 0px; background: transparent; padding: 0px; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
 .qiaozhi-scope .j8-search .j8-search-clear:hover { color: var(--text); }
-.qiaozhi-scope .j8-share { height: 48px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0px 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--accent-strong); font-size: 11px; font-weight: 800; white-space: nowrap; box-shadow: var(--shadow-soft); transition: border-color 0.15s, background 0.15s; }
+.qiaozhi-scope .j8-share { height: 46px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0px 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--accent-strong); font-size: 12.5px; font-weight: 800; white-space: nowrap; box-shadow: var(--shadow-soft); transition: border-color 0.15s, background 0.15s; }
 .qiaozhi-scope .j8-share svg { width: 17px; height: 17px; }
 .qiaozhi-scope .j8-share:hover { border-color: rgba(10, 10, 10, 0.28); background: var(--accent-soft); }
 .qiaozhi-scope .j8-catalog { display: grid; grid-template-columns: 250px minmax(0px, 1fr); gap: 16px; align-items: start; }
@@ -519,19 +519,13 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .j8-pd-skus small::before { content: "·"; margin-right: 6px; color: var(--line-strong); }
 .qiaozhi-scope .j8-pd-skus button.is-active small { color: var(--accent-strong); }
 .qiaozhi-scope .j8-pd-hint { margin-top: 6px; font-size: 12px; color: var(--amber); }
-.qiaozhi-scope .j8-pd-qty { display: inline-grid; grid-template-columns: 44px 56px 44px; height: 40px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); }
-.qiaozhi-scope .j8-pd-qty button { display: grid; place-items: center; background: var(--surface-2); color: var(--text); }
-.qiaozhi-scope .j8-pd-qty button:hover:not(:disabled) { background: var(--surface-3); }
-.qiaozhi-scope .j8-pd-qty button:disabled { color: var(--muted); opacity: 0.5; }
-.qiaozhi-scope .j8-pd-qty svg { width: 16px; height: 16px; }
-.qiaozhi-scope .j8-pd-qty input { min-width: 0px; border-inline: 1px solid var(--line); background: transparent; text-align: center; font-size: 15px; font-weight: 800; color: var(--text); outline: none; font-variant-numeric: tabular-nums; }
 /* 滚动数字步进器（商品页）：胶囊容器 + 圆形按钮 + 列滚动数字 */
 .qiaozhi-scope .j8-qty { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0px 5px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); }
 .qiaozhi-scope .j8-qty.is-shake { animation: j8-qty-shake 0.42s cubic-bezier(0.2, 0.8, 0.2, 1); }
 @keyframes j8-qty-shake { 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
 .qiaozhi-scope .j8-qty-btn { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); color: var(--text); transition: background-color 0.2s, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.2s; }
 .qiaozhi-scope .j8-qty-btn:hover { background: var(--surface-3); }
-.qiaozhi-scope .j8-qty-btn:active { transform: scale(0.88); }
+.qiaozhi-scope .j8-qty-btn:active { transform: scale(var(--j8-press, 0.88)); }
 .qiaozhi-scope .j8-qty-btn svg { width: 16px; height: 16px; }
 .qiaozhi-scope .j8-qty-btn[aria-disabled="true"] { opacity: 0.35; }
 .qiaozhi-scope .j8-qty-btn.is-plus { background: var(--accent); color: var(--on-accent); }
@@ -781,7 +775,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 @media (max-width: 760px) { .qiaozhi-scope .j8-hero.is-home .j8-shortlink { display: block; } }
 @media (max-width: 760px) { .qiaozhi-scope .j8-hero-actions { display: grid; grid-template-columns: minmax(0px, 1fr) auto; gap: 7px; } }
 @media (max-width: 760px) { .qiaozhi-scope .j8-search { width: 100%; height: 43px; } }
-@media (max-width: 760px) { .qiaozhi-scope .j8-share { min-width: 96px; height: 43px; padding: 0px 10px; font-size: 9px; } }
+@media (max-width: 760px) { .qiaozhi-scope .j8-share { min-width: 0px; height: 42px; padding: 0px 12px; font-size: 11px; } }
 @media (max-width: 760px) { .qiaozhi-scope .j8-catalog { display: block; } }
 @media (max-width: 760px) { .qiaozhi-scope .j8-cat-btn { display: grid; } }
 @media (max-width: 760px) { .qiaozhi-scope .j8-section-heading, .qiaozhi-scope .j8-section-head { margin-bottom: 10px; } }
@@ -1216,11 +1210,11 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 }
 
 /* ---------- Arc 按钮语言（参考 uiarc.dev Button）：全站胶囊化 + 按压缩放 ---------- */
-.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share) {
+.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share, .j8-pd-back-link) {
   border-radius: var(--r-pill);
   transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
-.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share):not(:disabled):active {
+.qiaozhi-scope :is(.j8-btn-primary, .j8-pd-back, .j8-pd-cart, .j8-pd-buy, .j8-pd-cart-icon, .j8-order-back, .j8-order-btn, .j8-orders-act, .j8-orders-submit, .j8-auth-submit, .j8-auth-oauth-btn, .j8-xcheck-btn, .j8-icon-btn, .j8-orders-pager button, .j8-pd-skus button, .j8-nav a, .j8-nav button, .j8-account-btn, .j8-share, .j8-pd-back-link):not(:disabled):active {
   transform: scale(0.97);
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }

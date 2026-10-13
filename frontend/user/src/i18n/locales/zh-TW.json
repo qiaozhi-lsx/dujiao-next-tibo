@@ -1137,6 +1137,8 @@
     "priceLabel": "價格",
     "skuLabel": "規格",
     "remove": "移除",
+    "removedShort": "已移除",
+    "holdRemoveHint": "按住 {seconds} 秒確認移除，鍵盤按住空格或 Enter 鍵；中途鬆手即取消",
     "removed": "已從購物車移除",
     "undo": "撤銷",
     "summaryTitle": "結算資訊",
@@ -1746,11 +1748,12 @@
       "subtitle": "數位商品自動發貨，付款後憑證即時送達。",
       "shortlink": "本站短鏈",
       "searchPlaceholder": "搜尋商品名稱或關鍵詞...",
-      "share": "分享本站",
+      "share": "分享",
       "shared": "已複製"
     },
     "search": {
       "label": "搜尋商品",
+      "trigger": "搜尋",
       "emptyTitle": "沒有找到「{query}」相關商品",
       "emptyHint": "換個更短的關鍵詞試試",
       "results": "{count} 個結果",

@@ -15,6 +15,7 @@
         @click="expand"
       >
         <Search aria-hidden="true" />
+        <span v-if="triggerLabel" class="j8-es-trigger-label" aria-hidden="true">{{ triggerLabel }}</span>
       </button>
       <input
         ref="inputEl"
@@ -105,6 +106,7 @@ const props = withDefaults(defineProps<{
   modelValue?: string
   items?: SearchableItem[]
   label?: string
+  triggerLabel?: string
   placeholder?: string
   emptyHint?: string
   groupLabel?: string
@@ -117,6 +119,7 @@ const props = withDefaults(defineProps<{
   modelValue: '',
   items: () => [],
   label: 'Search',
+  triggerLabel: '',
   placeholder: '',
   emptyHint: '',
   groupLabel: '',
@@ -148,9 +151,11 @@ const expanded = ref(false)
 const focused = ref(false)
 const query = ref(props.modelValue)
 const shellWidth = ref(COLLAPSED_SIZE)
+const collapsedWidth = ref(COLLAPSED_SIZE) // 折叠态实测宽度；无 triggerLabel 时保持 46 兜底
 const shellEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLInputElement | null>(null)
 const triggerEl = ref<HTMLButtonElement | null>(null)
+let morphAnim: Animation | null = null
 
 watch(() => props.modelValue, (value) => {
   if (value !== query.value) query.value = value
@@ -164,12 +169,40 @@ const morphTo = (goal: number) => {
   const el = shellEl.value
   const from = el?.offsetWidth ?? goal
   shellWidth.value = goal
-  if (!el || reduced.value || from === goal || typeof el.animate !== 'function') return
-  el.animate(
+  if (!el || reduced.value || from === goal || typeof el.animate !== 'function') return null
+  morphAnim = el.animate(
     [{ width: `${from}px` }, { width: `${goal}px` }],
     { duration: 420, easing: 'cubic-bezier(0.34, 1.45, 0.64, 1)' },
   )
+  return morphAnim
 }
+
+// 折叠宽度实测：临时置宽 auto 并隐藏输入框，读外壳自然宽度后还原
+const measureCollapsedWidth = () => {
+  if (expanded.value || (morphAnim && morphAnim.playState === 'running')) return
+  const el = shellEl.value
+  if (!el || !triggerEl.value) return
+  if (!props.triggerLabel) {
+    collapsedWidth.value = COLLAPSED_SIZE
+    shellWidth.value = COLLAPSED_SIZE
+    return
+  }
+  const input = inputEl.value
+  const prevWidth = el.style.width
+  const prevDisplay = input?.style.display ?? ''
+  el.style.width = 'auto'
+  if (input) input.style.display = 'none'
+  const measured = Math.ceil(el.getBoundingClientRect().width)
+  if (input) input.style.display = prevDisplay
+  el.style.width = prevWidth
+  const goal = measured > 0 ? measured : COLLAPSED_SIZE
+  collapsedWidth.value = goal
+  shellWidth.value = goal
+}
+
+watch(() => props.triggerLabel, () => {
+  void nextTick(measureCollapsedWidth)
+})
 
 const expand = () => {
   if (expanded.value) return
@@ -185,7 +218,10 @@ const collapse = (returnFocus: boolean) => {
   expanded.value = false
   query.value = ''
   active.value = -1
-  morphTo(COLLAPSED_SIZE)
+  const anim = morphTo(collapsedWidth.value)
+  // 收起动画落定后补测一次：兜住展开期间标签 / 字体变化
+  if (anim) void anim.finished.then(measureCollapsedWidth).catch(() => { /* 动画被取消时忽略 */ })
+  else void nextTick(measureCollapsedWidth)
   if (returnFocus) void nextTick(() => triggerEl.value?.focus({ preventScroll: true }))
 }
 
@@ -309,6 +345,11 @@ onMounted(() => {
   mq = window.matchMedia('(prefers-reduced-motion: reduce)')
   syncReduced()
   mq.addEventListener?.('change', syncReduced)
+  measureCollapsedWidth()
+  // 字体后加载会改变文字宽度，字体就绪后补测一次
+  if (typeof document !== 'undefined' && document.fonts) {
+    void document.fonts.ready.then(measureCollapsedWidth)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -335,20 +376,26 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
 }
 .j8-es-shell:hover { border-color: var(--accent-line); }
 .j8-es-shell:focus-within { border-color: var(--accent); }
+.j8-es-shell:not([data-expanded]) { justify-content: center; }
 .j8-es-trigger {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 16px;
   border: 0;
   border-radius: inherit;
   background: transparent;
   color: var(--text);
   cursor: pointer;
+  white-space: nowrap;
   transition: background-color 0.15s;
 }
 .j8-es-trigger:hover { background: var(--surface-2); }
-.j8-es-trigger svg { width: 18px; height: 18px; }
+.j8-es-trigger svg { flex: 0 0 auto; width: 18px; height: 18px; }
+.j8-es-trigger-label { font-size: 12.5px; font-weight: 800; line-height: 1; }
 .j8-es-input {
   flex: 1 1 0%;
   min-width: 0;
@@ -361,6 +408,11 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   outline: none;
   opacity: 0;
   transition: opacity 0.08s ease;
+}
+.j8-es-shell:not([data-expanded]) .j8-es-input {
+  flex: 0 0 0%;
+  width: 0;
+  padding: 0;
 }
 .j8-es-shell[data-expanded] .j8-es-input {
   opacity: 1;
