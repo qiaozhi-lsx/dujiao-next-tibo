@@ -3,15 +3,15 @@
     <div class="tfa-wrap">
       <div class="tfa-card">
         <span class="j8-eyebrow">TWO-FACTOR AUTHENTICATOR</span>
-        <h1>{{ t('tibo.tfa.title') }}</h1>
-        <p class="tfa-desc">{{ t('tibo.tfa.desc') }}</p>
+        <h1>{{ t('qiaozhi.tfa.title') }}</h1>
+        <p class="tfa-desc">{{ t('qiaozhi.tfa.desc') }}</p>
 
         <!-- 输入区 -->
         <div class="tfa-field-head">
-          <label for="tfa-secret">{{ t('tibo.tfa.inputLabel') }}</label>
+          <label for="tfa-secret">{{ t('qiaozhi.tfa.inputLabel') }}</label>
           <button type="button" class="tfa-paste" @click="pasteFromClipboard">
             <ClipboardPaste />
-            {{ t('tibo.tfa.paste') }}
+            {{ t('qiaozhi.tfa.paste') }}
           </button>
         </div>
         <textarea
@@ -21,16 +21,16 @@
           rows="3"
           spellcheck="false"
           autocomplete="off"
-          :placeholder="t('tibo.tfa.placeholder')"
+          :placeholder="t('qiaozhi.tfa.placeholder')"
         ></textarea>
 
         <!-- 验证码展示 -->
         <div class="tfa-display" :class="{ 'is-ready': parsed }">
-          <p v-if="!secretInput.trim()" class="tfa-status is-idle">{{ t('tibo.tfa.idle') }}</p>
-          <p v-else-if="!parsed" class="tfa-status is-error" role="alert">{{ t('tibo.tfa.invalid') }}</p>
+          <p v-if="!secretInput.trim()" class="tfa-status is-idle">{{ t('qiaozhi.tfa.idle') }}</p>
+          <p v-else-if="!parsed" class="tfa-status is-error" role="alert">{{ t('qiaozhi.tfa.invalid') }}</p>
 
           <template v-else>
-            <div class="tfa-code" role="group" tabindex="0" :aria-label="t('tibo.tfa.codeAria', { code })">
+            <div class="tfa-code" role="group" tabindex="0" :aria-label="t('qiaozhi.tfa.codeAria', { code })">
               <span v-for="(ch, i) in codeChars" :key="i" class="tfa-digit" aria-hidden="true">{{ ch }}</span>
             </div>
 
@@ -48,7 +48,7 @@
                 </svg>
                 <span class="tfa-ring-num">{{ secondsLeft }}</span>
               </div>
-              <span class="tfa-ring-label">{{ t('tibo.tfa.remaining', { seconds: secondsLeft }) }}</span>
+              <span class="tfa-ring-label">{{ t('qiaozhi.tfa.remaining', { seconds: secondsLeft }) }}</span>
             </div>
           </template>
         </div>
@@ -57,10 +57,10 @@
         <button type="button" class="tfa-copy-btn" :disabled="!parsed" @click="copyCode">
           <Check v-if="copied" />
           <Copy v-else />
-          {{ copied ? t('tibo.tfa.copied') : t('tibo.tfa.copyFull') }}
+          {{ copied ? t('qiaozhi.tfa.copied') : t('qiaozhi.tfa.copyFull') }}
         </button>
 
-        <p class="tfa-hint">{{ t('tibo.tfa.hint') }}</p>
+        <p class="tfa-hint">{{ t('qiaozhi.tfa.hint') }}</p>
       </div>
     </div>
   </div>

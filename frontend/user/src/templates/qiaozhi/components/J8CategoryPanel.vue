@@ -3,7 +3,7 @@
   <aside class="j8-panel j8-only-desktop">
     <header>
       <span class="j8-eyebrow">CATEGORIES</span>
-      <h2>{{ t('tibo.catalog.title') }}</h2>
+      <h2>{{ t('qiaozhi.catalog.title') }}</h2>
     </header>
     <div class="j8-cat-list">
       <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="emit('select', null)">
@@ -47,7 +47,7 @@
           <header>
             <div>
               <span class="j8-eyebrow">CATEGORIES</span>
-              <h2>{{ t('tibo.catalog.title') }}</h2>
+              <h2>{{ t('qiaozhi.catalog.title') }}</h2>
             </div>
             <button type="button" class="j8-drawer-close" :aria-label="t('common.cancel')" @click="drawerOpen = false"><X /></button>
           </header>

@@ -3,7 +3,7 @@
     <!-- 返回 -->
     <button type="button" class="j8-pd-back" @click="goBack">
       <ChevronLeft />
-      {{ t('tibo.detail.back') }}
+      {{ t('qiaozhi.detail.back') }}
     </button>
 
     <!-- 骨架 -->
@@ -44,7 +44,7 @@
             <span class="is-accent"><Zap />{{ fulfillmentLabel }}</span>
             <span class="is-accent">{{ purchaseTypeLabel }}</span>
             <span :class="soldOut ? 'is-danger' : 'is-accent'">{{ stockLabel }}</span>
-            <button type="button" class="j8-pd-share" @click="shareProduct"><Share2 />{{ t('tibo.detail.share') }}</button>
+            <button type="button" class="j8-pd-share" @click="shareProduct"><Share2 />{{ t('qiaozhi.detail.share') }}</button>
           </div>
 
           <div class="j8-pd-price-row">
@@ -57,7 +57,7 @@
 
           <!-- 规格 -->
           <div v-if="plans.length" class="j8-pd-field">
-            <label>{{ t('tibo.detail.spec') }}</label>
+            <label>{{ t('qiaozhi.detail.spec') }}</label>
             <div class="j8-pd-skus" :class="{ 'is-single': plans.length === 1 }">
               <button
                 v-for="plan in plans"
@@ -96,49 +96,49 @@
               <!-- 游客字段 -->
               <template v-if="!userAuthStore.isAuthenticated">
                 <div class="j8-ic-field">
-                  <label for="j8-ic-email">{{ t('tibo.detail.email') }}<b>*</b></label>
+                  <label for="j8-ic-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
                   <input
                     id="j8-ic-email"
                     v-model="email"
                     type="email"
                     autocomplete="email"
-                    :placeholder="t('tibo.detail.emailPlaceholder')"
+                    :placeholder="t('qiaozhi.detail.emailPlaceholder')"
                     :aria-invalid="!!fieldErrors.email"
                     :aria-describedby="fieldErrors.email ? 'j8-ic-email-err' : undefined"
                   />
                   <p v-if="fieldErrors.email" id="j8-ic-email-err" class="j8-ic-error">{{ fieldErrors.email }}</p>
                 </div>
                 <div class="j8-ic-field">
-                  <label for="j8-ic-password">{{ t('tibo.detail.orderPassword') }}<b>*</b></label>
+                  <label for="j8-ic-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
                   <input
                     id="j8-ic-password"
                     v-model="orderPassword"
                     type="password"
                     autocomplete="new-password"
-                    :placeholder="t('tibo.detail.orderPasswordPlaceholder')"
+                    :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
                     :aria-invalid="!!fieldErrors.password"
                     :aria-describedby="fieldErrors.password ? 'j8-ic-password-err' : undefined"
                   />
                   <p v-if="fieldErrors.password" id="j8-ic-password-err" class="j8-ic-error">{{ fieldErrors.password }}</p>
                 </div>
                 <div v-if="captchaProvider === 'image'" class="j8-ic-field">
-                  <label>{{ t('tibo.detail.captcha') }}<b>*</b></label>
+                  <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
                   <ImageCaptcha ref="imageCaptchaRef" v-model="captchaPayload" />
                 </div>
                 <div v-else-if="captchaProvider === 'turnstile'" class="j8-ic-field">
-                  <label>{{ t('tibo.detail.captcha') }}<b>*</b></label>
+                  <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
                   <TurnstileCaptcha ref="turnstileRef" v-model="turnstileToken" :site-key="turnstileSiteKey" />
                 </div>
                 <p class="j8-ic-hint">
-                  {{ t('tibo.detail.guestHint') }}
-                  <RouterLink :to="`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`">{{ t('tibo.detail.loginToBuy') }}</RouterLink>
+                  {{ t('qiaozhi.detail.guestHint') }}
+                  <RouterLink :to="`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`">{{ t('qiaozhi.detail.loginToBuy') }}</RouterLink>
                 </p>
               </template>
-              <p v-else class="j8-ic-hint is-ok">{{ t('tibo.detail.loggedInHint') }}</p>
+              <p v-else class="j8-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
 
               <!-- 支付方式 -->
               <div v-if="channels.length" class="j8-ic-pay">
-                <h3><Wallet />{{ t('tibo.detail.payTitle') }}</h3>
+                <h3><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
                 <div class="j8-ic-channels">
                   <button
                     v-for="ch in channels"
@@ -159,7 +159,7 @@
               </div>
 
               <div class="j8-ic-total">
-                <span>{{ t('tibo.detail.totalDue') }}</span>
+                <span>{{ t('qiaozhi.detail.totalDue') }}</span>
                 <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
               </div>
 
@@ -173,7 +173,7 @@
                 <button type="submit" class="j8-pd-buy" :disabled="!canPurchase || submitting">
                   <Loader2 v-if="submitting" class="j8-ic-spin" />
                   <CreditCard v-else />
-                  {{ submitting ? t('tibo.detail.submitting') : t('tibo.detail.submitAndPay') }}
+                  {{ submitting ? t('qiaozhi.detail.submitting') : t('qiaozhi.detail.submitAndPay') }}
                 </button>
               </div>
             </form>
@@ -183,7 +183,7 @@
 
       <!-- 商品详情 -->
       <div v-if="detailHtml" class="j8-pd-detail">
-        <h2>{{ t('tibo.detail.details') }}</h2>
+        <h2>{{ t('qiaozhi.detail.details') }}</h2>
         <div class="j8-pd-prose" v-html="detailHtml"></div>
       </div>
 
@@ -225,14 +225,14 @@ import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
-import { useTiboPrice } from './utils/price'
+import { useQiaozhiPrice } from './utils/price'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const appStore = useAppStore()
 const userAuthStore = useUserAuthStore()
-const { split: splitPrice } = useTiboPrice()
+const { split: splitPrice } = useQiaozhiPrice()
 
 const {
   loading, product, relatedPosts,
@@ -361,7 +361,7 @@ const channels = computed(() => {
         id: Number(ch.id),
         name: String(ch.name || ch.channel_type || ch.provider_type || ''),
         icon: ch.icon || ch.logo ? getImageUrl(String(ch.icon || ch.logo)) : '',
-        feeText: feeBps > 0 ? t('tibo.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
+        feeText: feeBps > 0 ? t('qiaozhi.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
       }
     })
 })
@@ -379,8 +379,8 @@ const validateForm = (): string => {
   fieldErrors.value = {}
   if (!userAuthStore.isAuthenticated) {
     const mail = email.value.trim()
-    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) fieldErrors.value.email = t('tibo.detail.errEmail')
-    if (orderPassword.value.trim().length < 6) fieldErrors.value.password = t('tibo.detail.errPassword')
+    if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) fieldErrors.value.email = t('qiaozhi.detail.errEmail')
+    if (orderPassword.value.trim().length < 6) fieldErrors.value.password = t('qiaozhi.detail.errPassword')
     if (Object.keys(fieldErrors.value).length) return ''
     if (captchaProvider.value === 'image' && (!captchaPayload.value.captcha_id || !captchaPayload.value.captcha_code)) {
       return t('auth.common.captchaRequired')
@@ -390,7 +390,7 @@ const validateForm = (): string => {
     }
   }
   if (channels.value.length && selectedChannelId.value === null) {
-    return t('tibo.detail.errChannel')
+    return t('qiaozhi.detail.errChannel')
   }
   return ''
 }
@@ -434,13 +434,13 @@ const submitOrder = async () => {
       saveGuestOrderAuth({ email: email.value.trim(), order_password: orderPassword.value })
       orderNo = res.data?.data?.order_no || ''
     }
-    if (!orderNo) throw new Error(t('tibo.detail.errSubmit'))
+    if (!orderNo) throw new Error(t('qiaozhi.detail.errSubmit'))
     const query = userAuthStore.isAuthenticated
       ? `order_no=${encodeURIComponent(orderNo)}`
       : `guest=1&order_no=${encodeURIComponent(orderNo)}`
     router.push(`/pay?${query}`)
   } catch (e: any) {
-    formError.value = e?.message || t('tibo.detail.errSubmit')
+    formError.value = e?.message || t('qiaozhi.detail.errSubmit')
     imageCaptchaRef.value?.refresh()
     turnstileRef.value?.reset()
   } finally {

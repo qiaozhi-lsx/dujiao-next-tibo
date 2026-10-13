@@ -218,7 +218,7 @@ const form = reactive({
   },
   scripts: [] as SiteScriptItem[],
   footer_links: [] as FooterLinkItem[],
-  storefront_template: 'classic' as 'classic' | 'vault' | 'tibo',
+  storefront_template: 'classic' as 'classic' | 'vault' | 'qiaozhi',
   template_mode: 'card' as 'card' | 'list',
 })
 
@@ -457,7 +457,7 @@ const fetchSettings = async () => {
       form.template_mode = rawTemplateMode === 'list' ? 'list' : 'card'
 
       const rawStorefrontTemplate = String(data.storefront_template || 'classic').trim()
-      form.storefront_template = rawStorefrontTemplate === 'vault' || rawStorefrontTemplate === 'tibo'
+      form.storefront_template = rawStorefrontTemplate === 'vault' || rawStorefrontTemplate === 'qiaozhi'
         ? rawStorefrontTemplate
         : 'classic'
     }
@@ -1190,25 +1190,25 @@ onMounted(() => {
               </div>
             </Label>
 
-            <!-- Tibo -->
+            <!-- Qiaozhi -->
             <Label
               class="relative flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all"
-              :class="form.storefront_template === 'tibo'
+              :class="form.storefront_template === 'qiaozhi'
                 ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                 : 'border-border hover:border-muted-foreground/30'"
             >
-              <RadioGroupItem value="tibo" class="sr-only" />
-              <div class="flex h-16 w-16 items-center justify-center rounded-xl" :class="form.storefront_template === 'tibo' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
+              <RadioGroupItem value="qiaozhi" class="sr-only" />
+              <div class="flex h-16 w-16 items-center justify-center rounded-xl" :class="form.storefront_template === 'qiaozhi' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
                 <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                   <rect x="3" y="6" width="18" height="12" rx="3" />
                   <path stroke-linecap="round" d="M3 12h18" />
                 </svg>
               </div>
               <div class="text-center">
-                <div class="font-semibold" :class="form.storefront_template === 'tibo' ? 'text-primary' : ''">{{ t('admin.settings.template.tiboMode') }}</div>
-                <div class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.tiboModeDesc') }}</div>
+                <div class="font-semibold" :class="form.storefront_template === 'qiaozhi' ? 'text-primary' : ''">{{ t('admin.settings.template.qiaozhiMode') }}</div>
+                <div class="mt-1 text-xs text-muted-foreground">{{ t('admin.settings.template.qiaozhiModeDesc') }}</div>
               </div>
-              <div v-if="form.storefront_template === 'tibo'" class="absolute right-3 top-3">
+              <div v-if="form.storefront_template === 'qiaozhi'" class="absolute right-3 top-3">
                 <svg class="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                 </svg>

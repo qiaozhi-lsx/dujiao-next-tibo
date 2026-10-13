@@ -125,7 +125,7 @@
     <div class="j8-fcard-foot">
       <div class="j8-fcard-price">
         <strong>{{ priceParts.symbol }}{{ priceParts.major }}</strong>
-        <small>{{ priceParts.minor }} {{ t('tibo.card.priceFrom') }}</small>
+        <small>{{ priceParts.minor }} {{ t('qiaozhi.card.priceFrom') }}</small>
       </div>
       <span class="j8-fcard-cta">
         {{ ctaText }}
@@ -141,7 +141,7 @@ import { useI18n } from 'vue-i18n'
 import { Bird, ChevronRight, Heart, Package, Smile, Sparkles, Star, Sun } from 'lucide-vue-next'
 import { useLocalized } from '../../../composables/useProduct'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
-import { useTiboPrice } from '../utils/price'
+import { useQiaozhiPrice } from '../utils/price'
 
 const props = defineProps<{
   product: any
@@ -150,7 +150,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const { getLocalizedText } = useLocalized()
-const { split: splitPrice } = useTiboPrice()
+const { split: splitPrice } = useQiaozhiPrice()
 
 const slug = computed(() => String(props.product?.slug || '').toLowerCase())
 const title = computed(() => getLocalizedText(props.product?.title))
@@ -207,7 +207,7 @@ const artNumberUnit = computed(() => {
   const m = title.value.match(/\d+\s*(个月|月|天|年|month|months|days)/i)
   return m ? m[1] || '' : ''
 })
-const artNumberLabel = computed(() => (variant.value === 'duo' ? t('tibo.featured.days') : t('tibo.featured.months')))
+const artNumberLabel = computed(() => (variant.value === 'duo' ? t('qiaozhi.featured.days') : t('qiaozhi.featured.months')))
 
 // ChatGPT 卡堆三档（用商品自身价格与标题泛化）
 const tier1 = computed(() => ({ name: em.value || shortTitle.value, price: `${priceParts.value.symbol}${priceParts.value.major}` }))
@@ -221,7 +221,7 @@ const xDuration = computed(() => {
   return '3 / 6 MONTHS'
 })
 
-const ctaText = computed(() => t('tibo.card.choosePlan'))
+const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 </script>
 
 <style scoped>

@@ -279,7 +279,7 @@ const router = createRouter({
             component: templateView('About', () => import('../views/About.vue')),
         },
         {
-            // 动态验证码（tibo 模板自定义页；其他模板落到 404）
+            // 动态验证码（qiaozhi 模板自定义页；其他模板落到 404）
             path: '/2fa',
             name: 'two-factor-code',
             component: templateView('TwoFA', () => import('../views/NotFound.vue')),

@@ -3,20 +3,20 @@
     <!-- 引导区 -->
     <section class="j8-hero is-home">
       <div class="j8-hero-copy">
-        <span class="j8-eyebrow">{{ t('tibo.hero.eyebrow') }}</span>
+        <span class="j8-eyebrow">{{ t('qiaozhi.hero.eyebrow') }}</span>
         <h1 class="j8-hero-title">
-          <span>{{ t('tibo.hero.titleB') }}</span>
+          <span>{{ t('qiaozhi.hero.titleB') }}</span>
         </h1>
-        <p>{{ t('tibo.hero.subtitle') }}</p>
+        <p>{{ t('qiaozhi.hero.subtitle') }}</p>
       </div>
-      <p class="j8-shortlink">{{ t('tibo.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
+      <p class="j8-shortlink">{{ t('qiaozhi.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
       <div class="j8-hero-actions">
         <label class="j8-search" role="search">
           <Search />
           <input
             v-model="searchQuery"
             type="search"
-            :placeholder="t('tibo.hero.searchPlaceholder')"
+            :placeholder="t('qiaozhi.hero.searchPlaceholder')"
             :aria-label="t('products.searchLabel')"
           />
           <button v-if="searchQuery" type="button" class="j8-search-clear" :aria-label="t('products.clearFilters')" @click="searchQuery = ''">
@@ -25,7 +25,7 @@
         </label>
         <button type="button" class="j8-share" @click="shareSite">
           <Share2 />
-          {{ shared ? t('tibo.hero.shared') : t('tibo.hero.share') }}
+          {{ shared ? t('qiaozhi.hero.shared') : t('qiaozhi.hero.share') }}
         </button>
       </div>
     </section>
@@ -35,9 +35,9 @@
       <div class="j8-section-heading">
         <div>
           <span class="j8-eyebrow">FEATURED</span>
-          <h2>{{ t('tibo.featured.title') }}</h2>
+          <h2>{{ t('qiaozhi.featured.title') }}</h2>
         </div>
-        <span>{{ featuredProducts.length + (toolsCard ? 1 : 0) }} {{ t('tibo.featured.unit') }}</span>
+        <span>{{ featuredProducts.length + (toolsCard ? 1 : 0) }} {{ t('qiaozhi.featured.unit') }}</span>
       </div>
       <div class="j8-featured-grid" :data-count="Math.min(featuredProducts.length, 5)">
         <J8FeaturedCard v-for="product in featuredProducts" :key="product.id" :product="product" />
@@ -59,11 +59,19 @@
             <span class="j8-eyebrow">STORE</span>
             <h2>{{ activeCategoryName }}</h2>
           </div>
-          <span>{{ filteredProducts.length }} {{ t('tibo.catalog.unit') }}</span>
+          <span>{{ filteredProducts.length }} {{ t('qiaozhi.catalog.unit') }}</span>
         </div>
 
         <div v-if="loading" class="j8-grid">
-          <div v-for="i in 6" :key="i" class="j8-skeleton-card"></div>
+          <div v-for="i in 6" :key="i" class="j8-skeleton-card" aria-hidden="true">
+            <span class="j8-skeleton-art"><span></span></span>
+            <span class="j8-skeleton-title"></span>
+            <span class="j8-skeleton-spec"></span>
+            <div class="j8-skeleton-bottom">
+              <span class="j8-skeleton-price"></span>
+              <span class="j8-skeleton-action"></span>
+            </div>
+          </div>
         </div>
         <div v-else-if="filteredProducts.length" class="j8-grid">
           <J8ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
@@ -103,12 +111,12 @@ import J8FeaturedCard from './components/J8FeaturedCard.vue'
 import J8ProductCard from './components/J8ProductCard.vue'
 import J8CategoryPanel, { type PanelCategory } from './components/J8CategoryPanel.vue'
 import { setupReveal } from './utils/reveal'
-import { useTiboPrice } from './utils/price'
+import { useQiaozhiPrice } from './utils/price'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 const { getLocalizedText } = useLocalized()
-const { format: formatPrice } = useTiboPrice()
+const { format: formatPrice } = useQiaozhiPrice()
 
 const rootEl = ref<HTMLElement | null>(null)
 const loading = ref(true)
