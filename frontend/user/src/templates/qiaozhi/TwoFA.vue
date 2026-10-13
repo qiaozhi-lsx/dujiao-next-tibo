@@ -291,10 +291,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 5px;
   padding: 6px 12px;
-  border: 1px solid var(--accent-line);
+  border: 1px solid var(--accent);
   border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -302,7 +302,7 @@ onUnmounted(() => {
 }
 
 .tfa-paste:hover {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  background: var(--accent-strong);
   transform: translateY(-1px);
 }
 
@@ -402,11 +402,8 @@ onUnmounted(() => {
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(135deg, var(--accent) 0%, #4fb3d9 55%, #67dfd4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(18, 168, 154, 0.28));
+  color: var(--accent);
+  filter: drop-shadow(0 2px 8px rgba(10, 10, 10, 0.12));
   animation: tfa-code-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -482,8 +479,8 @@ onUnmounted(() => {
   margin-top: 16px;
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--accent), #67dfd4);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
