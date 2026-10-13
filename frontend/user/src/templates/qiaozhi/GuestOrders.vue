@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronLeft, ChevronRight, PackageOpen, Search } from 'lucide-vue-next'
 import { useGuestOrders } from '../../composables/useGuestOrders'
@@ -142,6 +142,9 @@ const armReveal = () => {
     cleanupReveal = setupReveal(rootEl.value)
   })
 }
+// 列表为异步加载：数据到达/翻页/清空后元素才渲染出来（带 is-pending），
+// 需重新 arm，否则新节点永远停留在 opacity:0（表现为"查不到订单"）。
+watch([loading, () => orders.value.length], () => { armReveal() })
 onMounted(() => { armReveal() })
 onUnmounted(() => { cleanupReveal?.() })
 </script>
