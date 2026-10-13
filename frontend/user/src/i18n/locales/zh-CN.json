@@ -1089,6 +1089,8 @@
     "priceLabel": "价格",
     "skuLabel": "规格",
     "remove": "移除",
+    "removedShort": "已移除",
+    "holdRemoveHint": "按住 {seconds} 秒确认移除，键盘按住空格或回车键；中途松手即取消",
     "removed": "已从购物车移除",
     "undo": "撤销",
     "summaryTitle": "结算信息",
@@ -1746,11 +1748,12 @@
       "subtitle": "数字商品自动发货，付款后凭证即时送达。",
       "shortlink": "本站短链",
       "searchPlaceholder": "搜索商品名称或关键词...",
-      "share": "分享本站",
+      "share": "分享",
       "shared": "已复制"
     },
     "search": {
       "label": "搜索商品",
+      "trigger": "搜索",
       "emptyTitle": "没有找到「{query}」相关商品",
       "emptyHint": "换个更短的关键词试试",
       "results": "{count} 个结果",

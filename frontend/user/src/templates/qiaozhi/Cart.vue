@@ -35,114 +35,92 @@
 
     <!-- 购物车项列表 -->
     <template v-else>
-      <article
-        v-for="item in cartItems"
-        :key="cartItemKey(item)"
-        class="j8-pd-card j8-cart-card j8-reveal is-pending"
-        :data-reveal="1"
-      >
-        <!-- 左：图 -->
-        <div class="j8-pd-media">
-          <div class="j8-pd-stage">
-            <img
-              v-if="cartItemImage(item)"
-              :src="cartItemImage(item)"
-              :alt="itemTitle(item)"
-              loading="lazy"
-            />
-            <span v-else class="j8-pd-logo j8-brand-icon">
-              <b>{{ itemTitle(item).slice(0, 1) || '·' }}</b>
-            </span>
-          </div>
+      <div class="j8-cart-layout">
+        <div class="j8-cart-items">
+          <article
+            v-for="item in cartItems"
+            :key="cartItemKey(item)"
+            class="j8-pd-card j8-cart-card j8-reveal is-pending"
+            :data-reveal="1"
+          >
+            <!-- 左：图 -->
+            <div class="j8-pd-media">
+              <div class="j8-pd-stage">
+                <img
+                  v-if="cartItemImage(item)"
+                  :src="cartItemImage(item)"
+                  :alt="itemTitle(item)"
+                  loading="lazy"
+                />
+                <span v-else class="j8-pd-logo j8-brand-icon">
+                  <b>{{ itemTitle(item).slice(0, 1) || '·' }}</b>
+                </span>
+              </div>
+            </div>
+
+            <!-- 右：信息 -->
+            <div class="j8-pd-info">
+              <div class="j8-cart-head">
+                <RouterLink :to="`/products/${item.slug}`" class="j8-cart-title">
+                  <h1>{{ itemTitle(item) }}</h1>
+                </RouterLink>
+                <J8HoldConfirm
+                  :label="t('cart.remove')"
+                  :confirmed-label="t('cart.removedShort')"
+                  :hint="t('cart.holdRemoveHint', { seconds: '1.2' })"
+                  @confirm="removeWithUndo(item)"
+                />
+              </div>
+
+              <div class="j8-pd-chips">
+                <span class="is-accent">
+                  {{ item.purchaseType === 'guest' ? t('productPurchase.guest') : t('productPurchase.member') }}
+                </span>
+                <span class="is-accent">
+                  {{ item.fulfillmentType === 'auto'
+                    ? t('products.fulfillmentType.auto')
+                    : t('products.fulfillmentType.manual') }}
+                </span>
+                <span v-if="itemSkuDisplay(item)">{{ itemSkuDisplay(item) }}</span>
+              </div>
+
+              <div class="j8-pd-price-row">
+                <div class="j8-pd-price">
+                  <span class="j8-pd-price-sym">{{ unitPriceParts(item).symbol }}</span>
+                  <strong>{{ unitPriceParts(item).major }}{{ unitPriceParts(item).minor }}</strong>
+                </div>
+                <div class="j8-cart-subtotal">
+                  <small>{{ t('checkout.totalPriceLabel') }}</small>
+                  <b>{{ itemSubtotal(item) }}</b>
+                </div>
+              </div>
+
+              <div class="j8-pd-field">
+                <label>{{ t('productDetail.quantity') }}</label>
+                <J8QtyStepper
+                  :model-value="item.quantity"
+                  :min="itemPurchaseMin(item)"
+                  :max="itemMaxQuantity(item)"
+                  @update:model-value="(q) => updateQty(item, q)"
+                />
+                <p v-if="itemStockHint(item)" class="j8-pd-hint">{{ itemStockHint(item) }}</p>
+                <p v-if="quantityWarning(item)" class="j8-pd-alert is-warm" role="alert">
+                  {{ quantityWarning(item) }}
+                </p>
+              </div>
+            </div>
+          </article>
         </div>
 
-        <!-- 右：信息 -->
-        <div class="j8-pd-info">
-          <div class="j8-cart-head">
-            <RouterLink :to="`/products/${item.slug}`" class="j8-cart-title">
-              <h1>{{ itemTitle(item) }}</h1>
-            </RouterLink>
-            <button
-              type="button"
-              class="j8-cart-remove"
-              :aria-label="t('cart.remove')"
-              @click="removeWithUndo(item)"
-            >
-              <Trash2 />
-              <span>{{ t('cart.remove') }}</span>
-            </button>
-          </div>
-
-          <div class="j8-pd-chips">
-            <span class="is-accent">
-              {{ item.purchaseType === 'guest' ? t('productPurchase.guest') : t('productPurchase.member') }}
-            </span>
-            <span class="is-accent">
-              {{ item.fulfillmentType === 'auto'
-                ? t('products.fulfillmentType.auto')
-                : t('products.fulfillmentType.manual') }}
-            </span>
-            <span v-if="itemSkuDisplay(item)">{{ itemSkuDisplay(item) }}</span>
-          </div>
-
-          <div class="j8-pd-price-row">
-            <div class="j8-pd-price">
-              <span class="j8-pd-price-sym">{{ unitPriceParts(item).symbol }}</span>
-              <strong>{{ unitPriceParts(item).major }}{{ unitPriceParts(item).minor }}</strong>
-            </div>
-            <div class="j8-cart-subtotal">
-              <small>{{ t('checkout.totalPriceLabel') }}</small>
-              <b>{{ itemSubtotal(item) }}</b>
-            </div>
-          </div>
-
-          <div class="j8-pd-field">
-            <label>{{ t('productDetail.quantity') }}</label>
-            <div class="j8-pd-qty">
-              <button
-                type="button"
-                :disabled="item.quantity <= itemPurchaseMin(item)"
-                :aria-label="t('common.previous')"
-                @click="updateQty(item, item.quantity - 1)"
-              >
-                <Minus />
-              </button>
-              <input
-                type="text"
-                inputmode="numeric"
-                :id="`qz-cart-qty-${item.productId}`"
-                :name="`qz-cart-qty-${item.productId}`"
-                :value="item.quantity"
-                @change="handleQtyChange(item, $event)"
-              />
-              <button
-                type="button"
-                :disabled="item.quantity >= itemMaxQuantity(item)"
-                :aria-label="t('common.next')"
-                @click="updateQty(item, item.quantity + 1)"
-              >
-                <Plus />
-              </button>
-            </div>
-            <p v-if="itemStockHint(item)" class="j8-pd-hint">{{ itemStockHint(item) }}</p>
-            <p v-if="quantityWarning(item)" class="j8-pd-alert is-warm" role="alert">
-              {{ quantityWarning(item) }}
-            </p>
-          </div>
-        </div>
-      </article>
-
-      <!-- 底部合计条 -->
-      <section class="j8-cart-summary j8-reveal is-pending" :data-reveal="1">
-        <div class="j8-cart-summary-info">
+        <!-- 右侧：竖排结算卡（桌面 sticky 跟随） -->
+        <aside class="j8-cart-summary j8-reveal is-pending" :data-reveal="1">
           <h2>{{ t('cart.summaryTitle') }}</h2>
           <div class="j8-pd-note is-accent">
             <b>{{ t('cart.itemsCount') }}</b>
             <em>{{ totalItems }}</em>
           </div>
           <p class="j8-pd-desc">{{ t('cart.disclaimer') }}</p>
-        </div>
-        <div class="j8-cart-summary-cta">
+          <div class="j8-cart-divider" aria-hidden="true"></div>
           <div class="j8-pd-price-row">
             <span class="j8-cart-total-label">{{ t('cart.totalLabel') }}</span>
             <div class="j8-pd-price">
@@ -157,8 +135,8 @@
           <RouterLink to="/products" class="j8-pd-back-link">
             {{ t('cart.emptyAction') }}
           </RouterLink>
-        </div>
-      </section>
+        </aside>
+      </div>
     </template>
   </div>
 </template>
@@ -167,11 +145,13 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ChevronLeft, Minus, Plus, ShoppingBag, ShoppingCart, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, ShoppingBag, ShoppingCart } from 'lucide-vue-next'
 import { useCart } from '../../composables/useCart'
 import type { CartItem } from '../../stores/cart'
 import { useQiaozhiPrice } from './utils/price'
 import { setupReveal } from './utils/reveal'
+import J8HoldConfirm from './components/J8HoldConfirm.vue'
+import J8QtyStepper from './components/J8QtyStepper.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -191,7 +171,6 @@ const {
   itemMaxQuantity,
   removeWithUndo,
   updateQty,
-  handleQtyChange,
 } = useCart()
 
 const { split: splitPrice } = useQiaozhiPrice()
@@ -272,32 +251,6 @@ onUnmounted(() => {
   color: var(--accent-strong);
 }
 
-.j8-cart-remove {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 12.5px;
-  font-weight: 700;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.j8-cart-remove svg {
-  width: 14px;
-  height: 14px;
-}
-
-.j8-cart-remove:hover {
-  color: var(--red, #dc2626);
-  border-color: var(--red, #dc2626);
-  background: var(--surface);
-}
-
 .j8-cart-subtotal {
   display: flex;
   flex-direction: column;
@@ -320,44 +273,52 @@ onUnmounted(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* 合计条：独立卡片，不走 j8-pd-card 两栏 */
-.j8-cart-summary {
+/* 桌面双栏：左商品卡列表 + 右竖排结算卡 */
+.j8-cart-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
-  gap: 24px;
-  padding: 24px 28px;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.j8-cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* 结算卡：独立竖排卡片；桌面 sticky 跟随滚动（列表短于一屏时页面不滚，天然不浮动） */
+.j8-cart-summary {
+  position: sticky;
+  top: calc(var(--site-header-height) + 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   box-shadow: var(--shadow-soft);
 }
 
-.j8-cart-summary-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-
-.j8-cart-summary-info h2 {
+.j8-cart-summary h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 900;
   color: var(--text);
 }
 
-.j8-cart-summary-info .j8-pd-note em {
+.j8-cart-summary .j8-pd-note em {
   margin-left: auto;
   font-style: normal;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
-.j8-cart-summary-cta {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  justify-content: center;
+.j8-cart-divider {
+  height: 1px;
+  background: var(--line);
 }
 
 .j8-cart-total-label {
@@ -370,15 +331,15 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 42px;
-  border-radius: 11px;
+  border-radius: var(--r-pill);
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--text);
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  transition: color 0.15s, border-color 0.15s;
 }
 
 .j8-pd-back-link:hover {
@@ -387,18 +348,22 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1023px) {
-  .j8-cart-summary {
+  .j8-cart-layout {
     grid-template-columns: minmax(0, 1fr);
-    padding: 18px;
+    gap: 12px;
+  }
+
+  .j8-cart-items {
+    gap: 12px;
+  }
+
+  .j8-cart-summary {
+    position: static;
   }
 
   .j8-cart-head {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .j8-cart-remove {
-    align-self: flex-end;
   }
 }
 </style>

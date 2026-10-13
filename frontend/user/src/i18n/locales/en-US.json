@@ -1137,6 +1137,8 @@
     "priceLabel": "Price",
     "skuLabel": "SKU",
     "remove": "Remove",
+    "removedShort": "Removed",
+    "holdRemoveHint": "Press and hold for {seconds} seconds to remove; with a keyboard, hold Space or Enter. Release to cancel.",
     "removed": "Removed from cart",
     "undo": "Undo",
     "summaryTitle": "Summary",
@@ -1751,6 +1753,7 @@
     },
     "search": {
       "label": "Search products",
+      "trigger": "Search",
       "emptyTitle": "No results for “{query}”",
       "emptyHint": "Try a shorter keyword.",
       "results": "{count} results",
