@@ -3,6 +3,8 @@ package epusdtadapter
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	paymentcontract "github.com/dujiao-next/internal/modules/payment/contract"
@@ -10,6 +12,9 @@ import (
 	"github.com/dujiao-next/internal/constants"
 	"github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/epusdt"
 	"github.com/dujiao-next/internal/shared/jsonmap"
+	"github.com/dujiao-next/internal/shared/money"
+
+	"github.com/shopspring/decimal"
 )
 
 func TestEpusdtAdapter_Type(t *testing.T) {
@@ -105,5 +110,164 @@ func TestEpusdtAdapter_MapEpusdtError(t *testing.T) {
 				t.Fatalf("mapEpusdtError(%v) errors.Is %v = false, want true", tc.in, tc.want)
 			}
 		})
+	}
+}
+
+func newEpusdtMockServer(t *testing.T, response string) *httptest.Server {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/payments/gmpay/v1/order/create-transaction" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(response))
+	}))
+	t.Cleanup(srv.Close)
+	return srv
+}
+
+func TestEpusdtAdapter_CreatePayment_QRModeUsesReceiveAddress(t *testing.T) {
+	srv := newEpusdtMockServer(t, `{"status_code":200,"message":"ok","data":{"trade_id":"T-QR-1","order_id":"ORD-1","amount":6.8,"actual_amount":1,"receive_address":"TWmpTestAddr001","token":"usdt","network":"tron"}}`)
+
+	cfg := jsonmap.JSON{
+		"gateway_url": srv.URL,
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"token":       "usdt",
+		"network":     "tron",
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	result, err := a.CreatePayment(context.Background(), cfg, paymentcontract.GatewayCreateInput{
+		OrderNo: "ORD-1",
+		Subject: "VIP Plan",
+		Amount:  money.FromDecimal(decimal.RequireFromString("6.80")),
+		Extra:   jsonmap.JSON{"interaction_mode": constants.PaymentInteractionQR},
+	})
+	if err != nil {
+		t.Fatalf("CreatePayment failed: %v", err)
+	}
+	if result.QRCodeURL != "TWmpTestAddr001" {
+		t.Fatalf("QRCodeURL = %q, want receive address", result.QRCodeURL)
+	}
+	if result.RedirectURL != "" {
+		t.Fatalf("RedirectURL = %q, want empty in qr mode", result.RedirectURL)
+	}
+}
+
+func TestEpusdtAdapter_CreatePayment_QRModeWithoutAddressFallsBackToPaymentURL(t *testing.T) {
+	// 收银台占位单没有链上地址时，二维码内容回退为收银台链接并保留跳转地址。
+	srv := newEpusdtMockServer(t, `{"status_code":200,"message":"ok","data":{"trade_id":"T-CASH-1","order_id":"ORD-1","amount":6.8,"actual_amount":0,"receive_address":"","token":"","network":""}}`)
+
+	cfg := jsonmap.JSON{
+		"gateway_url": srv.URL,
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"order_mode":  constants.PaymentEpusdtOrderModeCashier,
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	result, err := a.CreatePayment(context.Background(), cfg, paymentcontract.GatewayCreateInput{
+		OrderNo: "ORD-1",
+		Amount:  money.FromDecimal(decimal.RequireFromString("6.80")),
+		Extra:   jsonmap.JSON{"interaction_mode": constants.PaymentInteractionQR},
+	})
+	if err != nil {
+		t.Fatalf("CreatePayment failed: %v", err)
+	}
+	want := srv.URL + "/pay/checkout-counter/T-CASH-1"
+	if result.QRCodeURL != want {
+		t.Fatalf("QRCodeURL = %q, want fallback %q", result.QRCodeURL, want)
+	}
+	if result.RedirectURL != want {
+		t.Fatalf("RedirectURL = %q, want %q", result.RedirectURL, want)
+	}
+}
+
+func TestEpusdtAdapter_SubmitTxHash(t *testing.T) {
+	var capturedPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedPath = r.URL.Path
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status_code":200,"message":"success"}`))
+	}))
+	defer srv.Close()
+
+	cfg := jsonmap.JSON{
+		"gateway_url": srv.URL,
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"token":       "usdt",
+		"network":     "tron",
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	submitter, ok := a.(paymentcontract.GatewayTxHashSubmitter)
+	if !ok {
+		t.Fatalf("adapter does not implement GatewayTxHashSubmitter")
+	}
+	if err := submitter.SubmitTxHash(context.Background(), cfg, "T-QR-1", "0xabc123"); err != nil {
+		t.Fatalf("SubmitTxHash failed: %v", err)
+	}
+	if capturedPath != "/pay/submit-tx-hash/T-QR-1" {
+		t.Fatalf("unexpected path: %s", capturedPath)
+	}
+}
+
+func TestEpusdtAdapter_SubmitTxHash_EmptyHashRejected(t *testing.T) {
+	cfg := jsonmap.JSON{
+		"gateway_url": "https://epusdt.example.com",
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"token":       "usdt",
+		"network":     "tron",
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	submitter := a.(paymentcontract.GatewayTxHashSubmitter)
+	err := submitter.SubmitTxHash(context.Background(), cfg, "T-QR-1", "  ")
+	if !errors.Is(err, paymentcontract.ErrGatewayConfigInvalid) {
+		t.Fatalf("expected wrapped ErrGatewayConfigInvalid, got %v", err)
+	}
+}
+
+func TestEpusdtAdapter_CreatePayment_RedirectKeepsPaymentURL(t *testing.T) {
+	srv := newEpusdtMockServer(t, `{"status_code":200,"message":"ok","data":{"trade_id":"T-RD-1","order_id":"ORD-1","amount":6.8,"actual_amount":1,"receive_address":"TWmpTestAddr001","token":"usdt","network":"tron"}}`)
+
+	cfg := jsonmap.JSON{
+		"gateway_url": srv.URL,
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"token":       "usdt",
+		"network":     "tron",
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	result, err := a.CreatePayment(context.Background(), cfg, paymentcontract.GatewayCreateInput{
+		OrderNo: "ORD-1",
+		Amount:  money.FromDecimal(decimal.RequireFromString("6.80")),
+		Extra:   jsonmap.JSON{"interaction_mode": constants.PaymentInteractionRedirect},
+	})
+	if err != nil {
+		t.Fatalf("CreatePayment failed: %v", err)
+	}
+	want := srv.URL + "/pay/checkout-counter/T-RD-1"
+	if result.QRCodeURL != want || result.RedirectURL != want {
+		t.Fatalf("QRCodeURL=%q RedirectURL=%q, want both %q", result.QRCodeURL, result.RedirectURL, want)
 	}
 }

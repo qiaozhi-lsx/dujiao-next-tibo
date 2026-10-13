@@ -27,10 +27,12 @@ type epusdtAdapter struct{}
 // NewEpusdtAdapter 实例化 epusdt adapter。
 func NewEpusdtAdapter() paymentcontract.GatewayProvider { return &epusdtAdapter{} }
 
-// 编译期断言 epusdtAdapter 实现了 paymentcontract.GatewayProvider 和 paymentcontract.GatewayCallbackVerifier。
+// 编译期断言 epusdtAdapter 实现了 paymentcontract.GatewayProvider、GatewayCallbackVerifier
+// 与 GatewayTxHashSubmitter。
 var (
 	_ paymentcontract.GatewayProvider         = (*epusdtAdapter)(nil)
 	_ paymentcontract.GatewayCallbackVerifier = (*epusdtAdapter)(nil)
+	_ paymentcontract.GatewayTxHashSubmitter  = (*epusdtAdapter)(nil)
 )
 
 // Type 返回 provider 标识。epusdt 的 channel_type 统一为 epusdt，实际币种和网络保存在配置中；
@@ -82,13 +84,50 @@ func (a *epusdtAdapter) CreatePayment(ctx context.Context, raw jsonmap.JSON, inp
 		return nil, mapEpusdtError(err)
 	}
 
+	// qr 模式：交易单直接展示链上收款地址（对齐 bepusdt 的二维码语义，扫码即可用钱包/交易所识别）；
+	// 占位单（收银台模式，未选链）没有地址，保留收银台链接作为可扫内容并同时给出跳转地址。
+	mode, _ := input.Extra["interaction_mode"].(string)
+	mode = strings.ToLower(strings.TrimSpace(mode))
+
+	redirectURL := strings.TrimSpace(result.PaymentURL)
+	qrCodeURL := redirectURL
+	if mode == constants.PaymentInteractionQR {
+		if address := epusdtReceiveAddress(result.Raw); address != "" {
+			qrCodeURL = address
+			redirectURL = ""
+		}
+	}
+
 	return &paymentcontract.GatewayCreateResult{
 		ProviderRef:        result.TradeID,
-		RedirectURL:        result.PaymentURL,
-		QRCodeURL:          result.PaymentURL, // epusdt 是 USDT 网关，PaymentURL 同时用于跳转和 QR 展示
+		RedirectURL:        redirectURL,
+		QRCodeURL:          qrCodeURL,
 		Payload:            jsonmap.JSON(result.Raw),
 		DisplayChannelType: epusdtDisplayChannelType(cfg),
 	}, nil
+}
+
+// epusdtReceiveAddress 从 GMPay 建单响应中提取链上收款地址（data.receive_address）。
+func epusdtReceiveAddress(raw map[string]interface{}) string {
+	data, ok := raw["data"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	address, _ := data["receive_address"].(string)
+	return strings.TrimSpace(address)
+}
+
+// SubmitTxHash 实现 paymentcontract.GatewayTxHashSubmitter。
+// 买家在支付页提交链上交易哈希，由网关核验后走正常回调完成订单。
+func (a *epusdtAdapter) SubmitTxHash(ctx context.Context, raw jsonmap.JSON, providerRef string, txHash string) error {
+	cfg, err := a.parseConfig(raw)
+	if err != nil {
+		return err
+	}
+	if err := epusdt.SubmitTxHash(ctx, cfg, providerRef, txHash); err != nil {
+		return mapEpusdtError(err)
+	}
+	return nil
 }
 
 // epusdtDisplayChannelType 返回 epusdt 支付记录的展示用渠道类型。

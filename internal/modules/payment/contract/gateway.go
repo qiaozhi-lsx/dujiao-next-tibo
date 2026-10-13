@@ -83,6 +83,13 @@ type GatewayCapturer interface {
 	QueryPayment(ctx context.Context, cfg jsonmap.JSON, providerRef string) (*GatewayQueryResult, error)
 }
 
+// GatewayTxHashSubmitter 是支持买家提交链上交易哈希补单的网关可选能力。
+// 网关核验哈希对应交易真实结算了订单后会走正常回调完成订单。
+type GatewayTxHashSubmitter interface {
+	GatewayProvider
+	SubmitTxHash(ctx context.Context, cfg jsonmap.JSON, providerRef string, txHash string) error
+}
+
 type GatewayWebhooker interface {
 	GatewayProvider
 	ParseWebhook(ctx context.Context, cfg jsonmap.JSON, headers map[string]string, body []byte, now time.Time) (*GatewayCallbackResult, error)
