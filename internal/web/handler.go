@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -10,8 +11,53 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dujiao-next/internal/constants"
 	"github.com/gin-gonic/gin"
 )
+
+// InitialConfigSource 为 SPA 入口页注入 window.__PUBLIC_CONFIG__ 的数据来源。
+// 实际由 settings.Service.GetConfig 实现，这里收一层最小接口避免 import 环。
+type InitialConfigSource interface {
+	GetConfig(defaults map[string]interface{}) (map[string]interface{}, error)
+}
+
+// initialConfigFieldWhitelist 决定哪些字段会被嵌入到首屏 HTML。
+// 只放首屏模板选择 + 品牌/SEO/多语言这些让骨架期不白屏的最小集，
+// payment_channels、server_time 之类让完整 /public/config 响应补齐。
+var initialConfigFieldWhitelist = []string{
+	constants.SettingFieldStorefrontTemplate,
+	"brand",
+	"seo",
+	constants.SettingFieldSiteCurrency,
+	"languages",
+	"nav_config",
+	"scripts",
+}
+
+// buildInitialConfigPayload 从 settings 读站点基础字段，裁出 whitelist 返回。
+// 任何错误都返回空 map 而非 nil，调用方可以无条件 JSON 序列化。
+func buildInitialConfigPayload(_ context.Context, settings InitialConfigSource) map[string]interface{} {
+	if settings == nil {
+		return nil
+	}
+	defaults := map[string]interface{}{
+		"languages":                              append([]string(nil), constants.SupportedLocales...),
+		constants.SettingFieldSiteCurrency:       constants.SiteCurrencyDefault,
+		constants.SettingFieldStorefrontTemplate: constants.StorefrontTemplateDefault,
+		"scripts":                                make([]interface{}, 0),
+	}
+	data, err := settings.GetConfig(defaults)
+	if err != nil || data == nil {
+		return nil
+	}
+	out := make(map[string]interface{}, len(initialConfigFieldWhitelist))
+	for _, k := range initialConfigFieldWhitelist {
+		if v, ok := data[k]; ok {
+			out[k] = v
+		}
+	}
+	return out
+}
 
 // 保留路径，不能与 admin path 冲突或互为前缀。
 var reservedPaths = []string{"/api", "/uploads", "/health"}
@@ -160,7 +206,12 @@ func RegisterAdmin(r *gin.Engine, prefix string, fsys fs.FS) error {
 //
 // 由于 NoRoute 在所有显式路由（API、uploads、health、admin）之后才匹配，
 // 这里不需要做路径前缀剥离；命中真实文件返回文件，否则 fallback 到 index.html。
-func RegisterUser(r *gin.Engine, fsys fs.FS) error {
+//
+// settings 不为 nil 时，入口 index.html 会在 </head> 之前被注入
+// <script>window.__PUBLIC_CONFIG__=...;</script>，让 Vue 启动即拿到基础配置，
+// 省掉冷启动首帧 /api/v1/public/config 这次 RTT。注入失败（settings 调用出错、
+// HTML 没 </head>）时降级返回原始 index.html，不影响渲染。
+func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error {
 	if r == nil {
 		return errors.New("nil gin engine")
 	}
@@ -175,6 +226,26 @@ func RegisterUser(r *gin.Engine, fsys fs.FS) error {
 
 	fileServer := http.FileServer(http.FS(fsys))
 
+	// serveIndexWithInitialConfig 每次请求都重新读 settings 以反映运行时改动；
+	// 若没有 settings 依赖（例如测试用的旧调用方），直接返回原始 index。
+	serveIndexWithInitialConfig := func(c *gin.Context) {
+		if settings == nil {
+			serveIndex(c, indexCached)
+			return
+		}
+		payload := buildInitialConfigPayload(c.Request.Context(), settings)
+		if len(payload) == 0 {
+			serveIndex(c, indexCached)
+			return
+		}
+		injected, err := injectInitialConfigIntoHTML(string(indexCached), payload)
+		if err != nil {
+			serveIndex(c, indexCached)
+			return
+		}
+		serveIndex(c, []byte(injected))
+	}
+
 	r.NoRoute(func(c *gin.Context) {
 		// 后端保留前缀下的未命中请求必须保持 404，不能被 SPA 兜底成 200 HTML：
 		// 否则调用了不存在的接口的客户端会拿到 index.html 当响应体去解析 JSON。
@@ -186,14 +257,14 @@ func RegisterUser(r *gin.Engine, fsys fs.FS) error {
 
 		fp := strings.TrimPrefix(c.Request.URL.Path, "/")
 		if fp == "" || fp == "index.html" {
-			serveIndex(c, indexCached)
+			serveIndexWithInitialConfig(c)
 			return
 		}
 		if hasFile(fsys, fp) {
 			serveAsset(c, fileServer, fp)
 			return
 		}
-		serveIndex(c, indexCached)
+		serveIndexWithInitialConfig(c)
 	})
 	return nil
 }
