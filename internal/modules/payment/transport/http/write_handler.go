@@ -64,11 +64,19 @@ type CapturePaymentInput struct {
 	Context   context.Context
 }
 
+// SubmitTxHashInput 提交链上交易哈希补单输入。
+type SubmitTxHashInput struct {
+	PaymentID uint
+	TxHash    string
+	Context   context.Context
+}
+
 // PaymentWriter 支付创建/查询/捕获端口。
 type PaymentWriter interface {
 	CreatePayment(input CreatePaymentInput) (*CreatePaymentResult, error)
 	GetPayment(id uint) (*paymentdomain.Payment, error)
 	CapturePayment(input CapturePaymentInput) (*paymentdomain.Payment, error)
+	SubmitTxHash(input SubmitTxHashInput) (*paymentdomain.Payment, error)
 }
 
 // CreatePaymentRequest 用户创建支付请求。
@@ -82,6 +90,11 @@ type CreatePaymentRequest struct {
 type CreateGuestPaymentRequest struct {
 	OrderNo   string `json:"order_no" binding:"required"`
 	ChannelID uint   `json:"channel_id" binding:"required"`
+}
+
+// SubmitTxHashRequest 提交链上交易哈希补单请求。
+type SubmitTxHashRequest struct {
+	BlockTransactionID string `json:"block_transaction_id" binding:"required"`
 }
 
 // WriteHandler 处理前台支付创建与捕获 HTTP。
@@ -280,6 +293,107 @@ func (h *WriteHandler) CaptureGuestPayment(c *gin.Context) {
 	})
 }
 
+// SubmitTxHash 用户提交链上交易哈希补单。
+func (h *WriteHandler) SubmitTxHash(c *gin.Context) {
+	uid, ok := ginutil.GetUserID(c)
+	if !ok {
+		return
+	}
+	paymentID, err := ginutil.ParseParamUint(c, "id")
+	if err != nil {
+		ginutil.RespondError(c, response.CodeBadRequest, "error.payment_invalid", nil)
+		return
+	}
+	var req SubmitTxHashRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutil.RespondBindError(c, err)
+		return
+	}
+	payment, err := h.payments.GetPayment(paymentID)
+	if err != nil {
+		if errors.Is(err, ErrPaymentNotFound) {
+			ginutil.RespondError(c, response.CodeNotFound, "error.payment_not_found", nil)
+			return
+		}
+		ginutil.RespondError(c, response.CodeInternal, "error.payment_fetch_failed", err)
+		return
+	}
+	if _, err := h.userOrders.GetOrderByUserForTenant(tenantFromRequest(c), payment.OrderID, uid); err != nil {
+		if errors.Is(err, ErrOrderNotFound) {
+			ginutil.RespondError(c, response.CodeNotFound, "error.order_not_found", nil)
+			return
+		}
+		ginutil.RespondError(c, response.CodeInternal, "error.order_fetch_failed", err)
+		return
+	}
+	updated, err := h.payments.SubmitTxHash(SubmitTxHashInput{
+		PaymentID: paymentID,
+		TxHash:    strings.TrimSpace(req.BlockTransactionID),
+		Context:   c.Request.Context(),
+	})
+	if err != nil {
+		respondPaymentTxHashError(c, err)
+		return
+	}
+	response.Success(c, gin.H{
+		"payment_id": updated.ID,
+		"status":     updated.Status,
+	})
+}
+
+// SubmitGuestTxHash 游客提交链上交易哈希补单。
+func (h *WriteHandler) SubmitGuestTxHash(c *gin.Context) {
+	paymentID, err := ginutil.ParseParamUint(c, "id")
+	if err != nil {
+		ginutil.RespondError(c, response.CodeBadRequest, "error.payment_invalid", nil)
+		return
+	}
+	email, password, ok := ginutil.GetGuestCredentials(c)
+	if !ok || email == "" {
+		ginutil.RespondError(c, response.CodeBadRequest, "error.guest_email_required", nil)
+		return
+	}
+	if password == "" {
+		ginutil.RespondError(c, response.CodeBadRequest, "error.guest_password_required", nil)
+		return
+	}
+	var req SubmitTxHashRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutil.RespondBindError(c, err)
+		return
+	}
+	payment, err := h.payments.GetPayment(paymentID)
+	if err != nil {
+		if errors.Is(err, ErrPaymentNotFound) {
+			ginutil.RespondError(c, response.CodeNotFound, "error.payment_not_found", nil)
+			return
+		}
+		ginutil.RespondError(c, response.CodeInternal, "error.payment_fetch_failed", err)
+		return
+	}
+	if _, err := h.guestOrders.GetOrderByGuestForTenant(tenantFromRequest(c), payment.OrderID, email, password); err != nil {
+		if errors.Is(err, ErrGuestOrderNotFound) {
+			ginutil.RespondError(c, response.CodeNotFound, "error.guest_order_not_found", nil)
+			return
+		}
+		ginutil.RespondError(c, response.CodeInternal, "error.order_fetch_failed", err)
+		return
+	}
+	updated, err := h.payments.SubmitTxHash(SubmitTxHashInput{
+		PaymentID: paymentID,
+		TxHash:    strings.TrimSpace(req.BlockTransactionID),
+		Context:   c.Request.Context(),
+	})
+	if err != nil {
+		respondPaymentTxHashError(c, err)
+		return
+	}
+	response.Success(c, gin.H{
+		"payment_id": updated.ID,
+		"status":     updated.Status,
+	})
+}
+
 func requestSchemeFromContext(c *gin.Context) string {
 	if c == nil || c.Request == nil {
 		return ""
@@ -342,6 +456,22 @@ func respondPaymentCreateError(c *gin.Context, err error) {
 
 func respondPaymentCaptureError(c *gin.Context, err error) {
 	respondWithMappedError(c, err, paymentCaptureErrorRules, response.CodeInternal, "error.payment_callback_failed")
+}
+
+var paymentTxHashErrorRules = concatMappedErrors(
+	[]mappedError{
+		{target: ErrPaymentInvalid, code: response.CodeBadRequest, key: "error.payment_invalid"},
+		{target: ErrPaymentNotFound, code: response.CodeNotFound, key: "error.payment_not_found"},
+		{target: ErrPaymentChannelNotFound, code: response.CodeNotFound, key: "error.payment_channel_not_found"},
+		{target: ErrPaymentProviderNotSupported, code: response.CodeBadRequest, key: "error.payment_provider_not_supported"},
+		{target: ErrPaymentChannelConfigInvalid, code: response.CodeBadRequest, key: "error.payment_channel_config_invalid"},
+		{target: ErrPaymentGatewayRequestFailed, code: response.CodeBadRequest, key: "error.payment_tx_hash_failed"},
+		{target: ErrPaymentGatewayResponseInvalid, code: response.CodeInternal, key: "error.payment_tx_hash_failed", logErr: true},
+	},
+)
+
+func respondPaymentTxHashError(c *gin.Context, err error) {
+	respondWithMappedError(c, err, paymentTxHashErrorRules, response.CodeInternal, "error.payment_tx_hash_failed")
 }
 
 var paymentProviderGatewayErrorRules = []mappedError{

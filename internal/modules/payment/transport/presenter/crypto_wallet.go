@@ -27,7 +27,7 @@ func (info CryptoWalletInfo) HasAny() bool {
 //
 // 字段名按各 provider 原生响应：
 //   - bepusdt:   data.token            (地址)  / data.actual_amount
-//   - epusdt:    data.receive_address  (地址)  / data.actual_amount
+//   - epusdt:    data.receive_address  (地址)  / data.actual_amount / data.network / data.token
 //   - dujiaopay: pay_address           (地址)  / payable_amount / chain / token_id
 //   - tokenpay:  暂不支持（包未解析地址），保留扩展位
 func ExtractCryptoWalletInfo(providerType, interactionMode string, payload jsonmap.JSON) CryptoWalletInfo {
@@ -47,6 +47,8 @@ func ExtractCryptoWalletInfo(providerType, interactionMode string, payload jsonm
 		return CryptoWalletInfo{
 			Address:     readPayloadString(payload, "data", "receive_address"),
 			ChainAmount: readPayloadString(payload, "data", "actual_amount"),
+			Chain:       readPayloadString(payload, "data", "network"),
+			TokenID:     readPayloadString(payload, "data", "token"),
 		}
 	case constants.PaymentProviderDujiaoPay:
 		return CryptoWalletInfo{

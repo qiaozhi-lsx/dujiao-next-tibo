@@ -223,13 +223,20 @@
     <PaymentModal
       v-model:open="showPaymentModal"
       :order="paymentOrder"
+      :channels="cryptoChannels"
+      :switch-busy="paymentSwitching"
+      :switch-error="paymentSwitchError"
+      :tx-busy="paymentTxBusy"
+      :tx-feedback="paymentTxFeedback"
       @paid="handlePaymentPaid"
+      @switch-channel="handleSwitchPaymentChannel"
+      @submit-tx-hash="handleSubmitPaymentTxHash"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -237,7 +244,7 @@ import {
 } from 'lucide-vue-next'
 import { useAppStore } from '../../stores/app'
 import { useUserAuthStore } from '../../stores/userAuth'
-import { guestOrderAPI, userOrderAPI } from '../../api'
+import { guestOrderAPI, paymentAPI, userOrderAPI } from '../../api'
 import { useProductDetail } from '../../composables/useProductDetail'
 import { processHtmlForDisplay } from '../../utils/content'
 import { getFirstImageUrl, getImageUrl } from '../../utils/image'
@@ -384,6 +391,7 @@ const channels = computed(() => {
       return {
         id: Number(ch.id),
         name: String(ch.name || ch.channel_type || ch.provider_type || ''),
+        providerType: String(ch?.provider_type || '').toLowerCase(),
         icon: ch.icon || ch.logo ? getImageUrl(String(ch.icon || ch.logo)) : '',
         feeText: feeBps > 0 ? t('qiaozhi.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
       }
@@ -455,6 +463,12 @@ const buildPaymentOrderPayload = (
     maskedEmail: resolvedEmail ? maskEmail(resolvedEmail) : '',
     interactionMode: String(payData?.interaction_mode || ''),
     feeAmount: String(payData?.fee_amount || ''),
+    walletAddress: String(payData?.wallet_address || ''),
+    chainAmount: String(payData?.chain_amount || ''),
+    chain: String(payData?.chain || ''),
+    tokenId: String(payData?.token_id || ''),
+    channelId: Number(payData?.channel_id || 0) || undefined,
+    paymentId: Number(payData?.payment_id || 0) || undefined,
     guestCredentials,
   }
 }
@@ -469,6 +483,82 @@ const handlePaymentPaid = (order: PaymentModalOrder) => {
     router.push(`/orders/${sn}`)
   }
 }
+
+// 弹窗内可切换的加密货币渠道（同店 USDT 多链）。
+const cryptoChannels = computed(() =>
+  channels.value
+    .filter((ch) => ch.providerType === 'epusdt')
+    .map((ch) => ({ id: ch.id, name: ch.name })),
+)
+const paymentSwitching = ref(false)
+const paymentSwitchError = ref('')
+const paymentTxBusy = ref(false)
+const paymentTxFeedback = ref<{ ok: boolean; message?: string } | null>(null)
+
+// 切换网络或币种：为同一订单在目标渠道重新发起支付（旧待支付记录由后端作废）。
+const handleSwitchPaymentChannel = async (channelId: number) => {
+  const current = paymentOrder.value
+  if (!current?.sn || paymentSwitching.value) return
+  paymentSwitching.value = true
+  paymentSwitchError.value = ''
+  try {
+    let payData: any = null
+    if (userAuthStore.isAuthenticated) {
+      const res = await paymentAPI.create({ order_no: current.sn, channel_id: channelId })
+      payData = res.data?.data
+    } else {
+      const cred = current.guestCredentials
+      if (!cred) return
+      const res = await guestOrderAPI.createPayment({
+        order_no: current.sn,
+        channel_id: channelId,
+        email: cred.email,
+        order_password: cred.order_password,
+      })
+      payData = res.data?.data
+    }
+    if (payData) {
+      paymentOrder.value = buildPaymentOrderPayload(payData, current.sn, current.guestCredentials ?? null)
+    }
+  } catch (e: any) {
+    paymentSwitchError.value = e?.message || t('qiaozhi.detail.errSubmit')
+  } finally {
+    paymentSwitching.value = false
+  }
+}
+
+// 已转账但未到账：把链上交易哈希提交给网关人工核验，核验通过后订单自动完成。
+const handleSubmitPaymentTxHash = async (txHash: string) => {
+  const current = paymentOrder.value
+  if (!current?.paymentId || paymentTxBusy.value) return
+  paymentTxBusy.value = true
+  paymentTxFeedback.value = null
+  try {
+    if (userAuthStore.isAuthenticated) {
+      await paymentAPI.submitTxHash(current.paymentId, { block_transaction_id: txHash })
+    } else {
+      const cred = current.guestCredentials
+      if (!cred) return
+      await guestOrderAPI.submitTxHash(current.paymentId, {
+        block_transaction_id: txHash,
+        email: cred.email,
+        order_password: cred.order_password,
+      })
+    }
+    paymentTxFeedback.value = { ok: true }
+  } catch (e: any) {
+    paymentTxFeedback.value = { ok: false, message: e?.message || '' }
+  } finally {
+    paymentTxBusy.value = false
+  }
+}
+
+watch(showPaymentModal, (opened) => {
+  if (opened) {
+    paymentSwitchError.value = ''
+    paymentTxFeedback.value = null
+  }
+})
 
 const validateForm = (): string => {
   fieldErrors.value = {}
