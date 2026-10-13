@@ -169,6 +169,10 @@ func (h *UserHandler) GetOrderByOrderNo(c *gin.Context) {
 		return
 	}
 
+	// 支付轮询场景：前端 PaymentModal 以 2s 节奏查询订单状态，
+	// 必须绕过 CDN（Cloudflare 默认 10s 边缘缓存）与浏览器缓存，
+	// 否则 paid 状态要等 10 秒才会推到用户面前。
+	c.Header("Cache-Control", "no-store")
 	orderDetail := orderpresenter.NewOrderDetailTruncated(order)
 	enrichOrderWithAllowedChannels(h.payments, order, &orderDetail)
 	enrichOrderWithRefundRecords(h.refunds, order, &orderDetail)

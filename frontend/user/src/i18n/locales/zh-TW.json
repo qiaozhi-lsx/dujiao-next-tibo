@@ -1838,7 +1838,37 @@
     "payment": {
       "eyebrow": "PAYMENT",
       "summaryTitle": "訂單摘要",
-      "scanEyebrow": "SCAN TO PAY"
+      "scanEyebrow": "SCAN TO PAY",
+      "modal": {
+        "tag": "PAYMENT · 掃碼付款",
+        "title": "訂單摘要",
+        "subTotal": "商品金額",
+        "fee": "手續費",
+        "total": "合計",
+        "created": "下單",
+        "expiresAt": "過期",
+        "stepWaiting": "等待掃碼",
+        "stepConfirming": "正在確認",
+        "stepPaid": "付款成功",
+        "waitingScan": "等待您完成掃碼付款",
+        "confirmingPay": "正在確認付款，請稍候",
+        "paymentSuccess": "付款成功",
+        "receiptHeader": "RECEIPT · 感謝您的購買",
+        "autoDelivery": "自動交付中 · 預計 3 分鐘到帳",
+        "emailNotify": "卡密詳情已寄送至 {email}",
+        "emailNotifyNoEmail": "可在「我的訂單」查看交付詳情",
+        "emailFallback": "也可在「我的訂單」查看",
+        "viewOrderDetail": "查看訂單詳情",
+        "openPayLink": "開啟付款連結",
+        "copyPayLink": "複製連結",
+        "copied": "已複製",
+        "orderExpired": "訂單已過期",
+        "orderNoLabel": "訂單號",
+        "amountLabel": "合計",
+        "timeLabel": "時間",
+        "notQrCapable": "此付款方式僅支援跳轉收銀台，請點擊下方按鈕完成付款",
+        "closeAria": "關閉付款彈窗"
+      }
     },
     "tfa": {
       "title": "動態驗證碼",

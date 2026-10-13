@@ -1838,7 +1838,37 @@
     "payment": {
       "eyebrow": "PAYMENT",
       "summaryTitle": "Order summary",
-      "scanEyebrow": "SCAN TO PAY"
+      "scanEyebrow": "SCAN TO PAY",
+      "modal": {
+        "tag": "PAYMENT · Scan to pay",
+        "title": "Order summary",
+        "subTotal": "Subtotal",
+        "fee": "Fee",
+        "total": "Total",
+        "created": "Placed",
+        "expiresAt": "Expires",
+        "stepWaiting": "Waiting",
+        "stepConfirming": "Confirming",
+        "stepPaid": "Paid",
+        "waitingScan": "Waiting for scan",
+        "confirmingPay": "Confirming payment...",
+        "paymentSuccess": "Payment complete",
+        "receiptHeader": "RECEIPT · Thank you",
+        "autoDelivery": "Auto-delivery · ~3 min",
+        "emailNotify": "Delivery details sent to {email}",
+        "emailNotifyNoEmail": "View delivery details under My Orders",
+        "emailFallback": "Also available under My Orders",
+        "viewOrderDetail": "View order",
+        "openPayLink": "Open payment link",
+        "copyPayLink": "Copy link",
+        "copied": "Copied",
+        "orderExpired": "Order expired",
+        "orderNoLabel": "Order",
+        "amountLabel": "Total",
+        "timeLabel": "Time",
+        "notQrCapable": "This channel only supports redirect checkout. Click the button below to continue.",
+        "closeAria": "Close payment modal"
+      }
     },
     "tfa": {
       "title": "Two-factor codes",

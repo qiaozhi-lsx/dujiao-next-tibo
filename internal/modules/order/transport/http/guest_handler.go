@@ -110,6 +110,9 @@ func (h *GuestHandler) GetGuestOrderByOrderNo(c *gin.Context) {
 		ginutil.RespondError(c, response.CodeInternal, "error.order_fetch_failed", err)
 		return
 	}
+	// 支付轮询场景：前端 PaymentModal 以 2s 节奏查询订单状态，
+	// 必须绕过 CDN 边缘缓存与浏览器缓存，否则 paid 状态会被延迟推到用户面前。
+	c.Header("Cache-Control", "no-store")
 	orderDetail := orderpresenter.NewOrderDetailTruncated(order)
 	enrichOrderWithAllowedChannels(h.payments, order, &orderDetail)
 	enrichOrderWithRefundRecords(h.refunds, order, &orderDetail)

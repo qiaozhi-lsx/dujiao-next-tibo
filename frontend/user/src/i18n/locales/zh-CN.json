@@ -1838,7 +1838,37 @@
     "payment": {
       "eyebrow": "PAYMENT",
       "summaryTitle": "订单摘要",
-      "scanEyebrow": "SCAN TO PAY"
+      "scanEyebrow": "SCAN TO PAY",
+      "modal": {
+        "tag": "PAYMENT · 扫码支付",
+        "title": "订单摘要",
+        "subTotal": "商品金额",
+        "fee": "手续费",
+        "total": "合计",
+        "created": "下单",
+        "expiresAt": "过期",
+        "stepWaiting": "等待扫码",
+        "stepConfirming": "正在确认",
+        "stepPaid": "支付成功",
+        "waitingScan": "等待您完成扫码支付",
+        "confirmingPay": "正在确认支付,请稍候",
+        "paymentSuccess": "支付成功",
+        "receiptHeader": "RECEIPT · 感谢您的购买",
+        "autoDelivery": "自动交付中 · 预计 3 分钟到账",
+        "emailNotify": "卡密详情已发送至 {email}",
+        "emailNotifyNoEmail": "可在「我的订单」查看交付详情",
+        "emailFallback": "也可在「我的订单」查看",
+        "viewOrderDetail": "查看订单详情",
+        "openPayLink": "打开支付链接",
+        "copyPayLink": "复制链接",
+        "copied": "已复制",
+        "orderExpired": "订单已过期",
+        "orderNoLabel": "订单号",
+        "amountLabel": "合计",
+        "timeLabel": "时间",
+        "notQrCapable": "该支付方式仅支持跳转收银台,请点击下方按钮完成支付",
+        "closeAria": "关闭支付弹窗"
+      }
     },
     "tfa": {
       "title": "动态验证码",
