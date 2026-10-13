@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from './stores/app'
 import { getActiveTemplate } from './templates/registry'
@@ -58,10 +58,10 @@ import ConfirmDialog from './components/ConfirmDialog.vue'
 import ErrorBoundary from './components/ErrorBoundary.vue'
 import BackToTop from './components/BackToTop.vue'
 import MobileBottomNav from './components/MobileBottomNav.vue'
-
-// qiaozhi / vault 外壳按需加载，classic 用户不会拉取其 chunk/样式
-const QiaozhiLayout = defineAsyncComponent(() => import('./templates/qiaozhi/layout/QiaozhiLayout.vue'))
-const VaultLayout = defineAsyncComponent(() => import('./templates/vault/layout/VaultLayout.vue'))
+// 两套外壳都 eager 打进主 bundle：虽然每个 user 只用一套，但省掉一次 chunk RTT
+// （整站只有 2 套 Layout，总 bundle 增量 < 30KB gzip，比首屏白屏期 500-1000ms 划算）
+import QiaozhiLayout from './templates/qiaozhi/layout/QiaozhiLayout.vue'
+import VaultLayout from './templates/vault/layout/VaultLayout.vue'
 
 // config 由 router.beforeEach 统一加载，无需在此重复调用
 const appStore = useAppStore()
