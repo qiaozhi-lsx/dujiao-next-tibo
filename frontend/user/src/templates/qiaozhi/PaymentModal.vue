@@ -854,7 +854,7 @@ onBeforeUnmount(() => {
   margin-bottom: 12px;
 }
 .pay-modal__amount-value b {
-  font-size: 26px; font-weight: 850; letter-spacing: -.02em;
+  font-size: 26px; font-weight: 800; letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -989,7 +989,7 @@ onBeforeUnmount(() => {
   width: 100%; height: 42px;
   border: 0; border-radius: 12px;
   cursor: pointer;
-  font-size: 13px; font-weight: 750;
+  font-size: 13px; font-weight: 700;
   background: var(--ux-surface); color: var(--ux-ink-2);
   box-shadow: inset 0 0 0 1px var(--ux-line-2);
 }

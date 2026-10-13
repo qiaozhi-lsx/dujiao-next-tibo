@@ -478,7 +478,7 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
 }
 .j8-es-option.is-active { background: var(--accent-soft); }
 .j8-es-option-title { min-width: 0; overflow-wrap: anywhere; }
-.j8-es-mark { background: transparent; color: var(--accent-strong); font-weight: 900; }
+.j8-es-mark { background: transparent; color: var(--accent-strong); font-weight: 800; }
 .j8-es-option-meta { flex: 0 0 auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .j8-es-empty { padding: 14px 12px 10px; }
 .j8-es-empty-title { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--text); }
