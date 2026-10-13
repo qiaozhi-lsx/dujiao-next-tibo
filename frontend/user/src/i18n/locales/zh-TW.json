@@ -1870,6 +1870,23 @@
         "closeAria": "關閉付款彈窗"
       }
     },
+    "orderDetail": {
+      "pageTitleCompleted": "訂單已完成",
+      "emailDeliveredHint": "卡密詳情已傳送至 {email} · 可隨時在本頁查看",
+      "backToOrders": "返回我的訂單",
+      "backToShop": "返回商城",
+      "sectionOrder": "ORDER · 訂單摘要",
+      "sectionDelivery": "DELIVERY · 交付詳情",
+      "sectionBilling": "BILLING · 金額明細",
+      "sectionRefunds": "REFUNDS · 退款記錄",
+      "sectionTimeline": "TIMELINE · 時間線",
+      "copyPayload": "複製卡密",
+      "payloadMeta": "共 {count} 行 · 交付於 {time}",
+      "instructionsTitle": "使用說明 · 請仔細閱讀",
+      "helpText": "需要幫助? 請",
+      "helpContact": "聯絡客服",
+      "helpOrderNo": "並提供訂單號"
+    },
     "tfa": {
       "title": "動態驗證碼",
       "desc": "貼上商品資料裡的 2FA 密鑰或 otpauth 連結，立即顯示動態驗證碼（完全本地計算，不會上傳）。",
