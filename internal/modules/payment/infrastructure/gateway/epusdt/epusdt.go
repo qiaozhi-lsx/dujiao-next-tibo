@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -34,6 +35,7 @@ const (
 
 	gmpayCreateTransactionPath = "/payments/gmpay/v1/order/create-transaction"
 	checkoutCounterPathPrefix  = "/pay/checkout-counter/"
+	submitTxHashPathPrefix     = "/pay/submit-tx-hash/"
 )
 
 // Config epusdt（GMPay）配置
@@ -320,6 +322,42 @@ func extractTradeID(raw map[string]interface{}) string {
 		}
 	}
 	return ""
+}
+
+// SubmitTxHash 把买家提交的链上交易哈希转发给网关人工核验（/pay/submit-tx-hash/{trade_id}）。
+// 网关核验通过后会走正常回调完成订单；此处仅处理请求与响应错误。
+func SubmitTxHash(ctx context.Context, cfg *Config, tradeID string, txHash string) error {
+	if cfg == nil {
+		return ErrConfigInvalid
+	}
+	tradeID = strings.TrimSpace(tradeID)
+	txHash = strings.TrimSpace(txHash)
+	if tradeID == "" || txHash == "" {
+		return fmt.Errorf("%w: trade_id and block_transaction_id are required", ErrConfigInvalid)
+	}
+	endpoint := cfg.GatewayURL + submitTxHashPathPrefix + url.PathEscape(tradeID)
+	respBody, err := postJSON(ctx, endpoint, map[string]interface{}{
+		"block_transaction_id": txHash,
+	})
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrRequestFailed, err)
+	}
+
+	var raw struct {
+		StatusCode int    `json:"status_code"`
+		Message    string `json:"message"`
+	}
+	if err := json.Unmarshal(respBody, &raw); err != nil {
+		return fmt.Errorf("%w: %v", ErrResponseInvalid, err)
+	}
+	if raw.StatusCode != 200 {
+		message := strings.TrimSpace(raw.Message)
+		if message == "" {
+			message = "gateway rejected the transaction hash"
+		}
+		return fmt.Errorf("%w: %s", ErrRequestFailed, message)
+	}
+	return nil
 }
 
 func postJSON(ctx context.Context, endpoint string, params map[string]interface{}) ([]byte, error) {

@@ -432,3 +432,78 @@ func TestCreatePayment_MissingTradeIDBecomesResponseInvalid(t *testing.T) {
 		t.Fatalf("expected ErrResponseInvalid, got %v", err)
 	}
 }
+
+func TestSubmitTxHash_ForwardsRequestAndAcceptsSuccess(t *testing.T) {
+	var capturedPath string
+	var capturedBody map[string]interface{}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedPath = r.URL.Path
+		body, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(body, &capturedBody)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status_code":200,"message":"success"}`))
+	}))
+	defer srv.Close()
+
+	cfg := &Config{
+		GatewayURL: srv.URL, PID: "1000", SecretKey: "sk-test",
+		Token: "usdt", Network: "tron", Currency: "cny",
+		NotifyURL: "https://example.com/notify", ReturnURL: "https://example.com/return",
+	}
+	cfg.Normalize()
+
+	if err := SubmitTxHash(context.Background(), cfg, "T20260509ABC", "0xabc123"); err != nil {
+		t.Fatalf("SubmitTxHash failed: %v", err)
+	}
+	if capturedPath != "/pay/submit-tx-hash/T20260509ABC" {
+		t.Fatalf("unexpected path: %s", capturedPath)
+	}
+	if capturedBody["block_transaction_id"] != "0xabc123" {
+		t.Fatalf("block_transaction_id mismatch: %v", capturedBody["block_transaction_id"])
+	}
+}
+
+func TestSubmitTxHash_GatewayRejectionReturnsError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status_code":10042,"message":"transaction not found on chain"}`))
+	}))
+	defer srv.Close()
+
+	cfg := &Config{
+		GatewayURL: srv.URL, PID: "1000", SecretKey: "sk-test",
+		Token: "usdt", Network: "tron", Currency: "cny",
+		NotifyURL: "https://example.com/notify", ReturnURL: "https://example.com/return",
+	}
+	cfg.Normalize()
+
+	err := SubmitTxHash(context.Background(), cfg, "T1", "0xdef")
+	if err == nil {
+		t.Fatalf("expected error for gateway rejection")
+	}
+	if !errors.Is(err, ErrRequestFailed) {
+		t.Fatalf("expected ErrRequestFailed, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "transaction not found on chain") {
+		t.Fatalf("gateway message not propagated: %v", err)
+	}
+}
+
+func TestSubmitTxHash_RejectsEmptyInput(t *testing.T) {
+	cfg := &Config{
+		GatewayURL: "https://example.com", PID: "1", SecretKey: "s",
+		Token: "usdt", Network: "tron", Currency: "cny",
+		NotifyURL: "https://n", ReturnURL: "https://r",
+	}
+	cfg.Normalize()
+
+	if err := SubmitTxHash(context.Background(), cfg, "", "0x1"); !errors.Is(err, ErrConfigInvalid) {
+		t.Fatalf("empty trade_id should be ErrConfigInvalid, got %v", err)
+	}
+	if err := SubmitTxHash(context.Background(), cfg, "T1", "  "); !errors.Is(err, ErrConfigInvalid) {
+		t.Fatalf("empty tx hash should be ErrConfigInvalid, got %v", err)
+	}
+	if err := SubmitTxHash(context.Background(), nil, "T1", "0x1"); !errors.Is(err, ErrConfigInvalid) {
+		t.Fatalf("nil config should be ErrConfigInvalid, got %v", err)
+	}
+}

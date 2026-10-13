@@ -95,6 +95,15 @@ func (a writerAdapter) CapturePayment(input paymenttransport.CapturePaymentInput
 	return payment, mapTransportError(err)
 }
 
+func (a writerAdapter) SubmitTxHash(input paymenttransport.SubmitTxHashInput) (*paymentdomain.Payment, error) {
+	payment, err := a.payments.SubmitTxHash(paymentapp.SubmitTxHashInput{
+		PaymentID: input.PaymentID,
+		TxHash:    input.TxHash,
+		Context:   input.Context,
+	})
+	return payment, mapTransportError(err)
+}
+
 func mapTransportError(err error) error {
 	if err == nil {
 		return nil

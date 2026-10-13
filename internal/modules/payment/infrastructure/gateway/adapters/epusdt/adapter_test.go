@@ -190,6 +190,59 @@ func TestEpusdtAdapter_CreatePayment_QRModeWithoutAddressFallsBackToPaymentURL(t
 	}
 }
 
+func TestEpusdtAdapter_SubmitTxHash(t *testing.T) {
+	var capturedPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedPath = r.URL.Path
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status_code":200,"message":"success"}`))
+	}))
+	defer srv.Close()
+
+	cfg := jsonmap.JSON{
+		"gateway_url": srv.URL,
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"token":       "usdt",
+		"network":     "tron",
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	submitter, ok := a.(paymentcontract.GatewayTxHashSubmitter)
+	if !ok {
+		t.Fatalf("adapter does not implement GatewayTxHashSubmitter")
+	}
+	if err := submitter.SubmitTxHash(context.Background(), cfg, "T-QR-1", "0xabc123"); err != nil {
+		t.Fatalf("SubmitTxHash failed: %v", err)
+	}
+	if capturedPath != "/pay/submit-tx-hash/T-QR-1" {
+		t.Fatalf("unexpected path: %s", capturedPath)
+	}
+}
+
+func TestEpusdtAdapter_SubmitTxHash_EmptyHashRejected(t *testing.T) {
+	cfg := jsonmap.JSON{
+		"gateway_url": "https://epusdt.example.com",
+		"pid":         "1000",
+		"secret_key":  "sk-test",
+		"token":       "usdt",
+		"network":     "tron",
+		"currency":    "cny",
+		"notify_url":  "https://shop.example.com/api/v1/payments/callback",
+		"return_url":  "https://shop.example.com/pay",
+	}
+
+	a := NewEpusdtAdapter()
+	submitter := a.(paymentcontract.GatewayTxHashSubmitter)
+	err := submitter.SubmitTxHash(context.Background(), cfg, "T-QR-1", "  ")
+	if !errors.Is(err, paymentcontract.ErrGatewayConfigInvalid) {
+		t.Fatalf("expected wrapped ErrGatewayConfigInvalid, got %v", err)
+	}
+}
+
 func TestEpusdtAdapter_CreatePayment_RedirectKeepsPaymentURL(t *testing.T) {
 	srv := newEpusdtMockServer(t, `{"status_code":200,"message":"ok","data":{"trade_id":"T-RD-1","order_id":"ORD-1","amount":6.8,"actual_amount":1,"receive_address":"TWmpTestAddr001","token":"usdt","network":"tron"}}`)
 

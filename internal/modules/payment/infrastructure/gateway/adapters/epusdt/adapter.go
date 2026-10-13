@@ -27,10 +27,12 @@ type epusdtAdapter struct{}
 // NewEpusdtAdapter 实例化 epusdt adapter。
 func NewEpusdtAdapter() paymentcontract.GatewayProvider { return &epusdtAdapter{} }
 
-// 编译期断言 epusdtAdapter 实现了 paymentcontract.GatewayProvider 和 paymentcontract.GatewayCallbackVerifier。
+// 编译期断言 epusdtAdapter 实现了 paymentcontract.GatewayProvider、GatewayCallbackVerifier
+// 与 GatewayTxHashSubmitter。
 var (
 	_ paymentcontract.GatewayProvider         = (*epusdtAdapter)(nil)
 	_ paymentcontract.GatewayCallbackVerifier = (*epusdtAdapter)(nil)
+	_ paymentcontract.GatewayTxHashSubmitter  = (*epusdtAdapter)(nil)
 )
 
 // Type 返回 provider 标识。epusdt 的 channel_type 统一为 epusdt，实际币种和网络保存在配置中；
@@ -113,6 +115,19 @@ func epusdtReceiveAddress(raw map[string]interface{}) string {
 	}
 	address, _ := data["receive_address"].(string)
 	return strings.TrimSpace(address)
+}
+
+// SubmitTxHash 实现 paymentcontract.GatewayTxHashSubmitter。
+// 买家在支付页提交链上交易哈希，由网关核验后走正常回调完成订单。
+func (a *epusdtAdapter) SubmitTxHash(ctx context.Context, raw jsonmap.JSON, providerRef string, txHash string) error {
+	cfg, err := a.parseConfig(raw)
+	if err != nil {
+		return err
+	}
+	if err := epusdt.SubmitTxHash(ctx, cfg, providerRef, txHash); err != nil {
+		return mapEpusdtError(err)
+	}
+	return nil
 }
 
 // epusdtDisplayChannelType 返回 epusdt 支付记录的展示用渠道类型。
