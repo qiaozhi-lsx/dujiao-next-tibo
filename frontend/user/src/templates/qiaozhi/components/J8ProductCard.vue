@@ -22,7 +22,7 @@
     </div>
     <div class="j8-card-bottom">
       <div class="j8-card-price">
-        <small>{{ t('tibo.card.finalPrice') }}</small>
+        <small>{{ t('qiaozhi.card.finalPrice') }}</small>
         <strong>{{ priceText }}</strong>
         <del v-if="originalPriceText">{{ originalPriceText }}</del>
       </div>
@@ -36,14 +36,14 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocalized, useProductLabels } from '../../../composables/useProduct'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
-import { useTiboPrice } from '../utils/price'
+import { useQiaozhiPrice } from '../utils/price'
 
 const props = defineProps<{ product: any }>()
 
 const { t } = useI18n()
 const { getLocalizedText } = useLocalized()
 const { getFulfillmentTypeLabel, getPurchaseTypeLabel, isSoldOut } = useProductLabels()
-const { format: formatPrice } = useTiboPrice()
+const { format: formatPrice } = useQiaozhiPrice()
 
 const title = computed(() => getLocalizedText(props.product?.title))
 const soldOut = computed(() => isSoldOut(props.product))

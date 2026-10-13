@@ -894,13 +894,20 @@ export function useCheckout() {
   watch(
     () => [paymentChannels.value, expectedOnlinePayCents.value, requiresOnlineChannel.value],
     () => {
-      if (!selectedChannelId.value) return
-      const selected = paymentChannels.value.find((item: any) => Number(item?.id) === Number(selectedChannelId.value))
-      if (!selected || isChannelDisabledForAmount(selected)) {
-        selectedChannelId.value = null
+      if (selectedChannelId.value) {
+        const selected = paymentChannels.value.find((item: any) => Number(item?.id) === Number(selectedChannelId.value))
+        if (!selected || isChannelDisabledForAmount(selected)) {
+          selectedChannelId.value = null
+        }
+      }
+      if (!selectedChannelId.value && requiresOnlineChannel.value) {
+        const firstAvailable = paymentChannels.value.find((item: any) => item && !isChannelDisabledForAmount(item))
+        if (firstAvailable) {
+          selectedChannelId.value = Number(firstAvailable.id) || null
+        }
       }
     },
-    { deep: true }
+    { deep: true, immediate: true }
   )
 
   const loadWalletBalance = async () => {

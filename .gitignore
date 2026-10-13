@@ -22,3 +22,5 @@ internal/web/dist/
 # Agents 配置
 .agents/
 skills-lock.json
+# 一次性迁移/维护脚本（AI 过程产物，不进历史）
+tools/

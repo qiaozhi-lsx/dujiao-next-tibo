@@ -22,16 +22,16 @@ export const currencySymbol = (code: string): string => {
   return CURRENCY_SYMBOLS[upper] ?? `${upper} `
 }
 
-export const formatTiboPrice = (amount: unknown, currency: string): string => {
+export const formatQiaozhiPrice = (amount: unknown, currency: string): string => {
   if (amount === null || amount === undefined || amount === '') return '-'
   const cents = amountToCents(amount)
   const displayAmount = cents === null ? String(amount) : centsToAmount(cents)
   return `${currencySymbol(currency)}${displayAmount}`
 }
 
-/** 拆分为 ¥ / 29 / .90 三段，用于大字号价格排版（对齐 gptibo 的价签样式） */
-export const splitTiboPrice = (amount: unknown, currency: string): { symbol: string; major: string; minor: string } => {
-  const full = formatTiboPrice(amount, currency)
+/** 拆分为 ¥ / 29 / .90 三段，用于大字号价格排版（对齐 gpqiaozhi 的价签样式） */
+export const splitQiaozhiPrice = (amount: unknown, currency: string): { symbol: string; major: string; minor: string } => {
+  const full = formatQiaozhiPrice(amount, currency)
   const symbol = currencySymbol(currency)
   if (full === '-') return { symbol: '', major: '-', minor: '' }
   const rest = symbol && full.startsWith(symbol) ? full.slice(symbol.length) : full
@@ -40,7 +40,7 @@ export const splitTiboPrice = (amount: unknown, currency: string): { symbol: str
   return { symbol, major: rest.slice(0, dot), minor: rest.slice(dot) }
 }
 
-export function useTiboPrice() {
+export function useQiaozhiPrice() {
   const appStore = useAppStore()
   const currency = computed(() => {
     const raw = String(appStore.config?.currency || '').trim().toUpperCase()
@@ -50,7 +50,7 @@ export function useTiboPrice() {
   return {
     currency,
     symbol: computed(() => currencySymbol(currency.value)),
-    format: (amount: unknown) => formatTiboPrice(amount, currency.value),
-    split: (amount: unknown) => splitTiboPrice(amount, currency.value),
+    format: (amount: unknown) => formatQiaozhiPrice(amount, currency.value),
+    split: (amount: unknown) => splitQiaozhiPrice(amount, currency.value),
   }
 }

@@ -530,7 +530,7 @@ const (
 const (
 	StorefrontTemplateClassic = "classic"
 	StorefrontTemplateVault   = "vault"
-	StorefrontTemplateTibo    = "tibo"
+	StorefrontTemplateQiaozhi = "qiaozhi"
 	StorefrontTemplateDefault = StorefrontTemplateClassic
 )
 

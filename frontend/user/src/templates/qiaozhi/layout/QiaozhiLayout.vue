@@ -1,5 +1,5 @@
 <template>
-  <div class="tibo-scope" :class="{ 'is-product': isProductPage }">
+  <div class="qiaozhi-scope" :class="{ 'is-product': isProductPage }">
     <!-- 顶栏 -->
     <header class="j8-header">
       <RouterLink class="j8-brand" to="/" :title="brandName">
@@ -15,36 +15,36 @@
 
       <nav class="j8-nav" aria-label="主导航">
         <RouterLink to="/" :class="{ 'is-active': route.path === '/' }">
-          <ShoppingBag />{{ t('tibo.nav.shop') }}
+          <ShoppingBag />{{ t('qiaozhi.nav.shop') }}
         </RouterLink>
         <RouterLink :to="ordersPath" :class="{ 'is-active': route.path.startsWith('/guest/orders') || route.path.startsWith('/me/orders') }">
-          <ClipboardList />{{ t('tibo.nav.orders') }}
+          <ClipboardList />{{ t('qiaozhi.nav.orders') }}
         </RouterLink>
         <RouterLink v-if="blogEnabled" to="/blog" :class="{ 'is-active': route.path.startsWith('/blog') }">
-          <BookOpen />{{ t('tibo.nav.tutorial') }}
+          <BookOpen />{{ t('qiaozhi.nav.tutorial') }}
         </RouterLink>
         <RouterLink to="/2fa" :class="{ 'is-active': route.path === '/2fa' }">
-          <ShieldCheck />{{ t('tibo.nav.tfa') }}
+          <ShieldCheck />{{ t('qiaozhi.nav.tfa') }}
         </RouterLink>
         <a v-if="supportHref" :href="supportHref" target="_blank" rel="noopener noreferrer">
-          <Ticket />{{ t('tibo.nav.support') }}
+          <Ticket />{{ t('qiaozhi.nav.support') }}
         </a>
         <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }">
-          <Megaphone />{{ t('tibo.nav.notice') }}
+          <Megaphone />{{ t('qiaozhi.nav.notice') }}
         </RouterLink>
         <RouterLink v-if="aboutEnabled" to="/about" :class="{ 'is-active': route.path === '/about' }">
-          <Info />{{ t('tibo.nav.about') }}
+          <Info />{{ t('qiaozhi.nav.about') }}
         </RouterLink>
         <RouterLink :to="accountPath" :class="{ 'is-active': route.path.startsWith('/me') || route.path.startsWith('/auth') }">
-          <User />{{ t('tibo.nav.account') }}
+          <User />{{ t('qiaozhi.nav.account') }}
         </RouterLink>
       </nav>
 
       <div class="j8-actions">
-        <RouterLink v-if="noticeEnabled" to="/notice" class="j8-icon-btn j8-only-mobile" :aria-label="t('tibo.nav.notice')">
+        <RouterLink v-if="noticeEnabled" to="/notice" class="j8-icon-btn j8-only-mobile" :aria-label="t('qiaozhi.nav.notice')">
           <Megaphone />
         </RouterLink>
-        <RouterLink to="/2fa" class="j8-icon-btn j8-only-mobile" :aria-label="t('tibo.nav.tfa')" :title="t('tibo.nav.tfa')">
+        <RouterLink to="/2fa" class="j8-icon-btn j8-only-mobile" :aria-label="t('qiaozhi.nav.tfa')" :title="t('qiaozhi.nav.tfa')">
           <KeyRound />
         </RouterLink>
         <div class="j8-lang" ref="langEl">
@@ -87,18 +87,18 @@
         </span>
         <p>
           <b>{{ brandName }}</b>
-          <small>© {{ year }} {{ brandName }} · {{ t('tibo.footer.rights') }}</small>
+          <small>© {{ year }} {{ brandName }} · {{ t('qiaozhi.footer.rights') }}</small>
         </p>
       </div>
       <nav aria-label="页脚导航">
-        <RouterLink :to="ordersPath">{{ t('tibo.nav.orders') }}</RouterLink>
-        <RouterLink v-if="blogEnabled" to="/blog">{{ t('tibo.nav.tutorial') }}</RouterLink>
-        <RouterLink to="/2fa">{{ t('tibo.nav.tfa') }}</RouterLink>
-        <RouterLink v-if="noticeEnabled" to="/notice">{{ t('tibo.nav.notice') }}</RouterLink>
-        <RouterLink v-if="aboutEnabled" to="/about">{{ t('tibo.nav.about') }}</RouterLink>
+        <RouterLink :to="ordersPath">{{ t('qiaozhi.nav.orders') }}</RouterLink>
+        <RouterLink v-if="blogEnabled" to="/blog">{{ t('qiaozhi.nav.tutorial') }}</RouterLink>
+        <RouterLink to="/2fa">{{ t('qiaozhi.nav.tfa') }}</RouterLink>
+        <RouterLink v-if="noticeEnabled" to="/notice">{{ t('qiaozhi.nav.notice') }}</RouterLink>
+        <RouterLink v-if="aboutEnabled" to="/about">{{ t('qiaozhi.nav.about') }}</RouterLink>
         <RouterLink to="/terms">{{ t('footer.terms') }}</RouterLink>
         <RouterLink to="/privacy">{{ t('footer.privacy') }}</RouterLink>
-        <a v-if="supportHref" :href="supportHref" target="_blank" rel="noopener noreferrer">{{ t('tibo.nav.support') }}</a>
+        <a v-if="supportHref" :href="supportHref" target="_blank" rel="noopener noreferrer">{{ t('qiaozhi.nav.support') }}</a>
       </nav>
     </footer>
 
@@ -108,21 +108,21 @@
       type="button"
       class="j8-support j8-support--contact"
       :aria-expanded="contactOpen"
-      :aria-label="t('tibo.contact.title')"
+      :aria-label="t('qiaozhi.contact.title')"
       @click="contactOpen = !contactOpen"
     >
       <Headset />
-      <span>{{ t('tibo.contact.short') }}</span>
+      <span>{{ t('qiaozhi.contact.short') }}</span>
     </button>
-    <a v-else-if="supportHref" class="j8-support" :href="supportHref" target="_blank" rel="noopener noreferrer" :aria-label="t('tibo.contact.title')">
+    <a v-else-if="supportHref" class="j8-support" :href="supportHref" target="_blank" rel="noopener noreferrer" :aria-label="t('qiaozhi.contact.title')">
       <Headset />
-      <span>{{ t('tibo.contact.short') }}</span>
+      <span>{{ t('qiaozhi.contact.short') }}</span>
     </a>
 
     <div v-if="contactOpen" class="j8-contact-panel">
       <header>
         <span class="j8-contact-badge"><Headset /></span>
-        <strong>{{ t('tibo.contact.title') }}</strong>
+        <strong>{{ t('qiaozhi.contact.title') }}</strong>
         <button type="button" class="j8-contact-close" :aria-label="t('common.cancel')" @click="contactOpen = false"><X /></button>
       </header>
       <ul class="j8-contact-list">
@@ -132,20 +132,20 @@
             <span>{{ c.label }}</span>
             <code>{{ c.value }}</code>
           </span>
-          <a v-if="c.href" :href="c.href" target="_blank" rel="noopener noreferrer">{{ t('tibo.contact.open') }}</a>
+          <a v-if="c.href" :href="c.href" target="_blank" rel="noopener noreferrer">{{ t('qiaozhi.contact.open') }}</a>
         </li>
       </ul>
-      <p>{{ t('tibo.contact.hint') }}</p>
+      <p>{{ t('qiaozhi.contact.hint') }}</p>
     </div>
 
     <!-- 移动端底部导航 -->
     <nav class="j8-bottom-nav" style="grid-template-columns: repeat(5, 1fr)">
-      <RouterLink to="/" :class="{ 'is-active': route.path === '/' }"><ShoppingBag /><span>{{ t('tibo.nav.shop') }}</span></RouterLink>
-      <RouterLink :to="ordersPath" :class="{ 'is-active': route.path.includes('/orders') && !route.path.includes('/guest/orders') }"><ClipboardList /><span>{{ t('tibo.nav.orders') }}</span></RouterLink>
+      <RouterLink to="/" :class="{ 'is-active': route.path === '/' }"><ShoppingBag /><span>{{ t('qiaozhi.nav.shop') }}</span></RouterLink>
+      <RouterLink :to="ordersPath" :class="{ 'is-active': route.path.includes('/orders') && !route.path.includes('/guest/orders') }"><ClipboardList /><span>{{ t('qiaozhi.nav.orders') }}</span></RouterLink>
       <RouterLink to="/cart"><ShoppingCart /><span>{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="j8-cart-count">{{ cartCount }}</span></RouterLink>
-      <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }"><Megaphone /><span>{{ t('tibo.nav.notice') }}</span></RouterLink>
-      <RouterLink v-else to="/2fa" :class="{ 'is-active': route.path === '/2fa' }"><ShieldCheck /><span>{{ t('tibo.nav.tfa') }}</span></RouterLink>
-      <RouterLink :to="accountPath" :class="{ 'is-active': route.path.startsWith('/me') || route.path.startsWith('/auth') }"><User /><span>{{ t('tibo.nav.account') }}</span></RouterLink>
+      <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }"><Megaphone /><span>{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
+      <RouterLink v-else to="/2fa" :class="{ 'is-active': route.path === '/2fa' }"><ShieldCheck /><span>{{ t('qiaozhi.nav.tfa') }}</span></RouterLink>
+      <RouterLink :to="accountPath" :class="{ 'is-active': route.path.startsWith('/me') || route.path.startsWith('/auth') }"><User /><span>{{ t('qiaozhi.nav.account') }}</span></RouterLink>
     </nav>
 
     <!-- 回到顶部 -->
@@ -267,12 +267,12 @@ onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('scroll', onScroll, { passive: true })
   // 浮层（Toast / ConfirmDialog / 公告弹窗）Teleport 到 body，靠这个 class 拿到 ji8 配色
-  document.body.classList.add('tibo-tokens')
+  document.body.classList.add('qiaozhi-tokens')
 })
 onUnmounted(() => {
   document.removeEventListener('click', onDocClick)
   window.removeEventListener('scroll', onScroll)
-  document.body.classList.remove('tibo-tokens')
+  document.body.classList.remove('qiaozhi-tokens')
 })
 </script>
 
