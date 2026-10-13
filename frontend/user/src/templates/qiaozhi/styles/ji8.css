@@ -1218,3 +1218,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
   transform: scale(0.97);
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
+
+/* 按钮光标：原生 button 默认是箭头，统一对齐成小手；禁用态 not-allowed */
+.qiaozhi-scope button { cursor: pointer; }
+.qiaozhi-scope button:disabled { cursor: not-allowed; }
