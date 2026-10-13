@@ -1870,6 +1870,23 @@
         "closeAria": "Close payment modal"
       }
     },
+    "orderDetail": {
+      "pageTitleCompleted": "Order complete",
+      "emailDeliveredHint": "Delivery details sent to {email} · available on this page anytime",
+      "backToOrders": "Back to orders",
+      "backToShop": "Back to shop",
+      "sectionOrder": "ORDER · Summary",
+      "sectionDelivery": "DELIVERY · Fulfillment",
+      "sectionBilling": "BILLING · Amount",
+      "sectionRefunds": "REFUNDS · Records",
+      "sectionTimeline": "TIMELINE · Timeline",
+      "copyPayload": "Copy credentials",
+      "payloadMeta": "{count} lines · Delivered at {time}",
+      "instructionsTitle": "Usage · Please read carefully",
+      "helpText": "Need help?",
+      "helpContact": "Contact support",
+      "helpOrderNo": "with order no."
+    },
     "tfa": {
       "title": "Two-factor codes",
       "desc": "Paste the 2FA secret or otpauth link from your product data to see the code instantly (all computed locally).",

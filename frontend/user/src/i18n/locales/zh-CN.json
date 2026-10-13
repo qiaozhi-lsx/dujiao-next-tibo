@@ -1870,6 +1870,23 @@
         "closeAria": "关闭支付弹窗"
       }
     },
+    "orderDetail": {
+      "pageTitleCompleted": "订单已完成",
+      "emailDeliveredHint": "卡密详情已发送至 {email} · 可随时在本页查看",
+      "backToOrders": "返回我的订单",
+      "backToShop": "返回商城",
+      "sectionOrder": "ORDER · 订单摘要",
+      "sectionDelivery": "DELIVERY · 交付详情",
+      "sectionBilling": "BILLING · 金额明细",
+      "sectionRefunds": "REFUNDS · 退款记录",
+      "sectionTimeline": "TIMELINE · 时间线",
+      "copyPayload": "复制卡密",
+      "payloadMeta": "共 {count} 行 · 交付于 {time}",
+      "instructionsTitle": "使用说明 · 请仔细阅读",
+      "helpText": "需要帮助? 请",
+      "helpContact": "联系客服",
+      "helpOrderNo": "并提供订单号"
+    },
     "tfa": {
       "title": "动态验证码",
       "desc": "粘贴商品资料里的 2FA 密钥或 otpauth 链接，立即显示动态验证码（完全本地计算，不会上传）。",
