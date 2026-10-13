@@ -1867,6 +1867,8 @@
         "amountDue": "應付金額",
         "orderAmount": "訂單金額",
         "scanOrCopy": "掃碼或複製地址付款",
+        "payLinkLabel": "支付連結",
+        "viewOnExplorer": "在區塊瀏覽器中查看",
         "scanTitle": "掃碼支付",
         "switchNetwork": "切換網路或幣種",
         "switching": "正在切換,請稍候…",

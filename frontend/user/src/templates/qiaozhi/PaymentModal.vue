@@ -52,8 +52,8 @@
         <div class="pay-modal__pay-card">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="{ 'is-danger': countdownExpired }">
-              <svg viewBox="0 0 36 36" aria-hidden="true">
+            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="{ 'is-danger': countdownExpired }" aria-hidden="true">
+              <svg viewBox="0 0 36 36">
                 <circle class="t" cx="18" cy="18" r="15.5" />
                 <circle
                   class="p"
@@ -64,8 +64,11 @@
                   :style="{ '--p': countdownProgress }"
                 />
               </svg>
-              <em>{{ countdownText }}</em>
             </span>
+          </div>
+
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="{ 'is-danger': countdownExpired }">
+            {{ countdownText }}
           </div>
 
           <div v-if="qrSupported" class="pay-modal__qr-wrap">
@@ -86,6 +89,17 @@
             <div class="pay-modal__addr-label">{{ t('payment.walletAddress') }}</div>
             <div class="pay-modal__addr-body">
               <b>{{ order.walletAddress }}</b>
+              <a
+                v-if="walletExplorerUrl"
+                class="pay-modal__addr-copy"
+                :href="walletExplorerUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                :aria-label="t('qiaozhi.payment.modal.viewOnExplorer')"
+                :title="t('qiaozhi.payment.modal.viewOnExplorer')"
+              >
+                <ExternalLink />
+              </a>
               <button
                 type="button"
                 class="pay-modal__addr-copy"
@@ -96,6 +110,28 @@
               </button>
             </div>
             <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
+          </div>
+
+          <div v-else-if="payLink" class="pay-modal__addr">
+            <div class="pay-modal__addr-label">{{ t('qiaozhi.payment.modal.payLinkLabel') }}</div>
+            <div class="pay-modal__addr-body">
+              <a
+                class="pay-modal__addr-link"
+                :href="payLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="payLink"
+              >{{ payLink }}</a>
+              <button
+                type="button"
+                class="pay-modal__addr-copy"
+                :aria-label="t('qiaozhi.payment.modal.copyPayLink')"
+                @click="handleCopyPayLink"
+              >
+                <Copy />
+              </button>
+            </div>
+            <span v-if="copied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
           </div>
         </div>
 
@@ -161,18 +197,6 @@
               {{ txFeedback.ok ? t('qiaozhi.payment.modal.txHashOk') : (txFeedback.message || t('qiaozhi.payment.modal.txHashFailed')) }}
             </p>
           </div>
-        </div>
-
-        <div v-if="stage === 'waiting' && !orderPastExpire && order?.h5PayUrl" class="pay-modal__link-row">
-          <button type="button" class="pay-modal__link-btn" @click="handleOpenPayLink">
-            <ExternalLink />
-            {{ t('qiaozhi.payment.modal.openPayLink') }}
-          </button>
-          <button type="button" class="pay-modal__copy-btn" @click="handleCopyPayLink">
-            <Copy />
-            {{ t('qiaozhi.payment.modal.copyPayLink') }}
-          </button>
-          <span v-if="copied" class="pay-modal__copied">{{ t('qiaozhi.payment.modal.copied') }}</span>
         </div>
 
         <div class="pay-modal__steps">
@@ -345,9 +369,12 @@ const stepIdx = computed(() => {
 const qrSupported = computed(() => {
   const o = props.order
   if (!o) return false
-  const mode = (o.interactionMode || '').toLowerCase()
-  if (mode === 'redirect') return false
-  return Boolean((o.qrCodeContent || '').trim() || (o.payUrl || '').trim() || (o.h5PayUrl || '').trim())
+  return Boolean(
+    (o.walletAddress || '').trim()
+    || (o.qrCodeContent || '').trim()
+    || (o.payUrl || '').trim()
+    || (o.h5PayUrl || '').trim(),
+  )
 })
 
 const expireMs = computed(() => {
@@ -419,6 +446,29 @@ const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
 const cryptoChainLabel = computed(() => (props.order?.chain ? formatCryptoChain(props.order.chain) : ''))
 
+// 非加密渠道：pay_url 作为"支付链接"直接展示（可点击跳转 + 复制）。
+const payLink = computed(() => {
+  const o = props.order
+  if (!o || o.walletAddress) return ''
+  return String(o.h5PayUrl || o.payUrl || '').trim()
+})
+
+// 链上收款地址 → 区块浏览器链接（未知链不提供）。
+const walletExplorerUrl = computed(() => {
+  const o = props.order
+  const addr = (o?.walletAddress || '').trim()
+  if (!addr) return ''
+  const chain = (o?.chain || '').trim().toLowerCase()
+  const map: Record<string, string> = {
+    tron: `https://tronscan.org/#/address/${addr}`,
+    trc20: `https://tronscan.org/#/address/${addr}`,
+    binance: `https://bscscan.com/address/${addr}`,
+    bsc: `https://bscscan.com/address/${addr}`,
+    solana: `https://solscan.io/account/${addr}`,
+  }
+  return map[chain] || ''
+})
+
 const amountBigText = computed(() => {
   const o = props.order
   if (!o) return '-'
@@ -482,7 +532,10 @@ const renderQRCode = async () => {
     qrImageUrl.value = ''
     return
   }
-  const payload = (o.qrCodeContent || '').trim() || (o.payUrl || '').trim() || (o.h5PayUrl || '').trim()
+  const payload = (o.walletAddress || '').trim()
+    || (o.qrCodeContent || '').trim()
+    || (o.payUrl || '').trim()
+    || (o.h5PayUrl || '').trim()
   if (!payload) {
     qrImageUrl.value = ''
     return
@@ -631,25 +684,6 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 const handleClose = () => {
   emit('update:open', false)
-}
-
-const handleOpenPayLink = () => {
-  const o = props.order
-  if (!o) return
-  const link = (o.h5PayUrl || o.payUrl || '').trim()
-  if (!link) return
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-  if (isMobile) {
-    window.location.href = link
-  } else {
-    const w = window.open('', '_blank')
-    if (w) {
-      w.opener = null
-      w.location.replace(link)
-    } else {
-      window.location.href = link
-    }
-  }
 }
 
 const handleCopyPayLink = async () => {
@@ -914,13 +948,16 @@ onBeforeUnmount(() => {
   transition: stroke-dashoffset .5s linear, stroke .3s;
 }
 .pay-modal__cd-ring.is-danger .p { stroke: #b02020; }
-.pay-modal__cd-ring em {
-  position: relative;
-  font-style: normal; font-weight: 700; font-size: 9.5px;
-  color: var(--ux-ink-2);
+.pay-modal__cd-num {
+  text-align: center;
+  margin: 0 0 8px;
+  font-size: 30px; font-weight: 800;
+  letter-spacing: .02em;
+  color: var(--ux-mint);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -.02em;
+  transition: color .3s;
 }
+.pay-modal__cd-num.is-danger { color: #b02020; }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
@@ -978,6 +1015,15 @@ onBeforeUnmount(() => {
 }
 .pay-modal__addr-copy svg { width: 13px; height: 13px; }
 .pay-modal__addr-copy:hover { color: #000; }
+a.pay-modal__addr-copy { text-decoration: none; }
+.pay-modal__addr-link {
+  flex: 1; min-width: 0;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--ux-ink-2);
+  text-decoration: underline; text-underline-offset: 3px;
+  overflow-wrap: anywhere; word-break: break-all;
+}
+.pay-modal__addr-link:hover { color: #000; }
 
 /* ---- 加密货币操作区 ---- */
 .pay-modal__crypto-actions {
@@ -1148,26 +1194,6 @@ onBeforeUnmount(() => {
 }
 .is-ok .pay-modal__ck path { stroke-dashoffset: 0; }
 
-.pay-modal__link-row {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 10px; flex-wrap: wrap;
-}
-.pay-modal__link-btn,
-.pay-modal__copy-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  height: 36px; padding: 0 12px;
-  border: 0; border-radius: 10px;
-  cursor: pointer;
-  font-size: 12.5px; font-weight: 700;
-}
-.pay-modal__link-btn {
-  background: var(--ux-accent); color: #fff;
-}
-.pay-modal__copy-btn {
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line);
-}
-.pay-modal__link-btn svg, .pay-modal__copy-btn svg { width: 13px; height: 13px; }
 .pay-modal__copied {
   font-size: 11px; color: var(--ux-mint); font-weight: 600;
 }
@@ -1175,12 +1201,11 @@ onBeforeUnmount(() => {
 .pay-modal__rec {
   position: absolute;
   left: 16px; right: 16px; bottom: 16px; top: 60px;
-  display: flex; flex-direction: column;
+  display: none;
+  flex-direction: column;
   padding: 22px 18px 16px;
   border-radius: 22px;
   background: var(--ux-surface-2);
-  transform: translateY(110%);
-  transition: transform .6s var(--ux-spring);
   text-align: center;
   z-index: 2;
   overflow-y: auto;
@@ -1191,7 +1216,11 @@ onBeforeUnmount(() => {
   height: 16px;
   background: radial-gradient(circle 8px at 8px 0, transparent 98%, var(--ux-surface-2)) 0 8px/16px 8px repeat-x;
 }
-.is-rec .pay-modal__rec { transform: none; }
+.is-rec .pay-modal__rec {
+  display: flex;
+  animation: pay-modal-rec-in .6s var(--ux-spring) both;
+}
+@keyframes pay-modal-rec-in { from { transform: translateY(60px); opacity: 0; } }
 
 .pay-modal__rec-header {
   font-size: 10px; letter-spacing: 1.3px;
@@ -1289,8 +1318,7 @@ onBeforeUnmount(() => {
 .is-rec .pay-modal__pay-card,
 .is-rec .pay-modal__crypto-actions,
 .is-rec .pay-modal__steps,
-.is-rec .pay-modal__stage,
-.is-rec .pay-modal__link-row {
+.is-rec .pay-modal__stage {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
   transition: opacity .4s, transform .5s var(--ux-ease);

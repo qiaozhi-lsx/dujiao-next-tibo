@@ -30,14 +30,29 @@ func TestExtractUSDTWalletInfo(t *testing.T) {
 			wantChainAmount: "13.45",
 		},
 		{
-			name:            "bepusdt redirect mode returns empty",
+			name:            "bepusdt redirect mode also extracts (cashier payload)",
 			providerType:    constants.PaymentProviderBepusdt,
 			interactionMode: constants.PaymentInteractionRedirect,
 			payload: jsonmap.JSON{
 				"data": map[string]any{"token": "TRX_ADDR_XYZ", "actual_amount": "13.45"},
 			},
-			wantAddress:     "",
-			wantChainAmount: "",
+			wantAddress:     "TRX_ADDR_XYZ",
+			wantChainAmount: "13.45",
+		},
+		{
+			name:            "epusdt redirect (cashier) with receive_address",
+			providerType:    constants.PaymentProviderEpusdt,
+			interactionMode: constants.PaymentInteractionRedirect,
+			payload: jsonmap.JSON{
+				"data": map[string]any{
+					"receive_address": "TCASHIER_ADDR",
+					"actual_amount":   "4.45",
+					"network":         "binance",
+					"token":           "USDT",
+				},
+			},
+			wantAddress:     "TCASHIER_ADDR",
+			wantChainAmount: "4.45",
 		},
 		{
 			name:            "epusdt qr without receive_address yields empty",

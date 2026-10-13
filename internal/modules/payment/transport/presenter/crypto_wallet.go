@@ -22,8 +22,9 @@ func (info CryptoWalletInfo) HasAny() bool {
 }
 
 // ExtractCryptoWalletInfo 从 Payment.ProviderPayload 中提取链上付款信息。
-// 只在 interactionMode == "qr" 且 providerType 为加密货币网关时返回非空值；
-// 其他情况返回空结构体，由调用方决定是否输出 omitempty 字段。
+// 只要 provider 是加密货币网关且 payload 携带链上字段就返回（qr 与 redirect/cashier
+// 共用同一份建单响应，EPUSDT cashier 响应同样含 receive_address/actual_amount）；
+// 无字段时返回空结构体，由调用方按 HasAny 决定是否输出 omitempty 字段。
 //
 // 字段名按各 provider 原生响应：
 //   - bepusdt:   data.token            (地址)  / data.actual_amount
@@ -31,9 +32,6 @@ func (info CryptoWalletInfo) HasAny() bool {
 //   - dujiaopay: pay_address           (地址)  / payable_amount / chain / token_id
 //   - tokenpay:  暂不支持（包未解析地址），保留扩展位
 func ExtractCryptoWalletInfo(providerType, interactionMode string, payload jsonmap.JSON) CryptoWalletInfo {
-	if strings.ToLower(strings.TrimSpace(interactionMode)) != constants.PaymentInteractionQR {
-		return CryptoWalletInfo{}
-	}
 	pt := strings.ToLower(strings.TrimSpace(providerType))
 	switch pt {
 	case constants.PaymentProviderBepusdt:

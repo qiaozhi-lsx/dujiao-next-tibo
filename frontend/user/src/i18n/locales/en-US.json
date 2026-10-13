@@ -1867,6 +1867,8 @@
         "amountDue": "Amount due",
         "orderAmount": "Order amount",
         "scanOrCopy": "Scan or copy the address to pay",
+        "payLinkLabel": "Payment link",
+        "viewOnExplorer": "View on explorer",
         "scanTitle": "Scan to pay",
         "switchNetwork": "Switch network or token",
         "switching": "Switching, please wait…",
