@@ -27,7 +27,10 @@
             <Copy v-else />
           </button>
           <div class="pay-modal__amount-top">
-            <small class="pay-modal__amount-label">{{ t('qiaozhi.payment.modal.amountDue') }}</small>
+            <small class="pay-modal__amount-label">
+              {{ t('qiaozhi.payment.modal.amountPaid') }}
+              <em class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
+            </small>
             <div class="pay-modal__amount-value">
               <b>{{ amountBigText }}</b>
               <span v-if="paymentChipLabel" class="pay-modal__chain-chip">
@@ -40,6 +43,10 @@
             <div class="pay-modal__meta-row">
               <span>{{ t('qiaozhi.payment.modal.orderAmount') }}</span>
               <b>{{ totalText }}</b>
+            </div>
+            <div v-if="feeText" class="pay-modal__meta-row">
+              <span>{{ t('qiaozhi.payment.modal.fee') }}</span>
+              <b>+{{ feeText }}</b>
             </div>
             <div class="pay-modal__meta-row">
               <span>{{ t('qiaozhi.payment.modal.orderNoLabel') }}</span>
@@ -265,6 +272,7 @@ export interface PaymentModalOrder {
   maskedEmail?: string
   interactionMode?: 'qr' | 'redirect' | string
   feeAmount?: string
+  payableAmount?: string
   walletAddress?: string
   chainAmount?: string
   chain?: string
@@ -434,7 +442,17 @@ const amountBigText = computed(() => {
   const o = props.order
   if (!o) return '-'
   if (o.chainAmount) return `${o.chainAmount} ${cryptoTokenLabel.value || 'USDT'}`
-  return formatCurrency(o.amount, o.currency)
+  // 实付金额 = 含手续费金额；后端未下发时回退订单金额。
+  const payable = (o.payableAmount || '').trim()
+  return payable ? formatCurrency(payable, o.currency) : formatCurrency(o.amount, o.currency)
+})
+
+const feeText = computed(() => {
+  const o = props.order
+  if (!o) return ''
+  const raw = (o.feeAmount || '').trim()
+  if (!raw || raw === '0' || raw === '0.00') return ''
+  return formatCurrency(raw, o.currency)
 })
 
 const payCardTitle = computed(() => (
@@ -844,6 +862,11 @@ onBeforeUnmount(() => {
   font-size: 13.5px; color: var(--ux-ink-3); font-weight: 500;
   margin-bottom: 7px;
 }
+.pay-modal__fee-note {
+  font-style: normal;
+  font-size: 12px; font-weight: 400;
+  color: var(--ux-ink-3);
+}
 .pay-modal__amount-value {
   display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
   margin-bottom: 12px;
@@ -1083,6 +1106,7 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex; align-items: center; justify-content: center;
   min-height: 34px; margin-top: 4px;
+  overflow: hidden;
   transition: min-height .4s var(--ux-ease);
 }
 .is-run .pay-modal__stage,
@@ -1283,18 +1307,6 @@ onBeforeUnmount(() => {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
   transition: opacity .4s, transform .5s var(--ux-ease);
-}
-
-/* ≥1100px 桌面：两卡合并为单卡两段（中间 1px 分隔线），更贴近 GMPay 单卡观感 */
-@media (min-width: 1100px) {
-  .pay-modal__amount-card {
-    margin-bottom: 0;
-    border-radius: 18px 18px 0 0;
-    box-shadow: inset 0 1px 0 var(--ux-line), inset 1px 0 0 var(--ux-line), inset -1px 0 0 var(--ux-line);
-  }
-  .pay-modal__pay-card {
-    border-radius: 0 0 18px 18px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
