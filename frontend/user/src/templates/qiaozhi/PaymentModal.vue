@@ -251,6 +251,7 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
+import { chainLabel } from '../../utils/cryptoChain'
 
 export interface PaymentModalItem {
   title: string
@@ -397,22 +398,6 @@ const formatCurrency = (amount?: string | number | null, currency?: string) => {
 const totalText = computed(() => formatCurrency(props.order?.amount, props.order?.currency))
 
 // 加密货币支付：币种 / 链 / 链上应付数量 / 收款地址。
-const formatCryptoChain = (value: string) => {
-  const normalized = value.trim().toLowerCase()
-  const labels: Record<string, string> = {
-    tron: 'TRON',
-    trc20: 'TRON',
-    base: 'Base',
-    ethereum: 'Ethereum',
-    eth: 'Ethereum',
-    bsc: 'BNB Smart Chain',
-    binance: 'BNB Smart Chain',
-    polygon: 'Polygon',
-    solana: 'Solana',
-  }
-  return labels[normalized] || value
-}
-
 const cryptoTokenLabel = computed(() => {
   const tokenId = (props.order?.tokenId || '').trim()
   if (!tokenId) return ''
@@ -422,7 +407,7 @@ const cryptoTokenLabel = computed(() => {
 
 const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
-const cryptoChainLabel = computed(() => (props.order?.chain ? formatCryptoChain(props.order.chain) : ''))
+const cryptoChainLabel = computed(() => (props.order?.chain ? chainLabel(props.order.chain) : ''))
 
 // 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
 const paymentChipLabel = computed(() => {

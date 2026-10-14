@@ -8,6 +8,7 @@ import { orderStatusLabel } from '../utils/status'
 import { fulfillmentTypeLabel } from '../utils/fulfillment'
 import { debounceAsync } from '../utils/debounce'
 import { copyText } from '../utils/clipboard'
+import { chainLabel } from '../utils/cryptoChain'
 import { amountToCents, centsToAmount } from '../utils/money'
 import { buildSkuDisplayTextFromSnapshot } from '../utils/sku'
 import {
@@ -226,21 +227,6 @@ export function usePayment() {
     if (!cryptoTokenID.value) return ''
     return cryptoTokenID.value.toUpperCase() === cryptoTokenLabel.value ? '' : cryptoTokenID.value
   })
-  const formatCryptoChain = (value: string) => {
-    const normalized = value.trim().toLowerCase()
-    const labels: Record<string, string> = {
-      tron: 'TRON',
-      trc20: 'TRON',
-      base: 'Base',
-      ethereum: 'Ethereum',
-      eth: 'Ethereum',
-      bsc: 'BNB Smart Chain',
-      binance: 'BNB Smart Chain',
-      polygon: 'Polygon',
-      solana: 'Solana',
-    }
-    return labels[normalized] || value
-  }
   const cryptoPaymentDetails = computed(() => {
     const details: Array<{ key: string; label: string; value: string; detail?: string }> = []
     if (cryptoTokenLabel.value) {
@@ -255,7 +241,7 @@ export function usePayment() {
       details.push({
         key: 'chain',
         label: t('payment.cryptoChain'),
-        value: formatCryptoChain(cryptoChain.value),
+        value: chainLabel(cryptoChain.value),
       })
     }
     if (cryptoChainAmount.value) {
