@@ -306,6 +306,7 @@ func (h *CreateHandler) respondCreateAndPay(c *gin.Context, order *orderdomain.O
 		resp["qr_code"] = result.Payment.QRCode
 		resp["payable_amount"] = result.Payment.Amount
 		resp["fee_amount"] = result.Payment.FeeAmount
+		resp["channel_name"] = result.Payment.ChannelName
 		if info := paymentpresenter.ExtractCryptoWalletInfo(result.Payment.ProviderType, result.Payment.InteractionMode, result.Payment.ProviderPayload); info.HasAny() {
 			if info.Address != "" {
 				resp["wallet_address"] = info.Address
