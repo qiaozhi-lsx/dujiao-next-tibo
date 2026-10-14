@@ -24,16 +24,25 @@
           <X />
         </button>
 
-        <span class="pay-modal__tag">{{ t('qiaozhi.payment.modal.tag') }}</span>
-        <h2 class="pay-modal__title">{{ t('qiaozhi.payment.modal.title') }}</h2>
-
         <!-- 金额卡 -->
         <div class="pay-modal__amount-card">
+          <button
+            type="button"
+            class="pay-modal__amount-copy"
+            :aria-label="t('qiaozhi.payment.modal.copyAmount')"
+            @click="handleCopyAmount"
+          >
+            <CheckCircle2 v-if="amountCopied" />
+            <Copy v-else />
+          </button>
           <div class="pay-modal__amount-top">
             <small class="pay-modal__amount-label">{{ t('qiaozhi.payment.modal.amountDue') }}</small>
             <div class="pay-modal__amount-value">
               <b>{{ amountBigText }}</b>
-              <span v-if="cryptoChainLabel" class="pay-modal__chain-chip">{{ cryptoChainLabel }}</span>
+              <span v-if="paymentChipLabel" class="pay-modal__chain-chip">
+                <i class="pay-modal__chain-dot" :class="chainDotClass" aria-hidden="true"></i>
+                {{ paymentChipLabel }}
+              </span>
             </div>
           </div>
           <div class="pay-modal__amount-meta">
@@ -52,8 +61,8 @@
         <div class="pay-modal__pay-card">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="{ 'is-danger': countdownExpired }">
-              <svg viewBox="0 0 36 36" aria-hidden="true">
+            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="{ 'is-danger': countdownExpired }" aria-hidden="true">
+              <svg viewBox="0 0 36 36">
                 <circle class="t" cx="18" cy="18" r="15.5" />
                 <circle
                   class="p"
@@ -64,8 +73,11 @@
                   :style="{ '--p': countdownProgress }"
                 />
               </svg>
-              <em>{{ countdownText }}</em>
             </span>
+          </div>
+
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="{ 'is-danger': countdownExpired }">
+            {{ countdownText }}
           </div>
 
           <div v-if="qrSupported" class="pay-modal__qr-wrap">
@@ -86,6 +98,17 @@
             <div class="pay-modal__addr-label">{{ t('payment.walletAddress') }}</div>
             <div class="pay-modal__addr-body">
               <b>{{ order.walletAddress }}</b>
+              <a
+                v-if="walletExplorerUrl"
+                class="pay-modal__addr-copy"
+                :href="walletExplorerUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                :aria-label="t('qiaozhi.payment.modal.viewOnExplorer')"
+                :title="t('qiaozhi.payment.modal.viewOnExplorer')"
+              >
+                <ExternalLink />
+              </a>
               <button
                 type="button"
                 class="pay-modal__addr-copy"
@@ -96,6 +119,28 @@
               </button>
             </div>
             <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
+          </div>
+
+          <div v-else-if="payLink && !orderPastExpire" class="pay-modal__addr">
+            <div class="pay-modal__addr-label">{{ t('qiaozhi.payment.modal.payLinkLabel') }}</div>
+            <div class="pay-modal__addr-body">
+              <a
+                class="pay-modal__addr-link"
+                :href="payLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="payLink"
+              >{{ payLink }}</a>
+              <button
+                type="button"
+                class="pay-modal__addr-copy"
+                :aria-label="t('qiaozhi.payment.modal.copyPayLink')"
+                @click="handleCopyPayLink"
+              >
+                <Copy />
+              </button>
+            </div>
+            <span v-if="copied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
           </div>
         </div>
 
@@ -163,18 +208,6 @@
           </div>
         </div>
 
-        <div v-if="stage === 'waiting' && !orderPastExpire && order?.h5PayUrl" class="pay-modal__link-row">
-          <button type="button" class="pay-modal__link-btn" @click="handleOpenPayLink">
-            <ExternalLink />
-            {{ t('qiaozhi.payment.modal.openPayLink') }}
-          </button>
-          <button type="button" class="pay-modal__copy-btn" @click="handleCopyPayLink">
-            <Copy />
-            {{ t('qiaozhi.payment.modal.copyPayLink') }}
-          </button>
-          <span v-if="copied" class="pay-modal__copied">{{ t('qiaozhi.payment.modal.copied') }}</span>
-        </div>
-
         <div class="pay-modal__steps">
           <span :class="{ on: stepIdx >= 0 }">{{ t('qiaozhi.payment.modal.stepWaiting') }}</span>
           <span :class="{ on: stepIdx >= 1 }">{{ t('qiaozhi.payment.modal.stepConfirming') }}</span>
@@ -184,12 +217,8 @@
         <div class="pay-modal__stage">
           <div class="pay-modal__go" :class="goClass">
             <span v-if="stage === 'waiting'">
+              <Loader2 v-if="!orderPastExpire" class="pay-modal__spin" aria-hidden="true" />
               {{ orderPastExpire ? t('qiaozhi.payment.modal.orderExpired') : t('qiaozhi.payment.modal.waitingScan') }}
-              <template v-if="!orderPastExpire">
-                <em class="pay-modal__dot"></em>
-                <em class="pay-modal__dot"></em>
-                <em class="pay-modal__dot"></em>
-              </template>
             </span>
             <span v-else-if="stage === 'running'">{{ t('qiaozhi.payment.modal.confirmingPay') }}</span>
             <span v-else>{{ t('qiaozhi.payment.modal.paymentSuccess') }}</span>
@@ -280,6 +309,8 @@ export interface PaymentModalOrder {
   chain?: string
   tokenId?: string
   channelId?: number
+  channelName?: string
+  providerType?: string
   paymentId?: number
   guestCredentials?: { email: string; order_password: string } | null
 }
@@ -345,9 +376,12 @@ const stepIdx = computed(() => {
 const qrSupported = computed(() => {
   const o = props.order
   if (!o) return false
-  const mode = (o.interactionMode || '').toLowerCase()
-  if (mode === 'redirect') return false
-  return Boolean((o.qrCodeContent || '').trim() || (o.payUrl || '').trim() || (o.h5PayUrl || '').trim())
+  return Boolean(
+    (o.walletAddress || '').trim()
+    || (o.qrCodeContent || '').trim()
+    || (o.payUrl || '').trim()
+    || (o.h5PayUrl || '').trim(),
+  )
 })
 
 const expireMs = computed(() => {
@@ -419,6 +453,51 @@ const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
 const cryptoChainLabel = computed(() => (props.order?.chain ? formatCryptoChain(props.order.chain) : ''))
 
+// 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
+const paymentChipLabel = computed(() => {
+  if (cryptoChainLabel.value) return cryptoChainLabel.value
+  const name = (props.order?.channelName || '').trim()
+  if (!name) return ''
+  return /支付宝|alipay/i.test(name) ? 'Alipay' : name
+})
+
+// 渠道 chip 的圆点配色：链/渠道 → 品牌色。
+const chainDotClass = computed(() => {
+  const key = `${props.order?.chain || ''} ${props.order?.providerType || ''} ${props.order?.channelName || ''}`.toLowerCase()
+  if (/tron|trc20/.test(key)) return 'is-tron'
+  if (/binance|bsc/.test(key)) return 'is-bsc'
+  if (/solana|sol/.test(key)) return 'is-sol'
+  if (/epay|alipay|支付宝/.test(key)) return 'is-alipay'
+  return 'is-generic'
+})
+
+// 非加密渠道：pay_url 作为"支付链接"直接展示（可点击跳转 + 复制）。
+const payLink = computed(() => {
+  const o = props.order
+  if (!o || o.walletAddress) return ''
+  return String(o.h5PayUrl || o.payUrl || '').trim()
+})
+
+// 链上收款地址 → 区块浏览器链接（未知链不提供）。
+const walletExplorerUrl = computed(() => {
+  const o = props.order
+  const addr = (o?.walletAddress || '').trim()
+  if (!addr) return ''
+  const chain = (o?.chain || '').trim().toLowerCase()
+  const map: Record<string, string> = {
+    tron: `https://tronscan.org/#/address/${addr}`,
+    trc20: `https://tronscan.org/#/address/${addr}`,
+    binance: `https://bscscan.com/address/${addr}`,
+    bsc: `https://bscscan.com/address/${addr}`,
+    solana: `https://solscan.io/account/${addr}`,
+    ethereum: `https://etherscan.io/address/${addr}`,
+    eth: `https://etherscan.io/address/${addr}`,
+    base: `https://basescan.org/address/${addr}`,
+    polygon: `https://polygonscan.com/address/${addr}`,
+  }
+  return map[chain] || ''
+})
+
 const amountBigText = computed(() => {
   const o = props.order
   if (!o) return '-'
@@ -476,13 +555,18 @@ const emailNotifyAfter = computed(() => {
   return parts.length > 1 ? parts[1] : ''
 })
 
+let qrRenderVersion = 0
 const renderQRCode = async () => {
+  const version = ++qrRenderVersion
   const o = props.order
   if (!qrSupported.value || !o) {
     qrImageUrl.value = ''
     return
   }
-  const payload = (o.qrCodeContent || '').trim() || (o.payUrl || '').trim() || (o.h5PayUrl || '').trim()
+  const payload = (o.walletAddress || '').trim()
+    || (o.qrCodeContent || '').trim()
+    || (o.payUrl || '').trim()
+    || (o.h5PayUrl || '').trim()
   if (!payload) {
     qrImageUrl.value = ''
     return
@@ -496,11 +580,13 @@ const renderQRCode = async () => {
     return
   }
   try {
-    qrImageUrl.value = await QRCode.toDataURL(payload, {
+    const url = await QRCode.toDataURL(payload, {
       width: 220,
       margin: 1,
       errorCorrectionLevel: 'M',
     })
+    if (version !== qrRenderVersion) return
+    qrImageUrl.value = url
   } catch {
     qrImageUrl.value = ''
   }
@@ -605,7 +691,7 @@ const trapFocus = (e: KeyboardEvent) => {
   if (!root) return
   const focusable = Array.from(root.querySelectorAll<HTMLElement>(
     'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-  ))
+  )).filter((el) => el.getClientRects().length > 0)
   if (!focusable.length) return
   const first = focusable[0]
   const last = focusable[focusable.length - 1]
@@ -633,25 +719,6 @@ const handleClose = () => {
   emit('update:open', false)
 }
 
-const handleOpenPayLink = () => {
-  const o = props.order
-  if (!o) return
-  const link = (o.h5PayUrl || o.payUrl || '').trim()
-  if (!link) return
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-  if (isMobile) {
-    window.location.href = link
-  } else {
-    const w = window.open('', '_blank')
-    if (w) {
-      w.opener = null
-      w.location.replace(link)
-    } else {
-      window.location.href = link
-    }
-  }
-}
-
 const handleCopyPayLink = async () => {
   const o = props.order
   if (!o) return
@@ -662,6 +729,22 @@ const handleCopyPayLink = async () => {
     copied.value = true
     if (copiedTimer.value !== null) clearTimeout(copiedTimer.value)
     copiedTimer.value = setTimeout(() => { copied.value = false }, 1500)
+  } catch {
+    // 复制失败静默
+  }
+}
+
+const amountCopied = ref(false)
+const amountCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+const handleCopyAmount = async () => {
+  const text = amountBigText.value.trim()
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    amountCopied.value = true
+    if (amountCopiedTimer.value !== null) clearTimeout(amountCopiedTimer.value)
+    amountCopiedTimer.value = setTimeout(() => { amountCopied.value = false }, 1500)
   } catch {
     // 复制失败静默
   }
@@ -741,6 +824,10 @@ watch(() => props.open, async (opened) => {
       clearTimeout(walletCopiedTimer.value)
       walletCopiedTimer.value = null
     }
+    if (amountCopiedTimer.value !== null) {
+      clearTimeout(amountCopiedTimer.value)
+      amountCopiedTimer.value = null
+    }
     document.body.style.overflow = ''
     previouslyFocused.value?.focus?.()
   }
@@ -764,6 +851,7 @@ onBeforeUnmount(() => {
   cancelAnimation()
   if (copiedTimer.value !== null) clearTimeout(copiedTimer.value)
   if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
+  if (amountCopiedTimer.value !== null) clearTimeout(amountCopiedTimer.value)
   document.body.style.overflow = ''
 })
 </script>
@@ -800,10 +888,10 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--ux-surface);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
   display: flex; flex-direction: column;
-  padding: 22px 20px 20px;
+  padding: 20px;
   color: var(--text, #0a0a0a);
   font: 14px/1.5 -apple-system, "Segoe UI", "PingFang SC", sans-serif;
   animation: pay-modal-rise .3s var(--ux-spring);
@@ -823,86 +911,94 @@ onBeforeUnmount(() => {
 .pay-modal__close:hover { background: #f3f3f3; color: #000; }
 .pay-modal__close svg { width: 15px; height: 15px; }
 
-.pay-modal__tag {
-  display: block;
-  font-size: 10px; letter-spacing: 1.2px;
-  color: var(--ux-ink-3); font-weight: 600;
-  margin-bottom: 4px;
-  transition: opacity .4s, transform .5s var(--ux-ease);
-}
-.pay-modal__title {
-  font-size: 17px; font-weight: 800;
-  margin: 0 0 14px;
-  transition: opacity .4s, transform .5s var(--ux-ease);
-}
-
 /* ---- 金额卡 ---- */
 .pay-modal__amount-card {
-  padding: 16px 16px 12px;
-  border-radius: 16px;
-  background: var(--ux-surface-2);
-  margin-bottom: 12px;
+  position: relative;
+  padding: 22px 22px 18px;
+  border-radius: 18px;
+  background: var(--ux-surface);
+  box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
+  margin-bottom: 16px;
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
+.pay-modal__amount-copy {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border: 0; border-radius: 8px;
+  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.pay-modal__amount-copy:hover { background: #ededed; color: #000; }
+.pay-modal__amount-copy svg { width: 14px; height: 14px; }
 .pay-modal__amount-label {
   display: block;
-  font-size: 12px; color: var(--ux-ink-3); font-weight: 600;
-  margin-bottom: 6px;
+  font-size: 13.5px; color: var(--ux-ink-3); font-weight: 500;
+  margin-bottom: 7px;
 }
 .pay-modal__amount-value {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
   margin-bottom: 12px;
 }
 .pay-modal__amount-value b {
-  font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+  font-size: 36px; font-weight: 700; letter-spacing: -.02em;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 .pay-modal__chain-chip {
-  display: inline-flex; align-items: center;
-  padding: 3px 10px; border-radius: 999px;
-  background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
-  font-size: 11.5px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 11px;
+  border-radius: 999px;
+  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  font-size: 13px; font-weight: 700;
 }
+.pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: #a1a1aa; }
+.pay-modal__chain-dot.is-tron { background: #ef4444; }
+.pay-modal__chain-dot.is-bsc { background: #f0b90b; }
+.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, #9945ff, #14f195); }
+.pay-modal__chain-dot.is-alipay { background: #1677ff; }
 .pay-modal__amount-meta {
-  border-top: 1px dashed var(--ux-line-2);
-  padding-top: 10px;
-  display: flex; flex-direction: column; gap: 6px;
+  border-top: 1px solid var(--ux-line);
+  padding-top: 12px;
+  display: flex; flex-direction: column; gap: 8px;
 }
 .pay-modal__meta-row {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  font-size: 12.5px; color: var(--ux-ink-3);
+  font-size: 14px; color: var(--ux-ink-3);
 }
 .pay-modal__meta-row b {
-  color: var(--ux-ink-2); font-weight: 700;
+  color: var(--ux-ink-2); font-weight: 500;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere; text-align: right;
 }
 
 /* ---- 支付卡 ---- */
 .pay-modal__pay-card {
-  border-radius: 16px;
-  box-shadow: inset 0 0 0 1px var(--ux-line);
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  border-radius: 18px;
+  padding: 20px 20px 0;
+  margin-bottom: 16px;
+  background: var(--ux-surface);
+  box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
 .pay-modal__pay-head {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
-.pay-modal__pay-head b { font-size: 13.5px; font-weight: 700; }
+.pay-modal__pay-head b { font-size: 15.5px; font-weight: 500; }
 
 .pay-modal__cd-ring {
   position: relative;
-  width: 40px; height: 40px;
+  width: 34px; height: 34px;
   flex-shrink: 0;
   display: grid; place-items: center;
 }
 .pay-modal__cd-ring svg {
   position: absolute; inset: 0;
-  width: 40px; height: 40px;
+  width: 34px; height: 34px;
   transform: rotate(-90deg);
 }
 .pay-modal__cd-ring circle { fill: none; stroke-width: 2.6; stroke-linecap: round; }
@@ -914,27 +1010,30 @@ onBeforeUnmount(() => {
   transition: stroke-dashoffset .5s linear, stroke .3s;
 }
 .pay-modal__cd-ring.is-danger .p { stroke: #b02020; }
-.pay-modal__cd-ring em {
-  position: relative;
-  font-style: normal; font-weight: 700; font-size: 9.5px;
-  color: var(--ux-ink-2);
+.pay-modal__cd-num {
+  text-align: center;
+  margin: 6px 0 12px;
+  font-size: 30px; font-weight: 700;
+  letter-spacing: .04em;
+  color: #22c55e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -.02em;
+  transition: color .3s;
 }
+.pay-modal__cd-num.is-danger { color: #b02020; }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
-  margin: 2px 0 10px;
+  margin: 0 0 12px;
   transition: filter .4s, opacity .4s;
 }
 .pay-modal__qr {
-  padding: 10px; background: #fff;
-  border: 1px solid var(--ux-line-2);
-  border-radius: 12px;
+  padding: 8px; background: #fff;
+  border-radius: 8px;
 }
-.pay-modal__qr img { display: block; width: 168px; height: 168px; }
+.pay-modal__qr img { display: block; width: 140px; height: 140px; }
 .pay-modal__qr-placeholder {
-  width: 168px; height: 168px;
+  width: 140px; height: 140px;
   display: grid; place-items: center;
   color: var(--ux-ink-3);
 }
@@ -946,61 +1045,77 @@ onBeforeUnmount(() => {
 
 .pay-modal__redirect-hint {
   display: flex; align-items: flex-start; gap: 8px;
-  padding: 10px 12px; margin-bottom: 10px;
+  padding: 10px 12px; margin-bottom: 16px;
   border-radius: 10px;
   background: #fff7e6; color: var(--ux-warn);
   font-size: 12px; line-height: 1.5;
 }
 .pay-modal__redirect-hint svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
 
-.pay-modal__addr { margin-top: 4px; }
+.pay-modal__addr {
+  margin-top: 12px;
+  padding: 14px 0 20px;
+  border-top: 1px solid var(--ux-line);
+}
 .pay-modal__addr-label {
-  font-size: 11.5px; color: var(--ux-ink-3); font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 12px; color: var(--ux-ink-3); font-weight: 600;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
 }
 .pay-modal__addr-body {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 10px;
 }
 .pay-modal__addr-body b {
   flex: 1; min-width: 0;
-  font-size: 12.5px; font-weight: 700;
+  font-size: 14px; font-weight: 500;
+  line-height: 1.6;
   color: var(--ux-ink-2);
   overflow-wrap: anywhere; word-break: break-all;
 }
 .pay-modal__addr-copy {
   flex-shrink: 0;
-  width: 30px; height: 30px;
+  width: 32px; height: 32px;
   border: 0; border-radius: 8px;
   background: var(--ux-surface-2); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line);
   display: grid; place-items: center;
   cursor: pointer;
+  transition: background-color .15s, color .15s;
 }
-.pay-modal__addr-copy svg { width: 13px; height: 13px; }
-.pay-modal__addr-copy:hover { color: #000; }
+.pay-modal__addr-copy svg { width: 14px; height: 14px; }
+.pay-modal__addr-copy:hover { background: #ededed; color: #000; }
+a.pay-modal__addr-copy { text-decoration: none; }
+.pay-modal__addr-link {
+  flex: 1; min-width: 0;
+  font-size: 14px; font-weight: 500;
+  line-height: 1.6;
+  color: var(--ux-ink-2);
+  text-decoration: underline; text-underline-offset: 3px;
+  overflow-wrap: anywhere; word-break: break-all;
+}
+.pay-modal__addr-link:hover { color: #000; }
 
 /* ---- 加密货币操作区 ---- */
 .pay-modal__crypto-actions {
-  display: flex; flex-direction: column; gap: 8px;
-  margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 16px;
 }
 .pay-modal__action-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  width: 100%; height: 42px;
-  border: 0; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; height: 48px;
+  border: 0; border-radius: 14px;
   cursor: pointer;
-  font-size: 13px; font-weight: 700;
+  font-size: 15.5px; font-weight: 500;
   background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
 }
 .pay-modal__action-btn:hover:not(:disabled) { color: #000; background: var(--ux-surface-2); }
 .pay-modal__action-btn.is-solid {
-  background: var(--ux-accent); color: #fff;
+  background: #343434; color: #fbfbfb;
   box-shadow: none;
 }
-.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: #fff; background: #1c1c1c; }
+.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: #fff; background: #262626; }
 .pay-modal__action-btn:disabled { opacity: .55; cursor: not-allowed; }
-.pay-modal__action-btn svg { width: 15px; height: 15px; }
+.pay-modal__action-btn svg { width: 17px; height: 17px; }
 
 .pay-modal__panel {
   padding: 12px;
@@ -1085,20 +1200,13 @@ onBeforeUnmount(() => {
               border-radius .5s var(--ux-spring), background-color .4s;
 }
 .pay-modal__go.waiting {
-  background: var(--ux-surface-2); color: var(--ux-ink-3);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
+  gap: 8px;
+  height: auto;
+  background: transparent; color: var(--ux-ink-3);
+  box-shadow: none;
+  font-size: 14px; font-weight: 500;
 }
-.pay-modal__go.waiting .pay-modal__dot {
-  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-  background: var(--ux-ink-3); margin-left: 4px;
-  animation: pay-modal-dot 1.2s infinite ease-in-out;
-}
-.pay-modal__go.waiting .pay-modal__dot:nth-of-type(2) { animation-delay: .2s; }
-.pay-modal__go.waiting .pay-modal__dot:nth-of-type(3) { animation-delay: .4s; }
-@keyframes pay-modal-dot {
-  0%, 80%, 100% { opacity: .3; transform: scale(.8); }
-  40% { opacity: 1; transform: scale(1.1); }
-}
+.pay-modal__go.waiting .pay-modal__spin { width: 16px; height: 16px; color: var(--ux-ink-3); }
 .is-run .pay-modal__go,
 .is-ok .pay-modal__go {
   width: 56px; height: 56px; border-radius: 50%;
@@ -1148,26 +1256,6 @@ onBeforeUnmount(() => {
 }
 .is-ok .pay-modal__ck path { stroke-dashoffset: 0; }
 
-.pay-modal__link-row {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 10px; flex-wrap: wrap;
-}
-.pay-modal__link-btn,
-.pay-modal__copy-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  height: 36px; padding: 0 12px;
-  border: 0; border-radius: 10px;
-  cursor: pointer;
-  font-size: 12.5px; font-weight: 700;
-}
-.pay-modal__link-btn {
-  background: var(--ux-accent); color: #fff;
-}
-.pay-modal__copy-btn {
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line);
-}
-.pay-modal__link-btn svg, .pay-modal__copy-btn svg { width: 13px; height: 13px; }
 .pay-modal__copied {
   font-size: 11px; color: var(--ux-mint); font-weight: 600;
 }
@@ -1175,12 +1263,11 @@ onBeforeUnmount(() => {
 .pay-modal__rec {
   position: absolute;
   left: 16px; right: 16px; bottom: 16px; top: 60px;
-  display: flex; flex-direction: column;
+  display: none;
+  flex-direction: column;
   padding: 22px 18px 16px;
   border-radius: 22px;
   background: var(--ux-surface-2);
-  transform: translateY(110%);
-  transition: transform .6s var(--ux-spring);
   text-align: center;
   z-index: 2;
   overflow-y: auto;
@@ -1191,7 +1278,11 @@ onBeforeUnmount(() => {
   height: 16px;
   background: radial-gradient(circle 8px at 8px 0, transparent 98%, var(--ux-surface-2)) 0 8px/16px 8px repeat-x;
 }
-.is-rec .pay-modal__rec { transform: none; }
+.is-rec .pay-modal__rec {
+  display: flex;
+  animation: pay-modal-rec-in .6s var(--ux-spring) both;
+}
+@keyframes pay-modal-rec-in { from { transform: translateY(60px); opacity: 0; } }
 
 .pay-modal__rec-header {
   font-size: 10px; letter-spacing: 1.3px;
@@ -1283,14 +1374,11 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.is-rec .pay-modal__tag,
-.is-rec .pay-modal__title,
 .is-rec .pay-modal__amount-card,
 .is-rec .pay-modal__pay-card,
 .is-rec .pay-modal__crypto-actions,
 .is-rec .pay-modal__steps,
-.is-rec .pay-modal__stage,
-.is-rec .pay-modal__link-row {
+.is-rec .pay-modal__stage {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
   transition: opacity .4s, transform .5s var(--ux-ease);

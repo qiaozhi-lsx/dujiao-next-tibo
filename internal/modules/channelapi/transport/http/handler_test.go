@@ -344,7 +344,14 @@ func TestBuildChannelPaymentResponse_ProviderModeMatrix(t *testing.T) {
 			payload:         jsonmap.JSON{"data": map[string]any{"token": "TBepAddr", "actual_amount": "13.45"}},
 			wantUSDT:        &wantUSDT{address: "TBepAddr", amount: "13.45"},
 		},
-		{name: "bepusdt redirect", providerType: constants.PaymentProviderBepusdt, channelType: "", interactionMode: constants.PaymentInteractionRedirect, payload: jsonmap.JSON{"data": map[string]any{"token": "TBepAddr", "actual_amount": "13.45"}}},
+		{
+			name:            "bepusdt redirect also extracts (cashier payload)",
+			providerType:    constants.PaymentProviderBepusdt,
+			channelType:     "",
+			interactionMode: constants.PaymentInteractionRedirect,
+			payload:         jsonmap.JSON{"data": map[string]any{"token": "TBepAddr", "actual_amount": "13.45"}},
+			wantUSDT:        &wantUSDT{address: "TBepAddr", amount: "13.45"},
+		},
 		{
 			name:            "epusdt qr with receive_address payload",
 			providerType:    constants.PaymentProviderEpusdt,

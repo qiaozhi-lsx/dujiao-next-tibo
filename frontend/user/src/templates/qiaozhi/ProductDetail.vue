@@ -462,6 +462,8 @@ const buildPaymentOrderPayload = (
     createdAt: createdRaw,
     maskedEmail: resolvedEmail ? maskEmail(resolvedEmail) : '',
     interactionMode: String(payData?.interaction_mode || ''),
+    channelName: String(payData?.channel_name || ''),
+    providerType: String(payData?.provider_type || ''),
     feeAmount: String(payData?.fee_amount || ''),
     walletAddress: String(payData?.wallet_address || ''),
     chainAmount: String(payData?.chain_amount || ''),
