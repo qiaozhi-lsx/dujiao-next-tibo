@@ -83,7 +83,7 @@
             {{ countdownText }}
           </div>
 
-          <div v-if="qrSupported" class="pay-modal__qr-wrap">
+          <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
             <div class="pay-modal__qr">
               <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR" />
               <div v-else class="pay-modal__qr-placeholder">
@@ -97,7 +97,7 @@
             <span>{{ t('qiaozhi.payment.modal.notQrCapable') }}</span>
           </div>
 
-          <div v-if="order?.walletAddress" class="pay-modal__addr">
+          <div v-if="order?.walletAddress && !orderPastExpire" class="pay-modal__addr">
             <div class="pay-modal__addr-label">{{ t('payment.walletAddress') }}</div>
             <div class="pay-modal__addr-body">
               <b>{{ order.walletAddress }}</b>
@@ -113,6 +113,13 @@
             <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
           </div>
 
+          <div v-if="orderPastExpire" class="pay-modal__expired">
+            <CircleX class="pay-modal__expired-icon" aria-hidden="true" />
+            <b class="pay-modal__expired-title">{{ t('qiaozhi.payment.modal.payExpired') }}</b>
+            <button type="button" class="pay-modal__expired-btn" @click="emit('renew-payment')">
+              {{ t('qiaozhi.payment.modal.renewPayment') }}
+            </button>
+          </div>
         </div>
 
         <!-- 加密货币操作：切换网络或币种 / 已转账但未到账 -->
@@ -249,7 +256,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { chainLabel } from '../../utils/cryptoChain'
@@ -308,6 +315,7 @@ const emit = defineEmits<{
   (e: 'paid', order: PaymentModalOrder): void
   (e: 'switch-channel', channelId: number): void
   (e: 'submit-tx-hash', txHash: string): void
+  (e: 'renew-payment'): void
 }>()
 
 const { t } = useI18n()
@@ -1197,6 +1205,20 @@ onBeforeUnmount(() => {
 
 .pay-modal__copied {
   font-size: 11px; color: var(--ux-mint); font-weight: 600;
+}
+
+/* 过期态：对齐支付网关收银台（红 ✗ + 标题 + 重新发起入口），不显示二维码与地址。 */
+.pay-modal__expired {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 34px 0 26px;
+}
+.pay-modal__expired-icon { width: 46px; height: 46px; color: #d4342a; stroke-width: 1.6; }
+.pay-modal__expired-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.pay-modal__expired-btn {
+  margin-top: 4px; width: 100%; height: 44px;
+  border: 0; border-radius: 14px; cursor: pointer;
+  background: var(--ux-accent); color: #fff;
+  font-size: 14.5px; font-weight: 500;
 }
 
 .pay-modal__rec {
