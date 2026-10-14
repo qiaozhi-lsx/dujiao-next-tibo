@@ -1865,6 +1865,8 @@
         "stepPaid": "支付成功",
         "waitingScan": "等待您完成扫码支付",
         "amountDue": "应付金额",
+        "amountPaid": "实付金额",
+        "feeIncluded": "包含手续费",
         "orderAmount": "订单金额",
         "scanOrCopy": "扫码或复制地址付款",
         "copyAmount": "复制金额",

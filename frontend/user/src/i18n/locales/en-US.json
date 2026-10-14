@@ -1865,6 +1865,8 @@
         "stepPaid": "Paid",
         "waitingScan": "Waiting for scan",
         "amountDue": "Amount due",
+        "amountPaid": "Amount paid",
+        "feeIncluded": "includes fee",
         "orderAmount": "Order amount",
         "scanOrCopy": "Scan or copy the address to pay",
         "copyAmount": "Copy amount",

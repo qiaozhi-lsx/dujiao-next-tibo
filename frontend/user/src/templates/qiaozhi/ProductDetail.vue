@@ -470,6 +470,7 @@ const buildPaymentOrderPayload = (
     channelName: String(payData?.channel_name || channelInfo?.name || ''),
     providerType: String(payData?.provider_type || channelInfo?.providerType || ''),
     feeAmount: String(payData?.fee_amount || ''),
+    payableAmount: String(payData?.payable_amount || ''),
     walletAddress: String(payData?.wallet_address || ''),
     chainAmount: String(payData?.chain_amount || ''),
     chain: String(payData?.chain || ''),
