@@ -1868,6 +1868,8 @@
         "amountPaid": "Amount paid",
         "feeIncluded": "includes fee",
         "equivalent": "Equivalent",
+        "payExpired": "Payment expired",
+        "renewPayment": "Start a new payment",
         "orderAmount": "Order amount",
         "scanOrCopy": "Scan or copy the address to pay",
         "copyAmount": "Copy amount",
