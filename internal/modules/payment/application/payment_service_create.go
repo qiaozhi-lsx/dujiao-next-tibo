@@ -222,6 +222,7 @@ func (s *PaymentService) CreatePayment(input CreatePaymentInput) (*CreatePayment
 		payment = &paymentdomain.Payment{
 			OrderID:         lockedOrder.ID,
 			ChannelID:       channel.ID,
+			ChannelName:     channel.Name,
 			ProviderType:    channel.ProviderType,
 			ChannelType:     channel.ChannelType,
 			InteractionMode: channel.InteractionMode,
