@@ -231,6 +231,7 @@
       @paid="handlePaymentPaid"
       @switch-channel="handleSwitchPaymentChannel"
       @submit-tx-hash="handleSubmitPaymentTxHash"
+      @renew-payment="handleRenewPayment"
     />
   </div>
 </template>
@@ -489,6 +490,15 @@ const handlePaymentPaid = (order: PaymentModalOrder) => {
     router.push(`/guest/orders/${sn}`)
   } else {
     router.push(`/orders/${sn}`)
+  }
+}
+
+// 过期后「重新发起支付」：过期订单会被后台置为 canceled，无法复用旧单，
+// 走同一套下单链路重新建单（含校验/验证码/错误回显）。
+const handleRenewPayment = async () => {
+  await submitOrder()
+  if (formError.value) {
+    showPaymentModal.value = false
   }
 }
 
