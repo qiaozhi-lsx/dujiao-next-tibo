@@ -104,7 +104,8 @@
                 :aria-label="t('payment.copyWalletAddress')"
                 @click="handleCopyWalletAddress"
               >
-                <Copy />
+                <CheckCircle2 v-if="walletAddressCopied" />
+                <Copy v-else />
               </button>
             </div>
             <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
