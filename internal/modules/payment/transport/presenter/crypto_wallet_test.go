@@ -164,6 +164,25 @@ func TestExtractCryptoWalletInfo_EpusdtQRIncludesChainLabels(t *testing.T) {
 	}
 }
 
+func TestExtractCryptoWalletInfo_EpusdtCashierDisplayChannelType(t *testing.T) {
+	// EPUSDT cashier 建单响应不含 data.network，链名兜底来自 display_channel_type。
+	info := ExtractCryptoWalletInfo(constants.PaymentProviderEpusdt, constants.PaymentInteractionRedirect, jsonmap.JSON{
+		"display_channel_type": "usdt.tron",
+		"data": map[string]any{
+			"receive_address": "TCashierAddr",
+			"actual_amount":   "4.45",
+			"token":           "USDT",
+		},
+	})
+
+	if info.Chain != "tron" {
+		t.Fatalf("Chain = %q, want tron", info.Chain)
+	}
+	if info.Address != "TCashierAddr" || info.ChainAmount != "4.45" || info.TokenID != "USDT" {
+		t.Fatalf("unexpected info: %+v", info)
+	}
+}
+
 func TestExtractCryptoWalletInfo_DujiaoPayWrappedPayload(t *testing.T) {
 	info := ExtractCryptoWalletInfo(constants.PaymentProviderDujiaoPay, constants.PaymentInteractionQR, jsonmap.JSON{
 		"data": map[string]any{

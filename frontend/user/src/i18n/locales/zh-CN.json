@@ -1225,7 +1225,7 @@
     "copied": "已复制",
     "copyFailed": "复制失败，请重试",
     "qrCodeLabel": "二维码内容",
-    "walletAddress": "钱包地址",
+    "walletAddress": "收款地址",
     "cryptoAmount": "链上应付数量",
     "cryptoChain": "链/网络",
     "cryptoToken": "支付币种",

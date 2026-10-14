@@ -1273,7 +1273,7 @@
     "copied": "Copied",
     "copyFailed": "Copy failed, please try again",
     "qrCodeLabel": "QR content",
-    "walletAddress": "Wallet address",
+    "walletAddress": "Receiving address",
     "cryptoAmount": "On-chain amount due",
     "cryptoChain": "Chain / network",
     "cryptoToken": "Payment token",

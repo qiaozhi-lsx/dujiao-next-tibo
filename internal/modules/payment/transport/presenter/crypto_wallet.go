@@ -45,8 +45,11 @@ func ExtractCryptoWalletInfo(providerType, _ string, payload jsonmap.JSON) Crypt
 		return CryptoWalletInfo{
 			Address:     readPayloadString(payload, "data", "receive_address"),
 			ChainAmount: readPayloadString(payload, "data", "actual_amount"),
-			Chain:       readPayloadString(payload, "data", "network"),
-			TokenID:     readPayloadString(payload, "data", "token"),
+			Chain: firstPayloadString(
+				readPayloadString(payload, "data", "network"),
+				chainFromDisplayChannelType(payload),
+			),
+			TokenID: readPayloadString(payload, "data", "token"),
 		}
 	case constants.PaymentProviderDujiaoPay:
 		return CryptoWalletInfo{
@@ -85,6 +88,17 @@ func firstPayloadString(values ...string) string {
 		}
 	}
 	return ""
+}
+
+// chainFromDisplayChannelType 从 adapter 写入的 display_channel_type（形如 "usdt.tron"）
+// 推导链名；EPUSDT cashier 建单响应不含 data.network 时用它兜底。
+func chainFromDisplayChannelType(payload jsonmap.JSON) string {
+	raw := readPayloadString(payload, "display_channel_type")
+	if raw == "" {
+		return ""
+	}
+	parts := strings.Split(raw, ".")
+	return strings.TrimSpace(parts[len(parts)-1])
 }
 
 // readPayloadString 沿 keys 路径在 payload 内取字符串值，支持 string / json.Number / 数值（fmt 转换）。

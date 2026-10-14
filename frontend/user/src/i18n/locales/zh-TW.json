@@ -1273,7 +1273,7 @@
     "copied": "已複製",
     "copyFailed": "複製失敗，請重試",
     "qrCodeLabel": "二維碼內容",
-    "walletAddress": "錢包地址",
+    "walletAddress": "收款地址",
     "cryptoAmount": "鏈上應付數量",
     "cryptoChain": "鏈/網路",
     "cryptoToken": "支付幣種",
