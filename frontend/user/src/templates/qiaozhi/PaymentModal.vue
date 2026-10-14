@@ -64,7 +64,7 @@
         <div class="pay-modal__pay-card">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="{ 'is-danger': countdownExpired }" aria-hidden="true">
+            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="`is-${cdTone}`" aria-hidden="true">
               <svg viewBox="0 0 36 36">
                 <circle class="t" cx="18" cy="18" r="15.5" />
                 <circle
@@ -79,7 +79,7 @@
             </span>
           </div>
 
-          <div v-if="showCountdown" class="pay-modal__cd-num" :class="{ 'is-danger': countdownExpired }">
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
             {{ countdownText }}
           </div>
 
@@ -260,6 +260,7 @@ import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } fr
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { chainLabel } from '../../utils/cryptoChain'
+import { countdownTone } from '../../utils/countdownTone'
 import bscLogo from '../../assets/chains/bsc.png'
 import tronLogo from '../../assets/chains/tron.png'
 import solanaLogo from '../../assets/chains/solana.png'
@@ -381,7 +382,10 @@ const orderPastExpire = computed(() => {
 })
 
 const showCountdown = computed(() => expireMs.value !== null && stage.value === 'waiting')
-const countdownExpired = computed(() => expireMs.value !== null && expireMs.value - now.value <= 0)
+const remainSeconds = computed(() => (
+  expireMs.value === null ? Number.POSITIVE_INFINITY : Math.floor((expireMs.value - now.value) / 1000)
+))
+const cdTone = computed(() => countdownTone(remainSeconds.value))
 const countdownText = computed(() => {
   if (expireMs.value === null) return '--:--'
   const remain = Math.max(0, Math.floor((expireMs.value - now.value) / 1000))
@@ -961,7 +965,9 @@ onBeforeUnmount(() => {
   stroke-dashoffset: calc(100 - var(--p, 0));
   transition: stroke-dashoffset .5s linear, stroke .3s;
 }
-.pay-modal__cd-ring.is-danger .p { stroke: #b02020; }
+.pay-modal__cd-ring.is-warn .p { stroke: #f59e0b; }
+.pay-modal__cd-ring.is-late .p { stroke: #ea580c; }
+.pay-modal__cd-ring.is-critical .p { stroke: #b02020; }
 .pay-modal__cd-num {
   text-align: center;
   margin: 6px 0 12px;
@@ -972,7 +978,10 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
   transition: color .3s;
 }
-.pay-modal__cd-num.is-danger { color: #b02020; }
+.pay-modal__cd-num.is-safe { color: #22c55e; }
+.pay-modal__cd-num.is-warn { color: #f59e0b; }
+.pay-modal__cd-num.is-late { color: #ea580c; }
+.pay-modal__cd-num.is-critical { color: #b02020; }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
