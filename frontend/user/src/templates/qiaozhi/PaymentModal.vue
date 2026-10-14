@@ -34,7 +34,8 @@
             <div class="pay-modal__amount-value">
               <b>{{ amountBigText }}</b>
               <span v-if="paymentChipLabel" class="pay-modal__chain-chip">
-                <i class="pay-modal__chain-dot" :class="chainDotClass" aria-hidden="true"></i>
+                <img v-if="chainLogo" class="pay-modal__chain-logo" :src="chainLogo" alt="" aria-hidden="true" />
+                <i v-else class="pay-modal__chain-dot" :class="chainDotClass" aria-hidden="true"></i>
                 {{ paymentChipLabel }}
               </span>
             </div>
@@ -252,6 +253,9 @@ import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, Loader2 } from 'lucid
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { chainLabel } from '../../utils/cryptoChain'
+import bscLogo from '../../assets/chains/bsc.png'
+import tronLogo from '../../assets/chains/tron.png'
+import solanaLogo from '../../assets/chains/solana.png'
 
 export interface PaymentModalItem {
   title: string
@@ -416,6 +420,16 @@ const paymentChipLabel = computed(() => {
   if (!name) return ''
   return /支付宝|alipay/i.test(name) ? 'Alipay' : name
 })
+
+// 有素材的链用真 logo（网关同款），其余链回退色点。
+const CHAIN_LOGOS: Record<string, string> = {
+  bsc: bscLogo,
+  binance: bscLogo,
+  tron: tronLogo,
+  trc20: tronLogo,
+  solana: solanaLogo,
+}
+const chainLogo = computed(() => CHAIN_LOGOS[(props.order?.chain || '').trim().toLowerCase()] ?? '')
 
 // 渠道 chip 的圆点配色：链/渠道 → 品牌色。
 const chainDotClass = computed(() => {
@@ -884,6 +898,7 @@ onBeforeUnmount(() => {
   font-size: 13px; font-weight: 700;
 }
 .pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: #a1a1aa; }
+.pay-modal__chain-logo { flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; }
 .pay-modal__chain-dot.is-tron { background: #ef4444; }
 .pay-modal__chain-dot.is-bsc { background: #f0b90b; }
 .pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, #9945ff, #14f195); }
