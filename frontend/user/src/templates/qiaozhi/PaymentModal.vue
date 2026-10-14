@@ -64,19 +64,6 @@
         <div class="pay-modal__pay-card">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="`is-${cdTone}`" aria-hidden="true">
-              <svg viewBox="0 0 36 36">
-                <circle class="t" cx="18" cy="18" r="15.5" />
-                <circle
-                  class="p"
-                  cx="18"
-                  cy="18"
-                  r="15.5"
-                  pathLength="100"
-                  :style="{ '--p': countdownProgress }"
-                />
-              </svg>
-            </span>
           </div>
 
           <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
@@ -393,16 +380,6 @@ const countdownText = computed(() => {
   const m = String(Math.floor(remain / 60)).padStart(2, '0')
   const s = String(remain % 60).padStart(2, '0')
   return `${m}:${s}`
-})
-const countdownProgress = computed(() => {
-  const end = expireMs.value
-  if (end === null) return 100
-  const rawCreated = props.order?.createdAt
-  const created = rawCreated ? new Date(rawCreated as string | number).getTime() : NaN
-  const total = Number.isFinite(created) && end > created ? end - created : 0
-  if (!total) return 100
-  const remain = Math.max(0, end - now.value)
-  return Math.max(0, Math.min(100, (remain / total) * 100))
 })
 
 const formatCurrency = (amount?: string | number | null, currency?: string) => {
@@ -950,33 +927,11 @@ onBeforeUnmount(() => {
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
 .pay-modal__pay-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  display: flex; align-items: center; justify-content: center;
   margin-bottom: 6px;
 }
 .pay-modal__pay-head b { font-size: 15.5px; font-weight: 500; }
 
-.pay-modal__cd-ring {
-  position: relative;
-  width: 34px; height: 34px;
-  flex-shrink: 0;
-  display: grid; place-items: center;
-}
-.pay-modal__cd-ring svg {
-  position: absolute; inset: 0;
-  width: 34px; height: 34px;
-  transform: rotate(-90deg);
-}
-.pay-modal__cd-ring circle { fill: none; stroke-width: 2.6; stroke-linecap: round; }
-.pay-modal__cd-ring .t { stroke: var(--ux-surface-3); }
-.pay-modal__cd-ring .p {
-  stroke: var(--ux-mint);
-  stroke-dasharray: 100;
-  stroke-dashoffset: calc(100 - var(--p, 0));
-  transition: stroke-dashoffset .5s linear, stroke .3s;
-}
-.pay-modal__cd-ring.is-warn .p { stroke: #f59e0b; }
-.pay-modal__cd-ring.is-late .p { stroke: #ea580c; }
-.pay-modal__cd-ring.is-critical .p { stroke: #b02020; }
 .pay-modal__cd-num {
   text-align: center;
   margin: 6px 0 12px;
