@@ -31,7 +31,7 @@ func (info CryptoWalletInfo) HasAny() bool {
 //   - epusdt:    data.receive_address  (地址)  / data.actual_amount / data.network / data.token
 //   - dujiaopay: pay_address           (地址)  / payable_amount / chain / token_id
 //   - tokenpay:  暂不支持（包未解析地址），保留扩展位
-func ExtractCryptoWalletInfo(providerType, interactionMode string, payload jsonmap.JSON) CryptoWalletInfo {
+func ExtractCryptoWalletInfo(providerType, _ string, payload jsonmap.JSON) CryptoWalletInfo {
 	pt := strings.ToLower(strings.TrimSpace(providerType))
 	switch pt {
 	case constants.PaymentProviderBepusdt:

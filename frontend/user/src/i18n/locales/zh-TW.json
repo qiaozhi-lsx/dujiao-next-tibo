@@ -1867,6 +1867,7 @@
         "amountDue": "應付金額",
         "orderAmount": "訂單金額",
         "scanOrCopy": "掃碼或複製地址付款",
+        "copyAmount": "複製金額",
         "payLinkLabel": "支付連結",
         "viewOnExplorer": "在區塊瀏覽器中查看",
         "scanTitle": "掃碼支付",
@@ -1886,14 +1887,12 @@
         "emailNotifyNoEmail": "可在「我的訂單」查看交付詳情",
         "emailFallback": "也可在「我的訂單」查看",
         "viewOrderDetail": "查看訂單詳情",
-        "openPayLink": "開啟付款連結",
         "copyPayLink": "複製連結",
-        "copied": "已複製",
         "orderExpired": "訂單已過期",
         "orderNoLabel": "訂單號",
         "amountLabel": "合計",
         "timeLabel": "時間",
-        "notQrCapable": "此付款方式僅支援跳轉收銀台，請點擊下方按鈕完成付款",
+        "notQrCapable": "暫未獲取到付款資訊，請稍後重試或聯絡客服",
         "closeAria": "關閉付款彈窗"
       }
     },
