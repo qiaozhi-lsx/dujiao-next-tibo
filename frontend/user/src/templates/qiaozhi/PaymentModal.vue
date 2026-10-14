@@ -64,8 +64,8 @@
         <div class="pay-modal__pay-card">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="`is-${cdTone}`" aria-hidden="true">
-              <svg viewBox="0 0 36 36">
+            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="`is-${cdTone}`">
+              <svg viewBox="0 0 36 36" aria-hidden="true">
                 <circle class="t" cx="18" cy="18" r="15.5" />
                 <circle
                   class="p"
@@ -114,7 +114,7 @@
           <div v-if="orderPastExpire" class="pay-modal__expired">
             <CircleX class="pay-modal__expired-icon" aria-hidden="true" />
             <b class="pay-modal__expired-title">{{ t('qiaozhi.payment.modal.payExpired') }}</b>
-            <button type="button" class="pay-modal__expired-btn" @click="emit('renew-payment')">
+            <button type="button" class="pay-modal__expired-btn" @click="handleRenew">
               {{ t('qiaozhi.payment.modal.renewPayment') }}
             </button>
           </div>
@@ -656,6 +656,14 @@ const startPolling = () => {
   pollTimer.value = setInterval(() => {
     void pollOnce()
   }, 2000)
+}
+
+// 过期瞬间可能刚完成付款、2s 轮询尚未翻转：重发起前先补查一次状态，
+// 已支付则直接进入成功流程，避免旧单已付、又新建一单的重复付款窗口。
+const handleRenew = async () => {
+  await pollOnce()
+  if (stage.value !== 'waiting') return
+  emit('renew-payment')
 }
 
 const trapFocus = (e: KeyboardEvent) => {
