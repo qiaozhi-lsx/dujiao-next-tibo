@@ -536,7 +536,10 @@ const handleSwitchPaymentChannel = async (channelId: number) => {
       payData = res.data?.data
     }
     if (payData) {
-      paymentOrder.value = buildPaymentOrderPayload(payData, current.sn, current.guestCredentials ?? null)
+      const next = buildPaymentOrderPayload(payData, current.sn, current.guestCredentials ?? null)
+      // /payments 响应不含订单对象（Payment.ExpiredAt 建单时为空），切换渠道不改订单过期时间，沿用旧单 expireAt。
+      next.expireAt = next.expireAt ?? current.expireAt ?? null
+      paymentOrder.value = next
     }
   } catch (e: any) {
     paymentSwitchError.value = e?.message || t('qiaozhi.detail.errSubmit')
