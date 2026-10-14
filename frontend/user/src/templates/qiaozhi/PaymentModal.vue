@@ -64,8 +64,8 @@
         <div class="pay-modal__pay-card">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="`is-${cdTone}`">
-              <svg viewBox="0 0 36 36" aria-hidden="true">
+            <span v-if="showCountdown" class="pay-modal__cd-ring" :class="`is-${cdTone}`" aria-hidden="true">
+              <svg viewBox="0 0 36 36">
                 <circle class="t" cx="18" cy="18" r="15.5" />
                 <circle
                   class="p"
@@ -76,8 +76,11 @@
                   :style="{ '--p': countdownProgress }"
                 />
               </svg>
-              <b class="pay-modal__cd-inner">{{ countdownText }}</b>
             </span>
+          </div>
+
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
+            {{ countdownText }}
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
@@ -379,7 +382,7 @@ const orderPastExpire = computed(() => {
   return expireMs.value <= now.value && stage.value === 'waiting'
 })
 
-const showCountdown = computed(() => expireMs.value !== null && stage.value === 'waiting')
+const showCountdown = computed(() => expireMs.value !== null && stage.value === 'waiting' && !orderPastExpire.value)
 const remainSeconds = computed(() => (
   expireMs.value === null ? Number.POSITIVE_INFINITY : Math.floor((expireMs.value - now.value) / 1000)
 ))
@@ -954,13 +957,13 @@ onBeforeUnmount(() => {
 
 .pay-modal__cd-ring {
   position: relative;
-  width: 62px; height: 62px;
+  width: 34px; height: 34px;
   flex-shrink: 0;
   display: grid; place-items: center;
 }
 .pay-modal__cd-ring svg {
   position: absolute; inset: 0;
-  width: 62px; height: 62px;
+  width: 34px; height: 34px;
   transform: rotate(-90deg);
 }
 .pay-modal__cd-ring circle { fill: none; stroke-width: 2.6; stroke-linecap: round; }
@@ -974,18 +977,20 @@ onBeforeUnmount(() => {
 .pay-modal__cd-ring.is-warn .p { stroke: #f59e0b; }
 .pay-modal__cd-ring.is-late .p { stroke: #ea580c; }
 .pay-modal__cd-ring.is-critical .p { stroke: #b02020; }
-.pay-modal__cd-inner {
-  position: relative;
-  font-size: 15px; font-weight: 700;
-  letter-spacing: .02em;
+.pay-modal__cd-num {
+  text-align: center;
+  margin: 6px 0 12px;
+  font-size: 30px; font-weight: 700;
+  letter-spacing: .04em;
   color: #22c55e;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
   transition: color .3s;
 }
-.pay-modal__cd-ring.is-warn .pay-modal__cd-inner { color: #f59e0b; }
-.pay-modal__cd-ring.is-late .pay-modal__cd-inner { color: #ea580c; }
-.pay-modal__cd-ring.is-critical .pay-modal__cd-inner { color: #b02020; }
+.pay-modal__cd-num.is-safe { color: #22c55e; }
+.pay-modal__cd-num.is-warn { color: #f59e0b; }
+.pay-modal__cd-num.is-late { color: #ea580c; }
+.pay-modal__cd-num.is-critical { color: #b02020; }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
