@@ -938,7 +938,7 @@ onBeforeUnmount(() => {
   font-size: 30px; font-weight: 700;
   letter-spacing: .04em;
   color: #22c55e;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   transition: color .3s;
 }
