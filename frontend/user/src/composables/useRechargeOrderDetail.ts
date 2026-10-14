@@ -5,6 +5,7 @@ import QRCode from 'qrcode'
 import { walletAPI } from '../api/wallet'
 import { useTelegramMiniAppStore } from '../stores/telegramMiniApp'
 import { copyText } from '../utils/clipboard'
+import { chainLabel } from '../utils/cryptoChain'
 import { isCustomerSurchargePayment, resolvePaymentLinkNavigationTarget, resolvePaymentPresentationMode, shouldAutoOpenPaymentLink } from '../utils/paymentResumePolicy'
 import type { BadgeTone } from '../utils/status'
 
@@ -62,26 +63,13 @@ export function useRechargeOrderDetail() {
     if (!cryptoTokenID.value) return ''
     return cryptoTokenID.value.toUpperCase() === cryptoTokenLabel.value ? '' : cryptoTokenID.value
   })
-  const formatCryptoChain = (value: string) => {
-    const normalized = value.trim().toLowerCase()
-    const labels: Record<string, string> = {
-      tron: 'TRON',
-      trc20: 'TRON',
-      base: 'Base',
-      ethereum: 'Ethereum',
-      eth: 'Ethereum',
-      bsc: 'BNB Smart Chain',
-      polygon: 'Polygon',
-    }
-    return labels[normalized] || value
-  }
   const cryptoPaymentDetails = computed(() => {
     const details: Array<{ key: string; label: string; value: string; detail?: string }> = []
     if (cryptoTokenLabel.value) {
       details.push({ key: 'token', label: t('payment.cryptoToken'), value: cryptoTokenLabel.value, detail: cryptoTokenDetail.value })
     }
     if (cryptoChain.value) {
-      details.push({ key: 'chain', label: t('payment.cryptoChain'), value: formatCryptoChain(cryptoChain.value) })
+      details.push({ key: 'chain', label: t('payment.cryptoChain'), value: chainLabel(cryptoChain.value) })
     }
     if (cryptoChainAmount.value) {
       details.push({ key: 'amount', label: t('payment.cryptoAmount'), value: cryptoChainAmount.value })
