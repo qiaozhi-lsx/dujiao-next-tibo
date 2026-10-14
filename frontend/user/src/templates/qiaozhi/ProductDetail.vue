@@ -450,6 +450,11 @@ const buildPaymentOrderPayload = (
   const resolvedEmail = userAuthStore.isAuthenticated
     ? (userAuthStore.user?.email || '')
     : (guestCredentials?.email || '')
+  // create 响应的 channel_name/provider_type 可能为空（omitempty），按 channel_id 从渠道列表回填。
+  const channelId = Number(payData?.channel_id || 0) || undefined
+  const channelInfo = channelId
+    ? channels.value.find((ch: any) => Number(ch.id) === channelId)
+    : undefined
   return {
     sn: orderNo,
     amount: String(order.total_amount || payData?.online_pay_amount || '0'),
@@ -462,14 +467,14 @@ const buildPaymentOrderPayload = (
     createdAt: createdRaw,
     maskedEmail: resolvedEmail ? maskEmail(resolvedEmail) : '',
     interactionMode: String(payData?.interaction_mode || ''),
-    channelName: String(payData?.channel_name || ''),
-    providerType: String(payData?.provider_type || ''),
+    channelName: String(payData?.channel_name || channelInfo?.name || ''),
+    providerType: String(payData?.provider_type || channelInfo?.providerType || ''),
     feeAmount: String(payData?.fee_amount || ''),
     walletAddress: String(payData?.wallet_address || ''),
     chainAmount: String(payData?.chain_amount || ''),
     chain: String(payData?.chain || ''),
     tokenId: String(payData?.token_id || ''),
-    channelId: Number(payData?.channel_id || 0) || undefined,
+    channelId,
     paymentId: Number(payData?.payment_id || 0) || undefined,
     guestCredentials,
   }
