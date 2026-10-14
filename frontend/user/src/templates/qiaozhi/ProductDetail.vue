@@ -537,8 +537,10 @@ const handleSwitchPaymentChannel = async (channelId: number) => {
     }
     if (payData) {
       const next = buildPaymentOrderPayload(payData, current.sn, current.guestCredentials ?? null)
-      // /payments 响应不含订单对象（Payment.ExpiredAt 建单时为空），切换渠道不改订单过期时间，沿用旧单 expireAt。
+      // /payments 响应不含订单对象：订单侧字段（币种/过期时间/创建时间）沿用切换前值。
+      next.currency = next.currency || current.currency
       next.expireAt = next.expireAt ?? current.expireAt ?? null
+      next.createdAt = next.createdAt ?? current.createdAt ?? null
       paymentOrder.value = next
     }
   } catch (e: any) {
