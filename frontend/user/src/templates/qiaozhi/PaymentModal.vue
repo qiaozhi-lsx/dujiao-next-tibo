@@ -48,6 +48,10 @@
               <span>{{ t('qiaozhi.payment.modal.fee') }}</span>
               <b>+{{ feeText }}</b>
             </div>
+            <div v-if="equivalentText" class="pay-modal__meta-row">
+              <span>{{ t('qiaozhi.payment.modal.equivalent') }}</span>
+              <b>{{ equivalentText }}</b>
+            </div>
             <div class="pay-modal__meta-row">
               <span>{{ t('qiaozhi.payment.modal.orderNoLabel') }}</span>
               <b>{{ order?.sn || '—' }}</b>
@@ -455,6 +459,16 @@ const feeText = computed(() => {
   return formatCurrency(raw, o.currency)
 })
 
+// 加密货币单：链上数量与法币实付的换算关系。网关按 amount(法币) + 实时汇率报出链上数量，
+// 两者是一笔的两种币种口径；补这一行，页面上两个币种才能对上账。
+const equivalentText = computed(() => {
+  const o = props.order
+  if (!o || !o.chainAmount) return ''
+  const payable = (o.payableAmount || '').trim()
+  if (!payable) return ''
+  return formatCurrency(payable, o.currency)
+})
+
 const payCardTitle = computed(() => (
   hasCryptoPayment.value
     ? t('qiaozhi.payment.modal.scanOrCopy')
@@ -813,7 +827,7 @@ onBeforeUnmount(() => {
 
   position: relative;
   width: min(380px, calc(100vw - 32px));
-  max-height: min(90vh, 760px);
+  max-height: min(90vh, 800px);
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
