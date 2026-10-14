@@ -76,11 +76,8 @@
                   :style="{ '--p': countdownProgress }"
                 />
               </svg>
+              <b class="pay-modal__cd-inner">{{ countdownText }}</b>
             </span>
-          </div>
-
-          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
-            {{ countdownText }}
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
@@ -948,13 +945,13 @@ onBeforeUnmount(() => {
 
 .pay-modal__cd-ring {
   position: relative;
-  width: 34px; height: 34px;
+  width: 62px; height: 62px;
   flex-shrink: 0;
   display: grid; place-items: center;
 }
 .pay-modal__cd-ring svg {
   position: absolute; inset: 0;
-  width: 34px; height: 34px;
+  width: 62px; height: 62px;
   transform: rotate(-90deg);
 }
 .pay-modal__cd-ring circle { fill: none; stroke-width: 2.6; stroke-linecap: round; }
@@ -968,20 +965,18 @@ onBeforeUnmount(() => {
 .pay-modal__cd-ring.is-warn .p { stroke: #f59e0b; }
 .pay-modal__cd-ring.is-late .p { stroke: #ea580c; }
 .pay-modal__cd-ring.is-critical .p { stroke: #b02020; }
-.pay-modal__cd-num {
-  text-align: center;
-  margin: 6px 0 12px;
-  font-size: 30px; font-weight: 700;
-  letter-spacing: .04em;
+.pay-modal__cd-inner {
+  position: relative;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: .02em;
   color: #22c55e;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;
   transition: color .3s;
 }
-.pay-modal__cd-num.is-safe { color: #22c55e; }
-.pay-modal__cd-num.is-warn { color: #f59e0b; }
-.pay-modal__cd-num.is-late { color: #ea580c; }
-.pay-modal__cd-num.is-critical { color: #b02020; }
+.pay-modal__cd-ring.is-warn .pay-modal__cd-inner { color: #f59e0b; }
+.pay-modal__cd-ring.is-late .pay-modal__cd-inner { color: #ea580c; }
+.pay-modal__cd-ring.is-critical .pay-modal__cd-inner { color: #b02020; }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
