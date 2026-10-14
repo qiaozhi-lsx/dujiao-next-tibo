@@ -1867,6 +1867,7 @@
         "amountDue": "Amount due",
         "amountPaid": "Amount paid",
         "feeIncluded": "includes fee",
+        "equivalent": "Equivalent",
         "orderAmount": "Order amount",
         "scanOrCopy": "Scan or copy the address to pay",
         "copyAmount": "Copy amount",
