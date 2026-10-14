@@ -15,15 +15,6 @@
         tabindex="-1"
         @keydown="handleKeydown"
       >
-        <button
-          type="button"
-          class="pay-modal__close"
-          :aria-label="t('qiaozhi.payment.modal.closeAria')"
-          @click="handleClose"
-        >
-          <X />
-        </button>
-
         <!-- 金额卡 -->
         <div class="pay-modal__amount-card">
           <button
@@ -98,17 +89,6 @@
             <div class="pay-modal__addr-label">{{ t('payment.walletAddress') }}</div>
             <div class="pay-modal__addr-body">
               <b>{{ order.walletAddress }}</b>
-              <a
-                v-if="walletExplorerUrl"
-                class="pay-modal__addr-copy"
-                :href="walletExplorerUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                :aria-label="t('qiaozhi.payment.modal.viewOnExplorer')"
-                :title="t('qiaozhi.payment.modal.viewOnExplorer')"
-              >
-                <ExternalLink />
-              </a>
               <button
                 type="button"
                 class="pay-modal__addr-copy"
@@ -121,27 +101,6 @@
             <span v-if="walletAddressCopied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
           </div>
 
-          <div v-else-if="payLink && !orderPastExpire" class="pay-modal__addr">
-            <div class="pay-modal__addr-label">{{ t('qiaozhi.payment.modal.payLinkLabel') }}</div>
-            <div class="pay-modal__addr-body">
-              <a
-                class="pay-modal__addr-link"
-                :href="payLink"
-                target="_blank"
-                rel="noopener noreferrer"
-                :title="payLink"
-              >{{ payLink }}</a>
-              <button
-                type="button"
-                class="pay-modal__addr-copy"
-                :aria-label="t('qiaozhi.payment.modal.copyPayLink')"
-                @click="handleCopyPayLink"
-              >
-                <Copy />
-              </button>
-            </div>
-            <span v-if="copied" class="pay-modal__copied">{{ t('payment.copied') }}</span>
-          </div>
         </div>
 
         <!-- 加密货币操作：切换网络或币种 / 已转账但未到账 -->
@@ -149,21 +108,23 @@
           v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire"
           class="pay-modal__crypto-actions"
         >
-          <button
-            v-if="switchableChannels.length"
-            type="button"
-            class="pay-modal__action-btn"
-            :disabled="switchBusy"
-            @click="toggleSwitchPanel"
-          >
-            <ArrowLeftRight />
-            {{ t('qiaozhi.payment.modal.switchNetwork') }}
-          </button>
+          <div class="pay-modal__action-row">
+            <button
+              v-if="switchableChannels.length"
+              type="button"
+              class="pay-modal__action-btn"
+              :disabled="switchBusy"
+              @click="toggleSwitchPanel"
+            >
+              <ArrowLeftRight />
+              {{ t('qiaozhi.payment.modal.switchNetwork') }}
+            </button>
 
-          <button type="button" class="pay-modal__action-btn is-solid" @click="toggleTxPanel">
-            <CheckCircle2 />
-            {{ t('qiaozhi.payment.modal.txHashBtn') }}
-          </button>
+            <button type="button" class="pay-modal__action-btn is-solid" @click="toggleTxPanel">
+              <CheckCircle2 />
+              {{ t('qiaozhi.payment.modal.txHashBtn') }}
+            </button>
+          </div>
 
           <div v-if="switchPanelOpen" class="pay-modal__panel">
             <div class="pay-modal__chip-list">
@@ -276,7 +237,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, Loader2, X } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 
@@ -338,8 +299,6 @@ type Stage = 'waiting' | 'running' | 'success'
 const stage = ref<Stage>('waiting')
 const modalRef = ref<HTMLElement | null>(null)
 const qrImageUrl = ref('')
-const copied = ref(false)
-const copiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const walletAddressCopied = ref(false)
 const walletCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const switchPanelOpen = ref(false)
@@ -469,33 +428,6 @@ const chainDotClass = computed(() => {
   if (/solana|sol/.test(key)) return 'is-sol'
   if (/epay|alipay|支付宝/.test(key)) return 'is-alipay'
   return 'is-generic'
-})
-
-// 非加密渠道：pay_url 作为"支付链接"直接展示（可点击跳转 + 复制）。
-const payLink = computed(() => {
-  const o = props.order
-  if (!o || o.walletAddress) return ''
-  return String(o.h5PayUrl || o.payUrl || '').trim()
-})
-
-// 链上收款地址 → 区块浏览器链接（未知链不提供）。
-const walletExplorerUrl = computed(() => {
-  const o = props.order
-  const addr = (o?.walletAddress || '').trim()
-  if (!addr) return ''
-  const chain = (o?.chain || '').trim().toLowerCase()
-  const map: Record<string, string> = {
-    tron: `https://tronscan.org/#/address/${addr}`,
-    trc20: `https://tronscan.org/#/address/${addr}`,
-    binance: `https://bscscan.com/address/${addr}`,
-    bsc: `https://bscscan.com/address/${addr}`,
-    solana: `https://solscan.io/account/${addr}`,
-    ethereum: `https://etherscan.io/address/${addr}`,
-    eth: `https://etherscan.io/address/${addr}`,
-    base: `https://basescan.org/address/${addr}`,
-    polygon: `https://polygonscan.com/address/${addr}`,
-  }
-  return map[chain] || ''
 })
 
 const amountBigText = computed(() => {
@@ -719,21 +651,6 @@ const handleClose = () => {
   emit('update:open', false)
 }
 
-const handleCopyPayLink = async () => {
-  const o = props.order
-  if (!o) return
-  const link = (o.h5PayUrl || o.payUrl || '').trim()
-  if (!link) return
-  try {
-    await navigator.clipboard.writeText(link)
-    copied.value = true
-    if (copiedTimer.value !== null) clearTimeout(copiedTimer.value)
-    copiedTimer.value = setTimeout(() => { copied.value = false }, 1500)
-  } catch {
-    // 复制失败静默
-  }
-}
-
 const amountCopied = ref(false)
 const amountCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
@@ -795,7 +712,6 @@ const resetState = () => {
   stage.value = 'waiting'
   ringProgress.value = 0
   qrImageUrl.value = ''
-  copied.value = false
   walletAddressCopied.value = false
   switchPanelOpen.value = false
   txPanelOpen.value = false
@@ -816,10 +732,6 @@ watch(() => props.open, async (opened) => {
     stopNowTimer()
     stopPolling()
     cancelAnimation()
-    if (copiedTimer.value !== null) {
-      clearTimeout(copiedTimer.value)
-      copiedTimer.value = null
-    }
     if (walletCopiedTimer.value !== null) {
       clearTimeout(walletCopiedTimer.value)
       walletCopiedTimer.value = null
@@ -849,7 +761,6 @@ onBeforeUnmount(() => {
   stopNowTimer()
   stopPolling()
   cancelAnimation()
-  if (copiedTimer.value !== null) clearTimeout(copiedTimer.value)
   if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
   if (amountCopiedTimer.value !== null) clearTimeout(amountCopiedTimer.value)
   document.body.style.overflow = ''
@@ -884,9 +795,11 @@ onBeforeUnmount(() => {
 
   position: relative;
   width: min(380px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  max-height: min(90vh, 760px);
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 10, 10, .18) transparent;
   background: var(--ux-surface);
   border-radius: 20px;
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
@@ -900,25 +813,19 @@ onBeforeUnmount(() => {
 
 @keyframes pay-modal-rise { from { transform: translateY(20px) scale(.98); opacity: 0; } }
 
-.pay-modal__close {
-  position: absolute; top: 14px; right: 14px;
-  width: 30px; height: 30px;
-  border: 0; background: transparent; border-radius: 8px;
-  cursor: pointer; color: var(--ux-ink-3);
-  display: grid; place-items: center;
-  z-index: 3;
-}
-.pay-modal__close:hover { background: #f3f3f3; color: #000; }
-.pay-modal__close svg { width: 15px; height: 15px; }
+.pay-modal::-webkit-scrollbar { width: 6px; height: 6px; }
+.pay-modal::-webkit-scrollbar-track { background: transparent; }
+.pay-modal::-webkit-scrollbar-thumb { background: rgba(10, 10, 10, .14); border-radius: 999px; }
+.pay-modal::-webkit-scrollbar-thumb:hover { background: rgba(10, 10, 10, .28); }
 
 /* ---- 金额卡 ---- */
 .pay-modal__amount-card {
   position: relative;
-  padding: 22px 22px 18px;
+  padding: 18px 18px 16px;
   border-radius: 18px;
   background: var(--ux-surface);
   box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
 .pay-modal__amount-copy {
@@ -978,8 +885,8 @@ onBeforeUnmount(() => {
 /* ---- 支付卡 ---- */
 .pay-modal__pay-card {
   border-radius: 18px;
-  padding: 20px 20px 0;
-  margin-bottom: 16px;
+  padding: 18px 18px 0;
+  margin-bottom: 12px;
   background: var(--ux-surface);
   box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
   transition: opacity .4s, transform .5s var(--ux-ease);
@@ -1031,9 +938,9 @@ onBeforeUnmount(() => {
   padding: 8px; background: #fff;
   border-radius: 8px;
 }
-.pay-modal__qr img { display: block; width: 140px; height: 140px; }
+.pay-modal__qr img { display: block; width: 120px; height: 120px; }
 .pay-modal__qr-placeholder {
-  width: 140px; height: 140px;
+  width: 120px; height: 120px;
   display: grid; place-items: center;
   color: var(--ux-ink-3);
 }
@@ -1054,7 +961,7 @@ onBeforeUnmount(() => {
 
 .pay-modal__addr {
   margin-top: 12px;
-  padding: 14px 0 20px;
+  padding: 14px 0 16px;
   border-top: 1px solid var(--ux-line);
 }
 .pay-modal__addr-label {
@@ -1083,25 +990,18 @@ onBeforeUnmount(() => {
 }
 .pay-modal__addr-copy svg { width: 14px; height: 14px; }
 .pay-modal__addr-copy:hover { background: #ededed; color: #000; }
-a.pay-modal__addr-copy { text-decoration: none; }
-.pay-modal__addr-link {
-  flex: 1; min-width: 0;
-  font-size: 14px; font-weight: 500;
-  line-height: 1.6;
-  color: var(--ux-ink-2);
-  text-decoration: underline; text-underline-offset: 3px;
-  overflow-wrap: anywhere; word-break: break-all;
-}
-.pay-modal__addr-link:hover { color: #000; }
 
 /* ---- 加密货币操作区 ---- */
 .pay-modal__crypto-actions {
   display: flex; flex-direction: column; gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+.pay-modal__action-row {
+  display: flex; gap: 10px;
 }
 .pay-modal__action-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; height: 48px;
+  flex: 1 1 0; min-width: 0; height: 44px;
   border: 0; border-radius: 14px;
   cursor: pointer;
   font-size: 15.5px; font-weight: 500;
@@ -1182,7 +1082,7 @@ a.pay-modal__addr-copy { text-decoration: none; }
 .pay-modal__stage {
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  min-height: 56px; margin-top: 4px;
+  min-height: 34px; margin-top: 4px;
   transition: min-height .4s var(--ux-ease);
 }
 .is-run .pay-modal__stage,
@@ -1206,6 +1106,7 @@ a.pay-modal__addr-copy { text-decoration: none; }
   box-shadow: none;
   font-size: 14px; font-weight: 500;
 }
+.pay-modal__go.waiting span { display: inline-flex; align-items: center; gap: 8px; }
 .pay-modal__go.waiting .pay-modal__spin { width: 16px; height: 16px; color: var(--ux-ink-3); }
 .is-run .pay-modal__go,
 .is-ok .pay-modal__go {
@@ -1382,6 +1283,18 @@ a.pay-modal__addr-copy { text-decoration: none; }
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
   transition: opacity .4s, transform .5s var(--ux-ease);
+}
+
+/* ≥1100px 桌面：两卡合并为单卡两段（中间 1px 分隔线），更贴近 GMPay 单卡观感 */
+@media (min-width: 1100px) {
+  .pay-modal__amount-card {
+    margin-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: inset 0 1px 0 var(--ux-line), inset 1px 0 0 var(--ux-line), inset -1px 0 0 var(--ux-line);
+  }
+  .pay-modal__pay-card {
+    border-radius: 0 0 18px 18px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
