@@ -172,6 +172,7 @@ import { useNavConfig } from '../../../composables/useNavConfig'
 import { useTheme } from '../../../utils/theme'
 import { getImageUrl } from '../../../utils/image'
 import '@fontsource-variable/inter'
+import '../styles/tokens.css'
 import '../styles/legacy.css'
 
 const route = useRoute()

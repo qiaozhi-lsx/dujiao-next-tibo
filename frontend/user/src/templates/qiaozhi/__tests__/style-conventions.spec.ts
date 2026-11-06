@@ -53,3 +53,123 @@ test(`no ${LEGACY} identifiers remain`, () => {
     `${offendingFiles.size} file(s) under templates/qiaozhi still use the legacy "${LEGACY}" prefix (${offenders.length} line(s)):\n${offenders.join('\n')}`,
   )
 })
+
+// ---------------------------------------------------------------------------
+// Token contract for styles/tokens.css.
+//
+// base.css / layout.css and the page <style scoped> blocks consume these names,
+// so the list below is the contract: every token must be declared on the scope
+// selector pair (`.qiaozhi-scope, body.qiaozhi-tokens` — the body variant is what
+// Teleport-ed overlays see) and every colour / shadow token must be redefined on
+// the `.dark` pair. Sizes are theme-independent and declared once.
+// ---------------------------------------------------------------------------
+const TOKENS_CSS = join(TEMPLATE_ROOT, 'styles', 'tokens.css')
+const LIGHT_SCOPE = '.qiaozhi-scope, body.qiaozhi-tokens'
+const DARK_SCOPE = '.dark .qiaozhi-scope, .dark body.qiaozhi-tokens'
+const MOBILE_MEDIA = '@media (max-width: 760px)'
+
+const QZ_COLOR_TOKENS = [
+  '--qz-bg', '--qz-surface', '--qz-surface-raised', '--qz-surface-muted',
+  '--qz-text', '--qz-text-secondary', '--qz-text-muted',
+  '--qz-border', '--qz-border-subtle', '--qz-border-strong',
+  '--qz-accent', '--qz-accent-strong', '--qz-accent-subtle', '--qz-on-accent',
+  '--qz-success', '--qz-warning', '--qz-danger', '--qz-info',
+  '--qz-header-bg',
+]
+const QZ_SHADOW_TOKENS = ['--qz-shadow-resting', '--qz-shadow-raised', '--qz-shadow-floating']
+const QZ_SIZE_TOKENS = [
+  ...[1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24].map((step) => `--qz-space-${step}`),
+  '--qz-radius-control', '--qz-radius-panel', '--qz-radius-surface', '--qz-radius-pill',
+  '--qz-control-sm', '--qz-control-md', '--qz-control-lg',
+  '--qz-text-2xs', '--qz-text-xs', '--qz-text-sm', '--qz-text-base', '--qz-text-lg', '--qz-text-xl', '--qz-text-2xl', '--qz-text-3xl',
+  '--qz-leading-display', '--qz-leading-body', '--qz-tracking-display',
+  '--qz-ease-enter', '--qz-ease-standard', '--qz-ease-exit', '--qz-ease-spring',
+  '--qz-duration-instant', '--qz-duration-fast', '--qz-duration-standard', '--qz-duration-considered', '--qz-duration-spring',
+  '--qz-focus-outline',
+  '--qz-container', '--qz-header-h',
+]
+
+interface CssRule {
+  media: string | null
+  selector: string
+  declarations: Map<string, string>
+}
+
+// Minimal CSS walker: enough for a token sheet (comments, plain rules, one level of @media).
+// Values never contain `;`, so splitting declarations on it is safe here.
+function parseRules(css: string, media: string | null = null): CssRule[] {
+  const rules: CssRule[] = []
+  let cursor = 0
+  for (;;) {
+    const open = css.indexOf('{', cursor)
+    if (open === -1) break
+    let depth = 1
+    let close = open + 1
+    while (close < css.length && depth > 0) {
+      if (css[close] === '{') depth += 1
+      else if (css[close] === '}') depth -= 1
+      close += 1
+    }
+    const prelude = css.slice(cursor, open).trim().replace(/\s+/g, ' ')
+    const body = css.slice(open + 1, close - 1)
+    if (prelude.startsWith('@')) {
+      rules.push(...parseRules(body, prelude))
+    } else {
+      const declarations = new Map<string, string>()
+      for (const chunk of body.split(';')) {
+        const colon = chunk.indexOf(':')
+        if (colon === -1) continue
+        declarations.set(chunk.slice(0, colon).trim(), chunk.slice(colon + 1).trim())
+      }
+      rules.push({ media, selector: prelude, declarations })
+    }
+    cursor = close
+  }
+  return rules
+}
+
+function declarationsFor(rules: CssRule[], selector: string, media: string | null): Map<string, string> {
+  const merged = new Map<string, string>()
+  for (const rule of rules) {
+    if (rule.selector !== selector || rule.media !== media) continue
+    for (const [name, value] of rule.declarations) merged.set(name, value)
+  }
+  return merged
+}
+
+test('tokens.css defines the qz token contract on both scopes', () => {
+  const css = readFileSync(TOKENS_CSS, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+  const rules = parseRules(css)
+  const light = declarationsFor(rules, LIGHT_SCOPE, null)
+  const dark = declarationsFor(rules, DARK_SCOPE, null)
+  const mobile = declarationsFor(rules, LIGHT_SCOPE, MOBILE_MEDIA)
+
+  const allTokens = [...QZ_COLOR_TOKENS, ...QZ_SHADOW_TOKENS, ...QZ_SIZE_TOKENS]
+  assert.deepEqual(
+    allTokens.filter((name) => !light.has(name)),
+    [],
+    `tokens missing from "${LIGHT_SCOPE}"`,
+  )
+  const themed = [...QZ_COLOR_TOKENS, ...QZ_SHADOW_TOKENS]
+  assert.deepEqual(
+    themed.filter((name) => !dark.has(name)),
+    [],
+    `colour / shadow tokens missing from "${DARK_SCOPE}"`,
+  )
+  assert.deepEqual(
+    QZ_SIZE_TOKENS.filter((name) => dark.has(name)),
+    [],
+    `size tokens are theme-independent and must not be redefined on "${DARK_SCOPE}"`,
+  )
+
+  // Literal values other tasks hard-depend on (Arc control heights, type floor, container).
+  assert.equal(light.get('--qz-control-sm'), '36px')
+  assert.equal(light.get('--qz-control-md'), '44px')
+  assert.equal(light.get('--qz-control-lg'), '50px')
+  assert.equal(light.get('--qz-text-2xs'), '11px')
+  assert.equal(light.get('--qz-container'), '1200px')
+
+  // ≤760px overrides: touch-friendly small controls and the compact header.
+  assert.equal(mobile.get('--qz-control-sm'), '40px', `${MOBILE_MEDIA} must set --qz-control-sm: 40px`)
+  assert.equal(mobile.get('--qz-header-h'), '60px', `${MOBILE_MEDIA} must set --qz-header-h: 60px`)
+})
