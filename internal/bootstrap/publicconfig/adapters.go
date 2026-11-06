@@ -18,6 +18,7 @@ import (
 	resellerapplication "github.com/dujiao-next/internal/modules/reseller/application"
 	resellercontract "github.com/dujiao-next/internal/modules/reseller/contract"
 	"github.com/dujiao-next/internal/shared/jsonmap"
+	"github.com/dujiao-next/internal/web"
 )
 
 type publicConfigCacheAdapter struct{}
@@ -39,8 +40,33 @@ type publicConfigSettingsAdapter struct {
 	cfg      *config.Config
 }
 
+// 同一个适配器既喂 /api/v1/public/config，也喂 SPA 入口的内联 window.__PUBLIC_CONFIG__，
+// 两边的 nav_config / 注册开关口径由此天然一致。
+var (
+	_ web.InitialConfigSource      = publicConfigSettingsAdapter{}
+	_ web.InitialConfigFlagsSource = publicConfigSettingsAdapter{}
+)
+
 func (a publicConfigSettingsAdapter) GetConfig(defaults map[string]interface{}) (map[string]interface{}, error) {
 	return a.settings.GetConfig(defaults)
+}
+
+// GetNavConfig 实现 web.InitialConfigFlagsSource：返回 nav_config 设置原文，
+// 未配置或读取失败时返回无类型 nil，由 web 包补默认结构（与 public handler 的分支一致）。
+func (a publicConfigSettingsAdapter) GetNavConfig() interface{} {
+	value, err := a.GetByKey(constants.SettingKeyNavConfig)
+	if err != nil || value == nil {
+		return nil
+	}
+	return value
+}
+
+// GetRegistrationFlags 实现 web.InitialConfigFlagsSource：注册开关与邮箱验证开关默认开启，
+// 读取失败按默认值处理，与 /api/v1/public/config 忽略错误、取 GetXxx(true) 的写法同口径。
+func (a publicConfigSettingsAdapter) GetRegistrationFlags() (bool, bool) {
+	registrationEnabled, _ := a.settings.GetRegistrationEnabled(true)
+	emailVerificationEnabled, _ := a.settings.GetEmailVerificationEnabled(true)
+	return registrationEnabled, emailVerificationEnabled
 }
 
 func (a publicConfigSettingsAdapter) GetWalletRechargeChannelIDs() []uint {
