@@ -65,12 +65,12 @@
 
         <!-- 支付卡：二维码 / 倒计时 / 收款地址 -->
         <div class="pay-modal__pay-card">
-          <!-- 标题与倒计时同一行：弹窗要在不滚动的前提下装下二维码 + 地址 + 操作区。 -->
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-            <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
-              {{ countdownText }}
-            </div>
+          </div>
+
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
+            {{ countdownText }}
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
@@ -1023,18 +1023,18 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
-/* 左标题右倒计时同一行：倒计时不再单独占一块 30px 大字，省下的高度用来让整个弹窗一屏放下。 */
 .pay-modal__pay-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  margin-bottom: 6px;
 }
-/* 英文标题放不下一行时折成两行：行距收紧并均衡断行，避免末行只剩一个单词。 */
-.pay-modal__pay-head b { min-width: 0; font-size: 15.5px; font-weight: 500; line-height: 1.3; text-wrap: balance; }
+.pay-modal__pay-head b { font-size: 15.5px; font-weight: 500; }
 
+/* 倒计时在标题下方独立一行居中；字号与上下留白比最初（30px / 6 0 12）收紧，好让弹窗一屏放下。 */
 .pay-modal__cd-num {
-  flex: 0 0 auto;
-  margin: 0;
-  font-size: 21px; font-weight: 700; line-height: 1.2;
+  text-align: center;
+  margin: 2px 0 8px;
+  font-size: 24px; font-weight: 700; line-height: 1.1;
   letter-spacing: .04em;
   color: #22c55e;
   font-family: var(--font-mono);
@@ -1426,16 +1426,17 @@ onBeforeUnmount(() => {
    让等待支付态仍尽量一屏放下而不触发内部滚动。 */
 @media (max-height: 740px) {
   .pay-modal { padding: 16px; }
-  .pay-modal__amount-card { padding: 12px 14px 10px; margin-bottom: 8px; }
+  .pay-modal__amount-card { padding: 10px 14px 8px; margin-bottom: 8px; }
   .pay-modal__amount-value { margin-bottom: 6px; }
   .pay-modal__amount-value b { font-size: 30px; }
-  .pay-modal__amount-meta { padding-top: 8px; gap: 4px; }
+  .pay-modal__amount-meta { padding-top: 6px; gap: 4px; }
   .pay-modal__pay-card { padding: 14px 14px 0; margin-bottom: 8px; }
-  .pay-modal__pay-head { margin-bottom: 6px; }
+  .pay-modal__pay-head { margin-bottom: 4px; }
+  .pay-modal__cd-num { margin: 0 0 6px; font-size: 20px; }
   .pay-modal__qr-wrap { margin-bottom: 6px; }
   .pay-modal__qr img,
-  .pay-modal__qr-placeholder { width: 100px; height: 100px; }
-  .pay-modal__addr { margin-top: 6px; padding: 8px 0 10px; }
+  .pay-modal__qr-placeholder { width: 96px; height: 96px; }
+  .pay-modal__addr { margin-top: 6px; padding: 6px 0 8px; }
   .pay-modal__crypto-actions { margin-bottom: 8px; }
   .pay-modal__stage { min-height: 30px; }
 }
