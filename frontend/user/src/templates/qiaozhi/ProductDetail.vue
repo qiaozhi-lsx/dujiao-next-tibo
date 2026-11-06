@@ -63,15 +63,16 @@
           <!-- 规格 -->
           <div v-if="plans.length" class="qz-field">
             <span id="qz-pd-sku-label" class="qz-field-label">{{ t('qiaozhi.detail.spec') }}</span>
-            <div class="qz-pd-sku-list" role="group" aria-labelledby="qz-pd-sku-label">
+            <div class="qz-pd-sku-list" role="radiogroup" aria-labelledby="qz-pd-sku-label" @keydown="onRadioArrow">
               <button
                 v-for="plan in plans"
                 :key="plan.id"
                 type="button"
+                role="radio"
                 class="qz-pill"
                 :class="{ 'is-active': plan.selected }"
                 :disabled="plan.disabled"
-                :aria-pressed="plan.selected"
+                :aria-checked="plan.selected"
                 @click="selectPlan(plan.id, plan.disabled)"
               >
                 <b>{{ plan.name }}</b>
@@ -157,20 +158,23 @@
               <!-- 支付方式 -->
               <div v-if="channels.length" class="qz-pd-pay">
                 <h3 id="qz-pd-pay-label" class="qz-field-label"><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
-                <div class="qz-pd-pay-options" role="group" aria-labelledby="qz-pd-pay-label">
+                <div class="qz-pd-pay-options" role="radiogroup" aria-labelledby="qz-pd-pay-label" @keydown="onRadioArrow">
                   <button
                     v-for="ch in channels"
                     :key="ch.id"
                     type="button"
+                    role="radio"
                     class="qz-pd-pay-option"
                     :class="{ 'is-active': selectedChannelId === ch.id }"
-                    :aria-pressed="selectedChannelId === ch.id"
+                    :aria-checked="selectedChannelId === ch.id"
                     @click="selectedChannelId = ch.id"
                   >
                     <i aria-hidden="true"></i>
+                    <!-- 左侧标识：有上传 icon 用之；USDT 渠道没传图时用通用币种徽标占位（标签已含 USDT，徽标对读屏隐藏） -->
                     <img v-if="ch.icon" :src="ch.icon" alt="" />
+                    <span v-else-if="ch.isUsdt" class="qz-badge" aria-hidden="true">USDT</span>
                     <span>
-                      <b>{{ ch.name }}</b>
+                      <b>{{ ch.label }}</b>
                       <small v-if="ch.feeText">{{ ch.feeText }}</small>
                     </span>
                   </button>
@@ -270,6 +274,7 @@ import { getFirstImageUrl, getImageUrl } from '../../utils/image'
 import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
 import { getAffiliateCode, getAffiliateVisitorKey } from '../../utils/affiliate'
+import { hasUsdtToken, usdtDisplayLabel } from '../../utils/cryptoChain'
 import { useTheme } from '../../utils/theme'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
@@ -344,6 +349,21 @@ const selectPlan = (id: number, disabled: boolean) => {
   selectedSkuId.value = id
 }
 
+// 单选组方向键（规格 / 支付方式共用）：←/↑ 上一项、→/↓ 下一项，循环且跳过不可选项；
+// 走 click() 复用各组自己的选中逻辑，焦点与选中一起移动。
+const onRadioArrow = (event: KeyboardEvent) => {
+  if (event.altKey || event.ctrlKey || event.metaKey) return // Alt+← 等浏览器快捷键放行
+  const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[event.key]
+  if (!step) return
+  const radios = Array.from((event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="radio"]:not(:disabled)'))
+  const index = radios.indexOf(event.target as HTMLButtonElement)
+  const next = radios[(index + step + radios.length) % radios.length]
+  if (index < 0 || radios.length < 2 || !next) return
+  event.preventDefault()
+  next.focus()
+  next.click()
+}
+
 // ==================== 价格 ====================
 const unitPrice = computed(() => {
   const sku = selectedSku.value
@@ -414,9 +434,16 @@ const channels = computed(() => {
     })
     .map((ch: any) => {
       const feeBps = Number(ch?.fee_bps ?? ch?.feeBps ?? 0)
+      const name = String(ch.name || ch.channel_type || ch.provider_type || '')
+      const channelType = String(ch?.channel_type || '')
       return {
         id: Number(ch.id),
-        name: String(ch.name || ch.channel_type || ch.provider_type || ''),
+        // name 原样保留给支付弹窗 / 支付记录回填；label 只用于本页支付方式行：
+        // 渠道名纯粹是「USDT + 单一链」时统一成「USDT · 链名」，其余一律显示管理端原名（只看名字，不信 channel_type）。
+        name,
+        label: usdtDisplayLabel(name) || name,
+        // 无上传 icon 时的通用币种徽标：名字或 channel_type 里有独立的 usdt 即可（epusdt / bepusdt 不算）
+        isUsdt: hasUsdtToken(name) || hasUsdtToken(channelType),
         providerType: String(ch?.provider_type || '').toLowerCase(),
         icon: ch.icon || ch.logo ? getImageUrl(String(ch.icon || ch.logo)) : '',
         feeText: feeBps > 0 ? t('qiaozhi.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
@@ -790,7 +817,8 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-sk-block { aspect-ratio: 4 / 3; max-height: 420px; }
 .qz-pd-page .qz-pd-sk-line { height: 18px; }
-.qz-pd-page .qz-pd-sk-line.is-lg { width: 80%; height: 32px; }
+/* 标题骨架 = h1 行盒（2xl × 正文行高；≤760 跟着 h1 换 xl），首屏到真实标题不跳高 */
+.qz-pd-page .qz-pd-sk-line.is-lg { width: 80%; height: calc(var(--qz-text-2xl) * var(--qz-leading-body)); }
 .qz-pd-page .qz-pd-sk-line.is-sm { width: 45%; }
 .qz-pd-page .qz-pd-sk-line.is-btn { height: var(--qz-control-lg); margin-top: auto; }
 @keyframes qz-pd-pulse { 50% { opacity: .55; } }
@@ -1062,7 +1090,9 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-pay-option.is-active > i { border: 5px solid var(--qz-accent); }
 .qz-pd-page .qz-pd-pay-option img { flex: none; width: 24px; height: 24px; border-radius: 6px; object-fit: contain; }
-.qz-pd-page .qz-pd-pay-option > span { display: grid; min-width: 0; }
+/* 无 icon 的 USDT 渠道：通用币种徽标占 icon 位，不参与伸缩 */
+.qz-pd-page .qz-pd-pay-option > .qz-badge { flex: none; }
+.qz-pd-page .qz-pd-pay-option > span:not(.qz-badge) { display: grid; min-width: 0; }
 .qz-pd-page .qz-pd-pay-option b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .qz-pd-page .qz-pd-pay-option small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); }
 
@@ -1162,8 +1192,9 @@ onMounted(() => {
   .qz-pd-page .qz-pd-card { grid-template-columns: minmax(0, 1fr); }
   .qz-pd-page .qz-pd-media { border-radius: calc(var(--qz-radius-panel) - 1px) calc(var(--qz-radius-panel) - 1px) 0 0; }
   .qz-pd-page .qz-pd-media-sticky { position: static; }
-  .qz-pd-page .qz-pd-stage { max-height: 320px; }
-  .qz-pd-page .qz-pd-sk-block { max-height: 260px; }
+  /* 单列时主图台上限随视口走（最高 480），不再被 320 硬顶压扁 4/3；骨架图块同高，加载前后不跳 */
+  .qz-pd-page .qz-pd-stage,
+  .qz-pd-page .qz-pd-sk-block { max-height: min(60vh, 480px); }
 }
 @media (max-width: 760px) {
   /* 手机端返回钮吸在顶栏下方；桌面保持静态 */
@@ -1172,8 +1203,9 @@ onMounted(() => {
     top: calc(var(--qz-header-h) + var(--qz-space-2));
     z-index: 5;
   }
-  /* 页面 h1：桌面 2xl（28），手机 xl（22） */
+  /* 页面 h1：桌面 2xl（28），手机 xl（22）；标题骨架同步 */
   .qz-pd-page .qz-pd-title-row h1 { font-size: var(--qz-text-xl); }
+  .qz-pd-page .qz-pd-sk-line.is-lg { height: calc(var(--qz-text-xl) * var(--qz-leading-body)); }
 }
 @media (max-width: 640px) {
   .qz-pd-page .qz-pd-media { padding: var(--qz-space-3); }
@@ -1181,6 +1213,8 @@ onMounted(() => {
   .qz-pd-page .qz-pd-info { padding: var(--qz-space-4) var(--qz-space-3); }
   .qz-pd-page .qz-pd-price strong { font-size: var(--qz-text-2xl); }
   .qz-pd-page .qz-pd-form-row { grid-template-columns: 1fr; }
+  /* 手机两列支付格里徽标会把标签挤到省略号，收起徽标（标签本身已含 USDT） */
+  .qz-pd-page .qz-pd-pay-option > .qz-badge { display: none; }
   .qz-pd-page .qz-pd-detail { padding: var(--qz-space-4) var(--qz-space-3) var(--qz-space-5); }
 }
 
