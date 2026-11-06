@@ -104,7 +104,7 @@
           <div v-if="orderPastExpire" class="pay-modal__expired">
             <CircleX class="pay-modal__expired-icon" aria-hidden="true" />
             <b class="pay-modal__expired-title">{{ t('qiaozhi.payment.modal.payExpired') }}</b>
-            <button type="button" class="pay-modal__expired-btn" @click="handleRenew">
+            <button type="button" class="pay-modal__expired-btn" :disabled="renewing" @click="handleRenew">
               {{ t('qiaozhi.payment.modal.renewPayment') }}
             </button>
           </div>
@@ -340,6 +340,8 @@ const animationFrame = ref<number | null>(null)
 const forcedExpired = ref(false)
 // 支付成功时刻（服务端 paid_at），收据上的时间冻结在这一刻而不是随 now 继续走。
 const paidAt = ref<number | null>(null)
+// 「重新发起支付」在途标志：补查 + emit 期间禁用按钮，防连点并发两次补查而重复建单。
+const renewing = ref(false)
 const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
   : false
@@ -678,10 +680,19 @@ const startPolling = () => {
 // 过期态下轮询已停，而过期瞬间可能刚完成付款：重发起前先补查一次状态，
 // 已支付则直接进入成功流程，避免旧单已付、又新建一单的重复付款窗口。
 const handleRenew = async () => {
-  await pollOnce()
-  // 补查期间关了窗就不再重建订单（补查结果已被丢弃，不能据此判定未付）。
-  if (!props.open || stage.value !== 'waiting') return
-  emit('renew-payment')
+  if (renewing.value) return
+  const sn = props.order?.sn
+  renewing.value = true
+  try {
+    await pollOnce()
+    // 补查期间关了窗或已换单（上一次重发起已建出新单），补查结果已被 pollOnce 丢弃，
+    // 不能据"stage 仍是 waiting"判定未付再建一单。
+    if (!props.open || stage.value !== 'waiting') return
+    if (props.order?.sn !== sn) return
+    emit('renew-payment')
+  } finally {
+    renewing.value = false
+  }
 }
 
 const trapFocus = (e: KeyboardEvent) => {
@@ -787,6 +798,7 @@ const resetState = () => {
   txHashInput.value = ''
   forcedExpired.value = false
   paidAt.value = null
+  renewing.value = false
 }
 
 watch(() => props.open, async (opened) => {
@@ -1252,6 +1264,7 @@ onBeforeUnmount(() => {
   background: var(--ux-accent); color: #fff;
   font-size: 14.5px; font-weight: 500;
 }
+.pay-modal__expired-btn:disabled { opacity: .55; cursor: not-allowed; }
 
 .pay-modal__rec {
   position: absolute;
