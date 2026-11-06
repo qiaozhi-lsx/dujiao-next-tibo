@@ -1,16 +1,16 @@
 <template>
   <div class="qz-me-panel">
     <!-- 标题行 -->
-    <div class="qz-me-card-head">
+    <div class="qz-section-head qz-me-head">
       <div>
         <h2>{{ t('orders.title') }}</h2>
         <small>{{ t('orders.subtitle') }}</small>
       </div>
-      <div class="qz-me-card-acts">
-        <span class="qz-me-pill is-neutral">
+      <div class="qz-me-acts">
+        <span class="qz-chip">
           {{ t('orders.pageInfo', { page: activePagination.page, total: activePagination.total_page }) }}
         </span>
-        <RouterLink class="qz-me-act" to="/products">{{ t('orders.continueShopping') }}</RouterLink>
+        <RouterLink class="qz-btn qz-btn--secondary qz-btn--sm" to="/products">{{ t('orders.continueShopping') }}</RouterLink>
       </div>
     </div>
 
@@ -25,40 +25,41 @@
     <!-- 普通订单 Tab -->
     <template v-if="activeTab === 'product'">
       <div class="qz-me-stats">
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ orderPagination.total }}</b>
           <span>{{ t('orders.stats.totalMatched') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ orders.length }}</b>
           <span>{{ t('orders.stats.currentPage') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ pendingPaymentCount }}</b>
           <span>{{ t('orders.stats.pendingPayment') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ finishedCount }}</b>
           <span>{{ t('orders.stats.finished') }}</span>
         </div>
       </div>
 
       <!-- 筛选 -->
-      <div class="qz-me-card">
+      <section class="qz-panel qz-me-sec">
         <div class="qz-me-toolbar">
-          <div class="qz-ic-field">
-            <label for="qz-me-order-keyword">{{ t('orders.filters.keyword') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-order-keyword">{{ t('orders.filters.keyword') }}</label>
             <input
               id="qz-me-order-keyword"
               v-model="orderFilters.orderNo"
+              class="qz-field-control"
               type="text"
               :placeholder="t('orders.filters.orderNoPlaceholder')"
               @input="handleOrderNoInput"
               @keyup.enter="applyOrderFilters"
             />
           </div>
-          <div class="qz-ic-field">
-            <label for="qz-me-order-status">{{ t('orders.filters.status') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-order-status">{{ t('orders.filters.status') }}</label>
             <QzSelect
               id="qz-me-order-status"
               :model-value="orderStatusProxy"
@@ -67,51 +68,52 @@
             />
           </div>
           <div class="qz-me-toolbar-acts">
-            <button type="button" class="qz-me-act is-primary" @click="applyOrderFilters">
+            <button type="button" class="qz-btn qz-btn--primary" @click="applyOrderFilters">
               {{ t('orders.filters.search') }}
             </button>
-            <button type="button" class="qz-me-act" @click="resetOrderFilters">
+            <button type="button" class="qz-btn qz-btn--secondary" @click="resetOrderFilters">
               {{ t('orders.filters.reset') }}
             </button>
-            <button type="button" class="qz-me-act" @click="refreshOrdersCurrentPage">
+            <button type="button" class="qz-btn qz-btn--secondary" @click="refreshOrdersCurrentPage">
               {{ t('orders.filters.refresh') }}
             </button>
           </div>
         </div>
-        <p v-if="hasOrderActiveFilters" class="qz-me-hint">
+        <p v-if="hasOrderActiveFilters" class="qz-field-hint">
           {{ t('orders.filters.current', { orderNo: orderFilters.orderNo || t('orders.filters.any'), status: currentOrderStatusLabel }) }}
         </p>
-      </div>
+      </section>
 
       <!-- 订单列表 -->
-      <div v-if="orderLoading" class="qz-me-rows">
-        <div v-for="i in 3" :key="i" class="qz-me-sk" aria-hidden="true"></div>
+      <div v-if="orderLoading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="i in 3" :key="i" class="qz-me-sk"></div>
       </div>
-      <div v-else-if="orders.length === 0" class="qz-me-empty">
-        <p class="qz-me-hint">{{ hasOrderActiveFilters ? t('orders.emptyFiltered') : t('orders.empty') }}</p>
-        <RouterLink class="qz-me-act" to="/products">{{ t('orders.emptyAction') }}</RouterLink>
+      <div v-else-if="orders.length === 0" class="qz-empty">
+        <PackageOpen />
+        <b>{{ hasOrderActiveFilters ? t('orders.emptyFiltered') : t('orders.empty') }}</b>
+        <RouterLink class="qz-btn qz-btn--secondary" to="/products">{{ t('orders.emptyAction') }}</RouterLink>
       </div>
       <div v-else class="qz-me-rows">
-        <div v-for="order in orders" :key="order.order_no" class="qz-me-row">
+        <div v-for="order in orders" :key="order.order_no" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b>{{ formatMoney(order.total_amount, order.currency) }}</b>
             <small>{{ t('orders.orderNo') }}：{{ order.order_no }}</small>
             <small>{{ formatDate(order.created_at) }}</small>
             <div v-if="hasDiscount(order)" class="qz-me-discounts">
-              <span v-if="hasDiscountAmount(order.discount_amount)" class="qz-me-pill is-ok">
+              <span v-if="hasDiscountAmount(order.discount_amount)" class="qz-chip">
                 {{ t('orderDetail.couponDiscountLabel') }}：{{ formatDiscountMoney(order.discount_amount, order.currency) }}
               </span>
-              <span v-if="hasDiscountAmount(order.promotion_discount_amount)" class="qz-me-pill is-danger">
+              <span v-if="hasDiscountAmount(order.promotion_discount_amount)" class="qz-badge is-danger">
                 {{ t('orderDetail.promotionDiscountLabel') }}：{{ formatDiscountMoney(order.promotion_discount_amount, order.currency) }}
               </span>
             </div>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="`is-${statusPillTone(order.status)}`">
+            <span class="qz-badge" :class="badgeToneClass(statusBadgeTone(order.status))">
               {{ statusLabel(t, order.status) }}
             </span>
-            <RouterLink class="qz-me-act" :to="`/orders/${order.order_no}`">{{ t('orders.viewDetails') }}</RouterLink>
-            <RouterLink v-if="order.status === 'pending_payment'" class="qz-me-act is-primary" :to="`/pay?order_no=${order.order_no}`">
+            <RouterLink class="qz-btn qz-btn--secondary qz-btn--sm" :to="`/orders/${order.order_no}`">{{ t('orders.viewDetails') }}</RouterLink>
+            <RouterLink v-if="order.status === 'pending_payment'" class="qz-btn qz-btn--primary qz-btn--sm" :to="`/pay?order_no=${order.order_no}`">
               {{ t('orders.payNow') }}
             </RouterLink>
           </div>
@@ -119,9 +121,10 @@
       </div>
 
       <!-- 分页（不滚页：仅翻页请求，不做滚动） -->
-      <div v-if="orderPagination.total_page > 1" class="qz-me-pager">
+      <nav v-if="orderPagination.total_page > 1" class="qz-me-pager" :aria-label="t('orders.pageInfo', { page: orderPagination.page, total: orderPagination.total_page })">
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="orderPagination.page <= 1 || orderLoading"
           :aria-label="t('pagination.previous')"
           @click="changeOrderPage(orderPagination.page - 1)"
@@ -131,48 +134,50 @@
         <span>{{ orderPagination.page }} / {{ orderPagination.total_page }}</span>
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="orderPagination.page >= orderPagination.total_page || orderLoading"
           :aria-label="t('pagination.next')"
           @click="changeOrderPage(orderPagination.page + 1)"
         >
           <ChevronRight />
         </button>
-      </div>
+      </nav>
     </template>
 
     <!-- 充值订单 Tab -->
     <template v-if="activeTab === 'recharge'">
       <div class="qz-me-stats is-triple">
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ rechargePagination.total }}</b>
           <span>{{ t('orders.stats.totalMatched') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ rechargeOrders.length }}</b>
           <span>{{ t('orders.stats.currentPage') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ rechargePendingCount }}</b>
           <span>{{ t('orders.stats.pendingPayment') }}</span>
         </div>
       </div>
 
       <!-- 筛选 -->
-      <div class="qz-me-card">
+      <section class="qz-panel qz-me-sec">
         <div class="qz-me-toolbar">
-          <div class="qz-ic-field">
-            <label for="qz-me-recharge-keyword">{{ t('orders.rechargeFilters.keyword') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-recharge-keyword">{{ t('orders.rechargeFilters.keyword') }}</label>
             <input
               id="qz-me-recharge-keyword"
               v-model="rechargeFilters.rechargeNo"
+              class="qz-field-control"
               type="text"
               :placeholder="t('orders.rechargeFilters.rechargeNoPlaceholder')"
               @input="handleRechargeNoInput"
               @keyup.enter="applyRechargeFilters"
             />
           </div>
-          <div class="qz-ic-field">
-            <label for="qz-me-recharge-status">{{ t('orders.filters.status') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-recharge-status">{{ t('orders.filters.status') }}</label>
             <QzSelect
               id="qz-me-recharge-status"
               :model-value="rechargeStatusProxy"
@@ -181,40 +186,41 @@
             />
           </div>
           <div class="qz-me-toolbar-acts">
-            <button type="button" class="qz-me-act is-primary" @click="applyRechargeFilters">
+            <button type="button" class="qz-btn qz-btn--primary" @click="applyRechargeFilters">
               {{ t('orders.filters.search') }}
             </button>
-            <button type="button" class="qz-me-act" @click="resetRechargeFilters">
+            <button type="button" class="qz-btn qz-btn--secondary" @click="resetRechargeFilters">
               {{ t('orders.filters.reset') }}
             </button>
-            <button type="button" class="qz-me-act" @click="refreshRechargeCurrentPage">
+            <button type="button" class="qz-btn qz-btn--secondary" @click="refreshRechargeCurrentPage">
               {{ t('orders.filters.refresh') }}
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- 充值订单列表 -->
-      <div v-if="rechargeLoading" class="qz-me-rows">
-        <div v-for="i in 3" :key="i" class="qz-me-sk" aria-hidden="true"></div>
+      <div v-if="rechargeLoading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="i in 3" :key="i" class="qz-me-sk"></div>
       </div>
-      <div v-else-if="rechargeOrders.length === 0" class="qz-me-empty">
-        <p class="qz-me-hint">{{ t('orders.rechargeEmpty') }}</p>
-        <RouterLink class="qz-me-act" to="/me/wallet">{{ t('orders.rechargeEmptyAction') }}</RouterLink>
+      <div v-else-if="rechargeOrders.length === 0" class="qz-empty">
+        <PackageOpen />
+        <b>{{ t('orders.rechargeEmpty') }}</b>
+        <RouterLink class="qz-btn qz-btn--secondary" to="/me/wallet">{{ t('orders.rechargeEmptyAction') }}</RouterLink>
       </div>
       <div v-else class="qz-me-rows">
-        <div v-for="ro in rechargeOrders" :key="ro.recharge_no" class="qz-me-row">
+        <div v-for="ro in rechargeOrders" :key="ro.recharge_no" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b>{{ formatMoney(ro.amount, ro.currency) }}</b>
             <small>{{ t('personalCenter.wallet.rechargeNoLabel') }}：{{ ro.recharge_no }}</small>
             <small>{{ formatDate(ro.created_at) }}</small>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="`is-${rechargeStatusTone(ro.status)}`">
+            <span class="qz-badge" :class="badgeToneClass(rechargeStatusTone(ro.status))">
               {{ rechargeStatusText(ro.status) }}
             </span>
-            <RouterLink class="qz-me-act" :to="`/recharge-orders/${ro.recharge_no}`">{{ t('orders.viewDetails') }}</RouterLink>
-            <RouterLink v-if="ro.status === 'pending'" class="qz-me-act is-primary" :to="`/recharge-orders/${ro.recharge_no}`">
+            <RouterLink class="qz-btn qz-btn--secondary qz-btn--sm" :to="`/recharge-orders/${ro.recharge_no}`">{{ t('orders.viewDetails') }}</RouterLink>
+            <RouterLink v-if="ro.status === 'pending'" class="qz-btn qz-btn--primary qz-btn--sm" :to="`/recharge-orders/${ro.recharge_no}`">
               {{ t('orders.payNow') }}
             </RouterLink>
           </div>
@@ -222,9 +228,10 @@
       </div>
 
       <!-- 分页（不滚页：仅翻页请求，不做滚动） -->
-      <div v-if="rechargePagination.total_page > 1" class="qz-me-pager">
+      <nav v-if="rechargePagination.total_page > 1" class="qz-me-pager" :aria-label="t('orders.pageInfo', { page: rechargePagination.page, total: rechargePagination.total_page })">
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="rechargePagination.page <= 1 || rechargeLoading"
           :aria-label="t('pagination.previous')"
           @click="changeRechargePage(rechargePagination.page - 1)"
@@ -234,13 +241,14 @@
         <span>{{ rechargePagination.page }} / {{ rechargePagination.total_page }}</span>
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="rechargePagination.page >= rechargePagination.total_page || rechargeLoading"
           :aria-label="t('pagination.next')"
           @click="changeRechargePage(rechargePagination.page + 1)"
         >
           <ChevronRight />
         </button>
-      </div>
+      </nav>
     </template>
   </div>
 </template>
@@ -248,7 +256,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, PackageOpen } from 'lucide-vue-next'
 import { userOrderAPI } from '../../../api'
 import { walletAPI } from '../../../api/wallet'
 import { type BadgeTone } from '../../../utils/status'
@@ -256,7 +264,7 @@ import { debounceAsync } from '../../../utils/debounce'
 import { amountToCents } from '../../../utils/money'
 import QzSegment, { type QzSegmentItem } from '../components/QzSegment.vue'
 import QzSelect from '../components/QzSelect.vue'
-import { formatDate, formatMoney, statusLabel, statusPillTone, type MePillTone } from './support'
+import { badgeToneClass, formatDate, formatMoney, statusBadgeTone, statusLabel, type MeBadgeTone } from './support'
 
 const { t } = useI18n()
 
@@ -458,14 +466,8 @@ const rechargeStatusVariant = (status?: string): BadgeTone => {
   return 'warning'
 }
 
-// 充值状态 → qz-me-pill tone（success→ok、failed/expired→danger、其余→warn）
-const rechargeStatusTone = (status?: string): MePillTone => {
-  switch (rechargeStatusVariant(status)) {
-    case 'success': return 'ok'
-    case 'danger': return 'danger'
-    default: return 'warn'
-  }
-}
+// 充值状态 → .qz-badge tone（success→success、failed/expired→danger、其余→warning）
+const rechargeStatusTone = (status?: string): MeBadgeTone => rechargeStatusVariant(status)
 
 // ========== 共用工具 ==========
 const formatDiscountMoney = (amount?: string, currency?: string) => {
@@ -494,31 +496,225 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 顶部标题行直接作为面板头部：块间距交给 .qz-me-panel 的 gap，抵消卡片语境下的下边距 */
-.qz-me-panel > .qz-me-card-head {
+/* 订单面板：统计卡 .qz-card、筛选 .qz-panel + .qz-field、订单行 .qz-card、状态 .qz-badge / 折扣 .qz-chip、
+   空态 .qz-empty、翻页 .qz-icon-btn--sm（styles/base.css）；Tab 与下拉来自 QzSegment / QzSelect。 */
+.qz-me-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
+}
+
+/* ---------- 标题行（面板头部，块间距交给 .qz-me-panel 的 gap） ---------- */
+.qz-section-head.qz-me-head {
+  align-items: center;
   margin-bottom: 0;
 }
 
-/* 充值统计只有三格：使用三列，并在 900px 断点与全局两列回退保持一致 */
-.qz-me-panel .qz-me-stats.is-triple {
+.qz-section-head small {
+  display: block;
+  margin-top: var(--qz-space-1);
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+
+.qz-me-acts {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--qz-space-2);
+}
+
+/* ---------- 统计卡 ---------- */
+.qz-me-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--qz-space-3);
+}
+
+/* 充值统计只有三格 */
+.qz-me-stats.is-triple {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-@media (max-width: 900px) {
-  .qz-me-panel .qz-me-stats.is-triple {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+.qz-card.qz-me-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-1);
+}
+
+.qz-me-stat b {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  min-width: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-me-stat > span {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+}
+
+/* ---------- 筛选面板 ---------- */
+.qz-panel.qz-me-sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-3);
+}
+
+.qz-me-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px auto;
+  gap: var(--qz-space-3);
+  align-items: end;
+}
+
+.qz-me-toolbar-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2);
+}
+
+.qz-me-sec .qz-field-hint {
+  margin: 0;
+}
+
+/* ---------- 订单行 ---------- */
+.qz-me-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-2);
+}
+
+.qz-card.qz-me-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2) var(--qz-space-4);
+}
+
+.qz-me-row-main {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.qz-me-row-main b {
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.qz-me-row-main small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.qz-me-discounts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-1) var(--qz-space-2);
+  margin-top: var(--qz-space-1);
+}
+
+.qz-me-row-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2);
+  margin-left: auto;
+}
+
+/* 「处理中」用主色底的 badge，基类只带四种状态色 */
+.qz-badge.is-accent {
+  color: var(--qz-accent-strong);
+  background: var(--qz-accent-subtle);
+}
+
+/* ---------- 分页 ---------- */
+.qz-me-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-3);
+  padding-top: var(--qz-space-1);
+}
+
+.qz-me-pager span {
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 骨架 ---------- */
+.qz-me-sk {
+  height: 64px;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  animation: qz-me-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes qz-me-pulse {
+  50% {
+    opacity: 0.55;
   }
 }
 
-/* 筛选提示与工具条之间补充间距（.qz-me-hint 自身 margin 为 0） */
-.qz-me-panel .qz-me-toolbar + .qz-me-hint {
-  margin-top: 10px;
+@media (max-width: 900px) {
+  .qz-me-stats,
+  .qz-me-stats.is-triple {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .qz-me-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
-/* 空态：说明文案 + 行动链接纵向排列，链接保持胶囊自身宽度 */
-.qz-me-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+@media (max-width: 760px) {
+  .qz-section-head.qz-me-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .qz-section-head.qz-me-head .qz-me-acts {
+    justify-content: flex-start;
+  }
+
+  .qz-panel.qz-me-sec {
+    padding: var(--qz-space-4);
+  }
+
+  .qz-me-row-side {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-me-sk {
+    animation: none;
+  }
 }
 </style>

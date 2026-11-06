@@ -1,61 +1,62 @@
 <template>
   <div class="qz-me-panel">
     <!-- 余额概览 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.wallet.title') }}</h2>
           <small>{{ t('personalCenter.wallet.subtitle') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill is-ok">{{ t('personalCenter.tabs.wallet') }}</span>
+        <div class="qz-me-acts">
+          <span class="qz-chip">{{ t('personalCenter.tabs.wallet') }}</span>
         </div>
       </div>
 
-      <p v-if="walletAlert" class="qz-ic-alert wallet-alert" :class="walletAlertClass" role="alert">
+      <p v-if="walletAlert" class="qz-me-alert" :class="walletAlertClass" role="alert">
         {{ walletAlert.message }}
       </p>
 
-      <div class="qz-me-stats is-3col">
-        <div class="qz-me-stat">
+      <div class="qz-me-stats is-triple">
+        <div class="qz-card qz-me-stat">
           <b><span class="qz-me-stat-text">{{ balanceDisplay }}</span></b>
           <span>{{ t('personalCenter.wallet.balanceLabel') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b>{{ pagination.total }}</b>
           <span>{{ t('personalCenter.wallet.transactionsLabel') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-card qz-me-stat">
           <b><span class="qz-me-stat-text">{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</span></b>
           <span>{{ t('personalCenter.wallet.currentPageLabel') }}</span>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- 充值 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.wallet.rechargeTitle') }}</h2>
           <small>{{ t('personalCenter.wallet.rechargeSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="qz-ic" novalidate @submit.prevent="handleRecharge">
-        <div class="qz-ic-row">
-          <div class="qz-ic-field">
-            <label for="qz-wallet-amount">{{ t('personalCenter.wallet.amountLabel') }}</label>
+      <form class="qz-me-form" novalidate @submit.prevent="handleRecharge">
+        <div class="qz-me-form-row">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-wallet-amount">{{ t('personalCenter.wallet.amountLabel') }}</label>
             <input
               id="qz-wallet-amount"
               v-model.trim="rechargeForm.amount"
+              class="qz-field-control"
               type="text"
               inputmode="decimal"
               autocomplete="off"
               :placeholder="t('personalCenter.wallet.amountPlaceholder')"
             />
           </div>
-          <div class="qz-ic-field">
-            <label for="qz-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
             <QzSelect
               id="qz-wallet-channel"
               :model-value="rechargeForm.channelId"
@@ -66,21 +67,22 @@
           </div>
         </div>
 
-        <div class="qz-ic-field">
-          <label for="qz-wallet-remark">{{ t('personalCenter.wallet.remarkLabel') }}</label>
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-wallet-remark">{{ t('personalCenter.wallet.remarkLabel') }}</label>
           <input
             id="qz-wallet-remark"
             v-model.trim="rechargeForm.remark"
+            class="qz-field-control"
             type="text"
             autocomplete="off"
             :placeholder="t('personalCenter.wallet.remarkPlaceholder')"
           />
         </div>
 
-        <p v-if="selectedChannelAmountHint" class="qz-ic-error" role="alert">{{ selectedChannelAmountHint }}</p>
+        <p v-if="selectedChannelAmountHint" class="qz-field-error" role="alert">{{ selectedChannelAmountHint }}</p>
 
         <!-- 手续费（通道向用户收取时展示） -->
-        <div v-if="selectedChannel?.fee_policy === 'customer_surcharge'" class="qz-ic-pay">
+        <div v-if="selectedChannel?.fee_policy === 'customer_surcharge'" class="qz-me-sub">
           <div class="qz-me-kv">
             <div class="qz-me-kv-row"><span>{{ t('payment.feeRateLabel') }}</span><b>{{ selectedChannelFeeRateDisplay }}</b></div>
             <div class="qz-me-kv-row"><span>{{ t('payment.fixedFeeLabel') }}</span><b>{{ selectedChannelFixedFeeDisplay }}</b></div>
@@ -88,8 +90,8 @@
           </div>
         </div>
 
-        <p v-if="channelLoading" class="qz-ic-hint">{{ t('common.loading') }}</p>
-        <p v-else-if="!hasChannels" class="qz-ic-hint wallet-warn">{{ t('payment.channelEmpty') }}</p>
+        <p v-if="channelLoading" class="qz-field-hint">{{ t('common.loading') }}</p>
+        <p v-else-if="!hasChannels" class="qz-field-hint is-warn">{{ t('payment.channelEmpty') }}</p>
 
         <QzButton
           type="submit"
@@ -102,16 +104,16 @@
           <span>{{ recharging ? t('personalCenter.wallet.recharging') : t('personalCenter.wallet.rechargeSubmit') }}</span>
         </QzButton>
       </form>
-    </div>
+    </section>
 
     <!-- 交易明细 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.wallet.detailTitle') }}</h2>
         </div>
-        <div class="qz-me-card-acts">
-          <button type="button" class="qz-me-act" :disabled="loading" @click="refreshCurrentPage">
+        <div class="qz-me-acts">
+          <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" :disabled="loading" @click="refreshCurrentPage">
             <RefreshCw />
             {{ t('orders.filters.refresh') }}
           </button>
@@ -121,14 +123,14 @@
       <div v-if="loading" class="qz-me-rows" aria-hidden="true">
         <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
       </div>
-      <p v-else-if="transactions.length === 0" class="qz-me-hint">
+      <p v-else-if="transactions.length === 0" class="qz-field-hint">
         {{ t('personalCenter.wallet.empty') }}
       </p>
       <div v-else class="qz-me-rows">
-        <div v-for="item in transactions" :key="item.id" class="qz-me-row">
+        <div v-for="item in transactions" :key="item.id" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b
-              class="tx-amount"
+              class="qz-me-tx-amount"
               :class="item.direction === 'in' ? 'is-in' : item.direction === 'out' ? 'is-out' : ''"
             >{{ signedAmount(item.direction, item.amount, item.currency) }}</b>
             <small>{{ transactionTypeLabel(item.type) }} · {{ formatDate(item.created_at) }}</small>
@@ -136,16 +138,17 @@
             <small>{{ t('personalCenter.wallet.table.balanceAfter') }}：{{ formatMoney(item.balance_after, item.currency) }}</small>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="`is-${directionTone(item.direction)}`">
+            <span class="qz-badge" :class="badgeToneClass(directionTone(item.direction))">
               {{ directionLabel(item.direction) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="pagination.total_page > 1" class="qz-me-pager wallet-pager">
+      <nav v-if="pagination.total_page > 1" class="qz-me-pager" :aria-label="t('orders.pageInfo', { page: pagination.page, total: pagination.total_page })">
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="pagination.page <= 1 || loading"
           :aria-label="t('pagination.previous')"
           @click="changePage(pagination.page - 1)"
@@ -155,14 +158,15 @@
         <span>{{ pagination.page }} / {{ pagination.total_page }}</span>
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="pagination.page >= pagination.total_page || loading"
           :aria-label="t('pagination.next')"
           @click="changePage(pagination.page + 1)"
         >
           <ChevronRight />
         </button>
-      </div>
-    </div>
+      </nav>
+    </section>
   </div>
 </template>
 
@@ -183,7 +187,7 @@ import {
 } from '../../../utils/money'
 import QzButton from '../components/QzButton.vue'
 import QzSelect from '../components/QzSelect.vue'
-import { formatDate, formatMoney, type MePillTone } from './support'
+import { badgeToneClass, formatDate, formatMoney, type MeBadgeTone } from './support'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -216,7 +220,7 @@ const rechargeForm = reactive({
 const walletAlertClass = computed(() => {
   const level = walletAlert.value?.level
   if (level === 'error') return 'is-error'
-  if (level === 'success') return 'is-ok'
+  if (level === 'success') return 'is-success'
   return ''
 })
 
@@ -414,10 +418,10 @@ const directionLabel = (direction?: string) => {
   return direction || '-'
 }
 
-const directionTone = (direction?: string): MePillTone => {
-  if (direction === 'in') return 'ok'
+const directionTone = (direction?: string): MeBadgeTone => {
+  if (direction === 'in') return 'success'
   if (direction === 'out') return 'danger'
-  return 'warn'
+  return 'warning'
 }
 
 const transactionTypeLabel = (type?: string) => {
@@ -588,38 +592,264 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.qz-me-panel .wallet-alert {
-  margin: 0 0 12px;
+/* 钱包面板：区块 .qz-panel + .qz-section-head、统计卡 .qz-card、表单 .qz-field 三件套、交易行 .qz-card、
+   方向 .qz-badge、翻页 .qz-icon-btn--sm（styles/base.css）；通道下拉来自 QzSelect。 */
+.qz-me-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
 }
 
-.qz-me-panel .wallet-alert.is-ok {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+/* ---------- 区块面板 ---------- */
+.qz-panel.qz-me-sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
 }
 
-.qz-me-panel .qz-me-stats.is-3col {
+.qz-me-sec > .qz-section-head {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.qz-section-head small {
+  display: block;
+  margin-top: var(--qz-space-1);
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+
+.qz-me-acts {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--qz-space-2);
+}
+
+/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
+.qz-me-alert {
+  margin: 0;
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border-radius: var(--qz-radius-control);
+  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
+  color: var(--qz-warning);
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.qz-me-alert.is-error {
+  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
+  color: var(--qz-danger);
+}
+
+.qz-me-alert.is-success {
+  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
+  color: var(--qz-success);
+}
+
+/* ---------- 统计卡（三格） ---------- */
+.qz-me-stats {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qz-space-3);
 }
 
-@media (max-width: 760px) {
-  .qz-me-panel .qz-me-stats.is-3col {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.qz-card.qz-me-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-1);
+}
+
+.qz-me-stat b {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  min-width: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-me-stat-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qz-me-stat > span {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+}
+
+/* ---------- 充值表单 ---------- */
+.qz-me-form {
+  display: grid;
+  gap: var(--qz-space-4);
+}
+
+.qz-me-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+
+.qz-me-form .qz-field-error,
+.qz-me-sec .qz-field-hint {
+  margin: 0;
+}
+
+.qz-field-hint.is-warn {
+  color: var(--qz-warning);
+}
+
+/* 手续费说明：浅底子面板 + 键值行 */
+.qz-me-sub {
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+
+.qz-me-kv {
+  display: grid;
+  gap: var(--qz-space-2);
+}
+
+.qz-me-kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+
+.qz-me-kv-row > span {
+  color: var(--qz-text-muted);
+  white-space: nowrap;
+}
+
+.qz-me-kv-row > b {
+  min-width: 0;
+  color: var(--qz-text);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 交易行 ---------- */
+.qz-me-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-2);
+}
+
+.qz-card.qz-me-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2) var(--qz-space-4);
+}
+
+.qz-me-row-main {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.qz-me-row-main b {
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.qz-me-row-main small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.qz-me-tx-amount.is-in {
+  color: var(--qz-success);
+}
+
+.qz-me-tx-amount.is-out {
+  color: var(--qz-danger);
+}
+
+.qz-me-row-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2);
+  margin-left: auto;
+}
+
+/* ---------- 分页 ---------- */
+.qz-me-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-3);
+  padding-top: var(--qz-space-1);
+}
+
+.qz-me-pager span {
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 骨架 ---------- */
+.qz-me-sk {
+  height: 64px;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  animation: qz-me-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes qz-me-pulse {
+  50% {
+    opacity: 0.55;
   }
 }
 
-.qz-me-panel .wallet-warn {
-  color: var(--amber);
+@media (max-width: 760px) {
+  .qz-panel.qz-me-sec {
+    padding: var(--qz-space-4);
+  }
+
+  .qz-me-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .qz-me-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
-.qz-me-panel .tx-amount.is-in {
-  color: var(--accent-strong);
-}
-
-.qz-me-panel .tx-amount.is-out {
-  color: var(--red);
-}
-
-.qz-me-panel .wallet-pager {
-  margin-top: 12px;
+@media (prefers-reduced-motion: reduce) {
+  .qz-me-sk {
+    animation: none;
+  }
 }
 </style>
