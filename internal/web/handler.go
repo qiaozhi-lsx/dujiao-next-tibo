@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/gin-gonic/gin"
@@ -231,6 +232,7 @@ func RegisterAdmin(r *gin.Engine, prefix string, fsys fs.FS) error {
 // <script>window.__PUBLIC_CONFIG__=...;</script>，让 Vue 启动即拿到基础配置，
 // 省掉冷启动首帧 /api/v1/public/config 这次 RTT。注入失败（settings 调用出错、
 // HTML 没 </head>）时降级返回原始 index.html，不影响渲染。
+// 站点配置本体走进程内 5s 缓存（initialConfigCache），后台改动的设置最多 5s 后在首帧生效。
 //
 // site 不为 nil 时，每次入口请求先判断租户：分销白标站直接返回原始 index.html
 // （settings 里的 brand/seo/nav/scripts 都是主站的，注进去会让分销站首帧闪主站品牌）；
@@ -251,7 +253,11 @@ func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource, site 
 
 	fileServer := http.FileServer(http.FS(fsys))
 
-	// serveIndexWithInitialConfig 每次请求都重新读 settings 以反映运行时改动；
+	// 内联 payload 在 5s 内复用，不每次请求都读 settings：后台改动的设置最多 5s 后在首帧生效
+	// （与 /api/v1/public/* 响应的 10s 缓存同量级，且完整配置仍由那次请求补齐）。
+	initialConfig := newInitialConfigCache(5*time.Second, time.Now)
+
+	// serveIndexWithInitialConfig 注入站点基础配置后返回入口 HTML；
 	// 若没有 settings 依赖（例如测试用的旧调用方），直接返回原始 index。
 	serveIndexWithInitialConfig := func(c *gin.Context) {
 		if settings == nil {
@@ -266,13 +272,20 @@ func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource, site 
 			serveIndex(c, indexCached)
 			return
 		}
-		payload := buildInitialConfigPayload(c.Request.Context(), settings)
-		if len(payload) == 0 {
+		ctx := c.Request.Context()
+		base := initialConfig.get(func() map[string]interface{} {
+			return buildInitialConfigPayload(ctx, settings)
+		})
+		if len(base) == 0 {
 			serveIndex(c, indexCached)
 			return
 		}
-		// tenant 是按请求变化的字段，独立于站点配置本体之后再写入。
-		// 目前 payload 是每次请求新建的 map，可以直接改；若日后给 payload 加缓存，写 tenant 前必须先复制。
+		// base 是缓存里跨请求共享的 map，只读不改；tenant 是按请求变化的字段，
+		// 必须先浅复制出本次请求自己的 map 再写，否则并发请求会同时写同一个 map。
+		payload := make(map[string]interface{}, len(base)+1)
+		for k, v := range base {
+			payload[k] = v
+		}
 		// host 含 Host 字面量之外的字符时置空：mode 仍是 main、注入照常，只是不把可疑值带进 <script>。
 		if site != nil {
 			if !isSafeTenantHost(host) {
