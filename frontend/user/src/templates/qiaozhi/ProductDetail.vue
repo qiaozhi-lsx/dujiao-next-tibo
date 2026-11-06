@@ -618,6 +618,13 @@ const submitOrder = async () => {
     router.push(`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`)
     return
   }
+  // 手动表单商品需在结算页填写交付资料，商品页直接下单会被后端拒绝：
+  // 改走 classic 的 buy-now 路径（buyNowStore + /checkout?mode=buynow）。
+  // 放在游客表单校验之前：结算页会自己收集游客邮箱/密码/验证码，这里不必先填一遍。
+  if (hasManualFormFields(product.value?.manual_form_schema)) {
+    buyNow()
+    return
+  }
   const err = validateForm()
   if (Object.keys(fieldErrors.value).length) {
     return
@@ -630,12 +637,6 @@ const submitOrder = async () => {
   submitting.value = true
   try {
     const items = buildItems()
-    // 手动表单商品需在结算页填写交付资料，商品页直接下单会被后端拒绝：
-    // 改走 classic 的 buy-now 路径（buyNowStore + /checkout?mode=buynow）。
-    if (hasManualFormFields(product.value?.manual_form_schema)) {
-      buyNow()
-      return
-    }
     let payData: any = null
     const guestEmailInput = email.value.trim()
     const guestPasswordInput = orderPassword.value
