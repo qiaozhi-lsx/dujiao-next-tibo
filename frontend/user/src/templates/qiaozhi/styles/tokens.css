@@ -37,6 +37,12 @@
      `oklch(79% 0.095 236)`).
    - Lengths are px, not rem (the legacy sheet is px-based). Added: `--qz-text-2xs: 11px` type floor,
      `--qz-header-bg`, `--qz-container`, `--qz-header-h`; `--qz-control-sm` grows to 40px below 760px.
+   - Added `--qz-radius-sm: 12px` / `--qz-radius-xs: 6px` below Arc's control radius: inner tiles (order
+     rows, code blocks, thumbnails) and small media (channel logos) that pages used to size with literals.
+   - Added `--qz-font-mono`: the monospace stack for order numbers, card codes, secrets and API keys
+     (the legacy `--font-mono`, re-prefixed). Theme-independent, declared once with the sizes.
+   - Added `--qz-qr-frame`: the quiet-zone frame behind QR codes. Fixed white in both themes — a QR code
+     rendered on a dark surface loses its light quiet zone and scans worse — written like `--qz-brand-*`.
    - Not carried over: `--control-on` / `--control-track` / `--control-thumb` / `--control-glyph` /
      `--control-fill` (form-control part colours; Arc's control heights are carried over as
      `--qz-control-*`), `--arc-gradient-*`, `--series-*`, `--font-*`,
@@ -78,6 +84,8 @@
   --qz-brand-wechat: #07c160;
   --qz-brand-qq: #1ebafc;
   --qz-on-brand: #0a0a0a;
+  /* QR quiet-zone frame: fixed white in both themes so the code keeps a light margin on dark surfaces. */
+  --qz-qr-frame: #ffffff;
   /* Elevation */
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .035);
   --qz-shadow-raised: 0 6px 18px oklch(0% 0 0 / .065), 0 1px 3px oklch(0% 0 0 / .035);
@@ -163,6 +171,7 @@
   --qz-brand-wechat: #07c160;
   --qz-brand-qq: #1ebafc;
   --qz-on-brand: #0a0a0a;
+  --qz-qr-frame: #ffffff;
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .18);
   --qz-shadow-raised: 0 8px 22px oklch(0% 0 0 / .22);
   --qz-shadow-floating: 0 22px 55px oklch(0% 0 0 / .34);
@@ -218,14 +227,17 @@
   --qz-space-1: 4px; --qz-space-2: 8px; --qz-space-3: 12px; --qz-space-4: 16px;
   --qz-space-5: 20px; --qz-space-6: 24px; --qz-space-8: 32px; --qz-space-10: 40px;
   --qz-space-12: 48px; --qz-space-16: 64px; --qz-space-20: 80px; --qz-space-24: 96px;
-  /* Radii: controls / menus & cards / large surfaces / pills */
+  /* Radii: controls / menus & cards / large surfaces / pills; sm / xs for inner tiles and small media below the control step */
   --qz-radius-control: 18px; --qz-radius-panel: 26px; --qz-radius-surface: 34px; --qz-radius-pill: 9999px;
+  --qz-radius-sm: 12px; --qz-radius-xs: 6px;
   /* Control heights: sm for tool pills, icon buttons, chips; md for primary CTAs, inputs, SKUs; lg for payment */
   --qz-control-sm: 36px; --qz-control-md: 44px; --qz-control-lg: 50px;
   /* Type scale, 11px floor */
   --qz-text-2xs: 11px; --qz-text-xs: 12px; --qz-text-sm: 14px; --qz-text-base: 16px;
   --qz-text-lg: 18px; --qz-text-xl: 22px; --qz-text-2xl: 28px; --qz-text-3xl: 36px;
   --qz-leading-display: 1.1; --qz-leading-body: 1.4; --qz-tracking-display: -.03em;
+  /* Monospace stack for order numbers, card codes, secrets, API keys (the CJK fallbacks keep mixed strings on one font height) */
+  --qz-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
   /* Motion. --qz-ease-spring is a critically damped spring (never overshoots); pair it with --qz-duration-spring for transforms. */
   --qz-ease-enter: cubic-bezier(.16,1,.3,1);
   --qz-ease-standard: cubic-bezier(.22,1,.36,1);
