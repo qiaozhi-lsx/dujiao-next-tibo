@@ -1,23 +1,17 @@
 import type { ComposerTranslation } from 'vue-i18n'
 import type { PublicMemberLevel } from '../../../api'
-import { orderStatusLabel, orderStatusVariant } from '../../../utils/status'
+import { orderStatusLabel, orderStatusVariant, type BadgeTone } from '../../../utils/status'
 
 /**
- * qiaozhi 个人中心面板共用工具：状态胶囊 tone / 文本格式化 / 会员等级名。
- * tone 与 legacy.css 的 .qz-me-pill.is-* 对应。
+ * qiaozhi 个人中心面板共用工具：状态徽章 tone / 文本格式化 / 会员等级名。
+ * tone 对应 base.css 的 `.qz-badge.is-*`（success / warning / danger / info）；
+ * `accent`（处理中）由用到它的页面补一条 `.qz-badge.is-accent`，`neutral` 不带状态类。
  */
-export type MePillTone = 'ok' | 'warn' | 'danger' | 'info' | 'neutral'
+export type MeBadgeTone = BadgeTone
 
-const TONE_MAP: Record<string, MePillTone> = {
-  success: 'ok',
-  accent: 'ok',
-  warning: 'warn',
-  danger: 'danger',
-  info: 'info',
-  neutral: 'neutral',
-}
+export const statusBadgeTone = (status?: string): MeBadgeTone => orderStatusVariant(status)
 
-export const statusPillTone = (status?: string): MePillTone => TONE_MAP[orderStatusVariant(status)] || 'neutral'
+export const badgeToneClass = (tone: MeBadgeTone) => (tone === 'neutral' ? '' : `is-${tone}`)
 
 export const statusLabel = (t: ComposerTranslation, status?: string) => orderStatusLabel(t, status)
 

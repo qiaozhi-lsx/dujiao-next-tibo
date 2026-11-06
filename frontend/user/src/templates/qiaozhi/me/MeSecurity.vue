@@ -1,42 +1,42 @@
 <template>
   <div class="qz-me-panel">
     <!-- ==================== 安全总览 ==================== -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.security.title') }}</h2>
           <small>{{ requiresOldEmailCode ? t('personalCenter.security.subtitle') : t('personalCenter.security.subtitleBindOnly') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill is-ok">{{ t('personalCenter.tabs.security') }}</span>
+        <div class="qz-me-acts">
+          <span class="qz-chip">{{ t('personalCenter.tabs.security') }}</span>
         </div>
       </div>
       <p
         v-if="securityAlert"
-        class="qz-ic-alert"
+        class="qz-me-alert"
         :class="alertClass(securityAlert.level)"
         :role="securityAlert.level === 'error' ? 'alert' : 'status'"
       >
         {{ securityAlert.message }}
       </p>
-    </div>
+    </section>
 
     <!-- ==================== Telegram 绑定 ==================== -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.security.telegramTitle') }}</h2>
           <small>{{ telegramEnabled ? t('personalCenter.security.telegramSubtitle') : t('personalCenter.security.telegramDisabledTip') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill" :class="telegramBound ? 'is-ok' : 'is-warn'">
+        <div class="qz-me-acts">
+          <span class="qz-badge" :class="telegramBound ? 'is-success' : 'is-warning'">
             {{ telegramBound ? t('personalCenter.security.telegramBound') : t('personalCenter.security.telegramUnbound') }}
           </span>
         </div>
       </div>
 
-      <div class="qz-me-rows">
-        <p v-if="userProfileStore.loadingTelegramBinding" class="qz-me-hint">
+      <div class="qz-me-stack">
+        <p v-if="userProfileStore.loadingTelegramBinding" class="qz-field-hint">
           {{ t('personalCenter.security.telegramLoading') }}
         </p>
 
@@ -45,14 +45,14 @@
             <span v-if="telegramAvatarUrl" class="qz-me-avatar">
               <img :src="telegramAvatarUrl" alt="Telegram Avatar" />
             </span>
-            <div class="qz-me-row-main">
+            <div class="qz-me-ident-text">
               <b>{{ telegramDisplayName }}</b>
               <small>{{ t('personalCenter.security.telegramBindID', { id: telegramProviderUserId }) }}</small>
               <small>{{ t('personalCenter.security.telegramBindTime', { time: formatDate(userProfileStore.telegramBinding?.auth_at) }) }}</small>
             </div>
           </div>
 
-          <div class="qz-me-card-acts">
+          <div class="qz-me-acts qz-me-acts-start">
             <QzButton
               type="button"
               variant="secondary"
@@ -64,13 +64,13 @@
               {{ userProfileStore.unbindingTelegram ? t('personalCenter.security.telegramUnbinding') : t('personalCenter.security.telegramUnbind') }}
             </QzButton>
           </div>
-          <p v-if="!canUnbindTelegram" class="qz-me-hint">
+          <p v-if="!canUnbindTelegram" class="qz-field-hint">
             {{ t('personalCenter.security.telegramUnbindDisabledTip') }}
           </p>
 
           <template v-if="showTelegramMiniAppEntry">
-            <p class="qz-me-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
-            <div class="qz-me-card-acts">
+            <p class="qz-field-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
+            <div class="qz-me-acts qz-me-acts-start">
               <QzButton type="button" variant="secondary" size="sm" @click="openTelegramMiniAppEntry">
                 {{ t('personalCenter.security.telegramMiniAppEntryAction') }}
               </QzButton>
@@ -79,13 +79,13 @@
         </template>
 
         <template v-else>
-          <p class="qz-me-hint">
+          <p class="qz-field-hint">
             {{ telegramEnabled
               ? (showMiniAppBindAction ? t('personalCenter.security.telegramMiniAppBindHint') : t('personalCenter.security.telegramUnboundTip'))
               : t('personalCenter.security.telegramDisabledTip') }}
           </p>
 
-          <div v-if="showMiniAppBindAction" class="qz-me-card-acts">
+          <div v-if="showMiniAppBindAction" class="qz-me-acts qz-me-acts-start">
             <QzButton
               type="button"
               :loading="userProfileStore.bindingTelegram"
@@ -97,7 +97,7 @@
           </div>
           <div v-else-if="showTelegramWidget" ref="telegramWidgetRef" class="qz-sec-widget"></div>
           <template v-else-if="showTelegramOidcBind">
-            <div class="qz-me-card-acts">
+            <div class="qz-me-acts qz-me-acts-start">
               <QzButton
                 type="button"
                 :disabled="userProfileStore.bindingTelegram"
@@ -106,12 +106,12 @@
                 {{ t('personalCenter.security.telegramOidcBindButton') }}
               </QzButton>
             </div>
-            <p class="qz-me-hint">{{ t('personalCenter.security.telegramOidcBindHint') }}</p>
+            <p class="qz-field-hint">{{ t('personalCenter.security.telegramOidcBindHint') }}</p>
           </template>
 
           <template v-if="showTelegramMiniAppEntry">
-            <p class="qz-me-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
-            <div class="qz-me-card-acts">
+            <p class="qz-field-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
+            <div class="qz-me-acts qz-me-acts-start">
               <QzButton type="button" variant="secondary" size="sm" @click="openTelegramMiniAppEntry">
                 {{ t('personalCenter.security.telegramMiniAppEntryAction') }}
               </QzButton>
@@ -119,24 +119,24 @@
           </template>
         </template>
       </div>
-    </div>
+    </section>
 
     <!-- ==================== Google 绑定 ==================== -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.security.googleTitle') }}</h2>
           <small>{{ googleAuthorizationEnabled ? t('personalCenter.security.googleSubtitle') : t('personalCenter.security.googleDisabledTip') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill" :class="googleBound ? 'is-ok' : 'is-warn'">
+        <div class="qz-me-acts">
+          <span class="qz-badge" :class="googleBound ? 'is-success' : 'is-warning'">
             {{ googleBound ? t('personalCenter.security.googleBound') : t('personalCenter.security.googleUnbound') }}
           </span>
         </div>
       </div>
 
-      <div class="qz-me-rows">
-        <p v-if="userProfileStore.loadingGoogleBinding" class="qz-me-hint">
+      <div class="qz-me-stack">
+        <p v-if="userProfileStore.loadingGoogleBinding" class="qz-field-hint">
           {{ t('personalCenter.security.googleLoading') }}
         </p>
 
@@ -150,7 +150,7 @@
               />
               <template v-else>G</template>
             </span>
-            <div class="qz-me-row-main">
+            <div class="qz-me-ident-text">
               <b>{{ googleDisplayName }}</b>
               <small v-if="googleEmail">{{ googleEmail }}</small>
               <small>{{ t('personalCenter.security.googleBindID', { id: googleProviderUserId }) }}</small>
@@ -158,7 +158,7 @@
             </div>
           </div>
 
-          <div class="qz-me-card-acts">
+          <div class="qz-me-acts qz-me-acts-start">
             <QzButton
               type="button"
               variant="secondary"
@@ -170,13 +170,13 @@
               {{ userProfileStore.unbindingGoogle ? t('personalCenter.security.googleUnbinding') : t('personalCenter.security.googleUnbind') }}
             </QzButton>
           </div>
-          <p v-if="!canUnbindGoogle" class="qz-me-hint">
+          <p v-if="!canUnbindGoogle" class="qz-field-hint">
             {{ t('personalCenter.security.googleUnbindDisabledTip') }}
           </p>
         </template>
 
         <template v-else>
-          <p class="qz-me-hint">
+          <p class="qz-field-hint">
             {{ !googleAuthorizationEnabled
               ? t('personalCenter.security.googleDisabledTip')
               : isTelegramMiniApp
@@ -196,48 +196,50 @@
             @credential="handleGoogleBind"
             @error="handleGoogleScriptError"
           />
-          <p v-if="userProfileStore.bindingGoogle" class="qz-me-hint" role="status">
+          <p v-if="userProfileStore.bindingGoogle" class="qz-field-hint" role="status">
             {{ t('personalCenter.security.googleBinding') }}
           </p>
         </template>
       </div>
-    </div>
+    </section>
 
     <!-- ==================== 邮箱换绑 / 绑定 ==================== -->
-    <div class="qz-me-card">
-      <form class="qz-ic" novalidate @submit.prevent="handleChangeEmail">
-        <div class="qz-ic-field">
-          <label for="qz-me-sec-current-email">{{ t('personalCenter.security.currentEmailLabel') }}</label>
-          <input id="qz-me-sec-current-email" :value="currentEmailDisplay" type="email" disabled />
-          <p v-if="!requiresOldEmailCode" class="qz-ic-hint">
+    <section class="qz-panel qz-me-sec">
+      <form class="qz-me-form" novalidate @submit.prevent="handleChangeEmail">
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-me-sec-current-email">{{ t('personalCenter.security.currentEmailLabel') }}</label>
+          <input id="qz-me-sec-current-email" class="qz-field-control" :value="currentEmailDisplay" type="email" disabled />
+          <p v-if="!requiresOldEmailCode" class="qz-field-hint">
             {{ t('personalCenter.security.bindOnlyTip') }}
           </p>
         </div>
 
-        <div class="qz-ic-field">
-          <label for="qz-me-sec-new-email">{{ t('personalCenter.security.newEmailLabel') }}</label>
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-me-sec-new-email">{{ t('personalCenter.security.newEmailLabel') }}</label>
           <input
             id="qz-me-sec-new-email"
             v-model="securityForm.newEmail"
+            class="qz-field-control"
             type="email"
             autocomplete="email"
             :placeholder="t('personalCenter.security.newEmailPlaceholder')"
           />
         </div>
 
-        <div :class="requiresOldEmailCode ? 'qz-ic-row' : ''">
-          <div v-if="requiresOldEmailCode" class="qz-ic-field">
-            <label for="qz-me-sec-old-code">{{ t('personalCenter.security.oldCodeLabel') }}</label>
+        <div :class="requiresOldEmailCode ? 'qz-me-form-row' : ''">
+          <div v-if="requiresOldEmailCode" class="qz-field">
+            <label class="qz-field-label" for="qz-me-sec-old-code">{{ t('personalCenter.security.oldCodeLabel') }}</label>
             <div class="qz-sec-inline">
               <input
                 id="qz-me-sec-old-code"
                 v-model="securityForm.oldCode"
+                class="qz-field-control"
                 inputmode="numeric"
                 :placeholder="t('personalCenter.security.codePlaceholder')"
               />
               <button
                 type="button"
-                class="qz-me-act"
+                class="qz-btn qz-btn--secondary"
                 :disabled="userProfileStore.sendingCode || oldCodeCooldown > 0"
                 @click="handleSendOldCode"
               >
@@ -246,18 +248,19 @@
             </div>
           </div>
 
-          <div class="qz-ic-field">
-            <label for="qz-me-sec-new-code">{{ t('personalCenter.security.newCodeLabel') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-sec-new-code">{{ t('personalCenter.security.newCodeLabel') }}</label>
             <div class="qz-sec-inline">
               <input
                 id="qz-me-sec-new-code"
                 v-model="securityForm.newCode"
+                class="qz-field-control"
                 inputmode="numeric"
                 :placeholder="t('personalCenter.security.codePlaceholder')"
               />
               <button
                 type="button"
-                class="qz-me-act"
+                class="qz-btn qz-btn--secondary"
                 :disabled="userProfileStore.sendingCode || newCodeCooldown > 0"
                 @click="handleSendNewCode"
               >
@@ -267,7 +270,7 @@
           </div>
         </div>
 
-        <div class="qz-me-card-acts">
+        <div class="qz-me-acts qz-me-acts-start">
           <QzButton type="submit" :loading="userProfileStore.changingEmail">
             {{ userProfileStore.changingEmail
               ? t('personalCenter.security.submitting')
@@ -275,74 +278,77 @@
           </QzButton>
         </div>
       </form>
-    </div>
+    </section>
 
     <!-- ==================== 最近登录记录 ==================== -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.security.loginLogsTitle') }}</h2>
           <small>{{ t('personalCenter.security.loginLogsTip') }}</small>
         </div>
       </div>
 
-      <p v-if="userProfileStore.loadingLoginLogs" class="qz-me-hint">
+      <p v-if="userProfileStore.loadingLoginLogs" class="qz-field-hint">
         {{ t('personalCenter.security.loginLogsLoading') }}
       </p>
-      <p v-else-if="userProfileStore.recentLoginLogs.length === 0" class="qz-me-hint">
+      <p v-else-if="userProfileStore.recentLoginLogs.length === 0" class="qz-field-hint">
         {{ t('personalCenter.security.loginLogsEmpty') }}
       </p>
       <div v-else class="qz-me-rows">
-        <div v-for="item in userProfileStore.recentLoginLogs" :key="item.id" class="qz-me-row">
+        <div v-for="item in userProfileStore.recentLoginLogs" :key="item.id" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b>{{ formatDate(item.created_at) }}</b>
             <small>{{ t('personalCenter.security.loginLogsIp') }}：{{ item.client_ip || '-' }}</small>
             <small>{{ t('personalCenter.security.loginLogsReason') }}：{{ loginReasonLabel(item.fail_reason) }}</small>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="loginStatusTone(item.status)">{{ loginStatusLabel(item.status) }}</span>
+            <span class="qz-badge" :class="loginStatusTone(item.status)">{{ loginStatusLabel(item.status) }}</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- ==================== 登录密码 ==================== -->
-    <div v-if="canManagePassword" class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section v-if="canManagePassword" class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ requiresOldPassword ? t('personalCenter.security.passwordTitle') : t('personalCenter.security.setPasswordTitle') }}</h2>
           <small>{{ requiresOldPassword ? t('personalCenter.security.passwordSubtitle') : t('personalCenter.security.setPasswordSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="qz-ic" novalidate @submit.prevent="handleChangePassword">
-        <div v-if="requiresOldPassword" class="qz-ic-field">
-          <label for="qz-me-sec-old-password">{{ t('personalCenter.security.currentPasswordLabel') }}</label>
+      <form class="qz-me-form" novalidate @submit.prevent="handleChangePassword">
+        <div v-if="requiresOldPassword" class="qz-field">
+          <label class="qz-field-label" for="qz-me-sec-old-password">{{ t('personalCenter.security.currentPasswordLabel') }}</label>
           <input
             id="qz-me-sec-old-password"
             v-model="passwordForm.oldPassword"
+            class="qz-field-control"
             type="password"
             autocomplete="current-password"
             :placeholder="t('personalCenter.security.passwordPlaceholder')"
           />
         </div>
 
-        <div class="qz-ic-row">
-          <div class="qz-ic-field">
-            <label for="qz-me-sec-new-password">{{ t('personalCenter.security.newPasswordLabel') }}</label>
+        <div class="qz-me-form-row">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-sec-new-password">{{ t('personalCenter.security.newPasswordLabel') }}</label>
             <input
               id="qz-me-sec-new-password"
               v-model="passwordForm.newPassword"
+              class="qz-field-control"
               type="password"
               autocomplete="new-password"
               :placeholder="t('personalCenter.security.passwordPlaceholder')"
             />
           </div>
-          <div class="qz-ic-field">
-            <label for="qz-me-sec-confirm-password">{{ t('personalCenter.security.confirmPasswordLabel') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-sec-confirm-password">{{ t('personalCenter.security.confirmPasswordLabel') }}</label>
             <input
               id="qz-me-sec-confirm-password"
               v-model="passwordForm.confirmPassword"
+              class="qz-field-control"
               type="password"
               autocomplete="new-password"
               :placeholder="t('personalCenter.security.passwordPlaceholder')"
@@ -350,7 +356,7 @@
           </div>
         </div>
 
-        <div class="qz-me-card-acts">
+        <div class="qz-me-acts qz-me-acts-start">
           <QzButton type="submit" :loading="userProfileStore.changingPassword">
             {{ userProfileStore.changingPassword
               ? (requiresOldPassword ? t('personalCenter.security.changePasswordSubmitting') : t('personalCenter.security.setPasswordSubmitting'))
@@ -358,17 +364,17 @@
           </QzButton>
         </div>
       </form>
-    </div>
+    </section>
 
     <!-- ==================== 两步验证（2FA） ==================== -->
-    <div v-if="canManagePassword" class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section v-if="canManagePassword" class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.security.twofa.title') }}</h2>
           <small>{{ t('personalCenter.security.twofa.subtitle') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill" :class="{ 'is-ok': status?.enabled }">
+        <div class="qz-me-acts">
+          <span class="qz-badge" :class="{ 'is-success': status?.enabled }">
             {{ status?.enabled ? t('personalCenter.security.twofa.statusEnabled') : t('personalCenter.security.twofa.statusDisabled') }}
           </span>
         </div>
@@ -376,7 +382,7 @@
 
       <p
         v-if="twofaAlert"
-        class="qz-ic-alert"
+        class="qz-me-alert"
         :class="alertClass(twofaAlert.level)"
         :role="twofaAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -384,10 +390,10 @@
       </p>
 
       <!-- 已启用：状态 + 关闭 / 重新生成恢复码 -->
-      <div v-if="status?.enabled" class="qz-me-rows">
+      <div v-if="status?.enabled" class="qz-me-stack">
         <div class="qz-sec-sub">
-          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.enabledAt', { date: formatDate(status.enabled_at) }) }}</p>
-          <p class="qz-me-hint">
+          <p class="qz-field-hint">{{ t('personalCenter.security.twofa.enabledAt', { date: formatDate(status.enabled_at) }) }}</p>
+          <p class="qz-field-hint">
             {{ t('personalCenter.security.twofa.recoveryRemaining', {
               remaining: status.recovery_codes_remaining,
               total: status.recovery_codes_total,
@@ -395,7 +401,7 @@
           </p>
         </div>
 
-        <div class="qz-ic-row">
+        <div class="qz-me-acts qz-me-acts-start">
           <QzButton type="button" variant="secondary" @click="openRegenerate">
             {{ t('personalCenter.security.twofa.regenerateAction') }}
           </QzButton>
@@ -406,17 +412,17 @@
 
         <!-- 关闭 2FA 表单 -->
         <div v-if="mode === 'disable'" class="qz-sec-sub">
-          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.disableHint') }}</p>
+          <p class="qz-field-hint">{{ t('personalCenter.security.twofa.disableHint') }}</p>
           <QzSegment
             :model-value="disableMode"
             :items="disableModeItems"
             @update:model-value="onDisableModeChange"
           />
-          <div class="qz-ic-field">
+          <div class="qz-field">
             <input
               v-if="disableMode === 'code'"
               v-model="disableCode"
-              class="qz-sec-code"
+              class="qz-field-control qz-sec-code"
               inputmode="numeric"
               maxlength="6"
               :aria-label="t('personalCenter.security.twofa.codePlaceholder')"
@@ -425,12 +431,13 @@
             <input
               v-else
               v-model="disableRecovery"
+              class="qz-field-control"
               autocomplete="off"
               :aria-label="t('personalCenter.security.twofa.recoveryPlaceholder')"
               :placeholder="t('personalCenter.security.twofa.recoveryPlaceholder')"
             />
           </div>
-          <div class="qz-ic-row">
+          <div class="qz-me-acts qz-me-acts-start">
             <QzButton type="button" variant="danger" :loading="loading" @click="submitDisable">
               {{ loading ? t('personalCenter.security.twofa.disableSubmitting') : t('personalCenter.security.twofa.disableSubmit') }}
             </QzButton>
@@ -442,18 +449,18 @@
 
         <!-- 重新生成恢复码表单 -->
         <div v-if="mode === 'regenerate'" class="qz-sec-sub">
-          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.regenerateHint') }}</p>
-          <div class="qz-ic-field">
+          <p class="qz-field-hint">{{ t('personalCenter.security.twofa.regenerateHint') }}</p>
+          <div class="qz-field">
             <input
               v-model="regenerateCode"
-              class="qz-sec-code"
+              class="qz-field-control qz-sec-code"
               inputmode="numeric"
               maxlength="6"
               :aria-label="t('personalCenter.security.twofa.codePlaceholder')"
               :placeholder="t('personalCenter.security.twofa.codePlaceholder')"
             />
           </div>
-          <div class="qz-ic-row">
+          <div class="qz-me-acts qz-me-acts-start">
             <QzButton type="button" :loading="loading" @click="submitRegenerate">
               {{ loading ? t('personalCenter.security.twofa.regenerateSubmitting') : t('personalCenter.security.twofa.regenerateSubmit') }}
             </QzButton>
@@ -465,30 +472,30 @@
       </div>
 
       <!-- 未启用：绑定流程 -->
-      <div v-else class="qz-me-rows">
-        <p class="qz-me-hint">{{ t('personalCenter.security.twofa.notEnabledHint') }}</p>
+      <div v-else class="qz-me-stack">
+        <p class="qz-field-hint">{{ t('personalCenter.security.twofa.notEnabledHint') }}</p>
 
-        <div v-if="!setupResult" class="qz-me-card-acts">
+        <div v-if="!setupResult" class="qz-me-acts qz-me-acts-start">
           <QzButton type="button" :loading="loading" @click="startSetup">
             {{ loading ? t('personalCenter.security.twofa.startingSetup') : t('personalCenter.security.twofa.startSetup') }}
           </QzButton>
         </div>
 
         <div v-else class="qz-sec-sub">
-          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.setupStep1') }}</p>
+          <p class="qz-field-hint">{{ t('personalCenter.security.twofa.setupStep1') }}</p>
           <div v-if="qrcodeDataUrl" class="qz-sec-qr">
             <img :src="qrcodeDataUrl" alt="2FA QR" />
           </div>
-          <div class="qz-me-rows">
-            <p class="qz-me-hint">{{ t('personalCenter.security.twofa.secret') }}</p>
+          <div class="qz-me-stack">
+            <p class="qz-field-hint">{{ t('personalCenter.security.twofa.secret') }}</p>
             <code class="qz-sec-secret">{{ setupResult.secret }}</code>
           </div>
 
-          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.setupStep2') }}</p>
-          <div class="qz-ic-field">
+          <p class="qz-field-hint">{{ t('personalCenter.security.twofa.setupStep2') }}</p>
+          <div class="qz-field">
             <input
               v-model="enableCode"
-              class="qz-sec-code"
+              class="qz-field-control qz-sec-code"
               inputmode="numeric"
               maxlength="6"
               :aria-label="t('personalCenter.security.twofa.codePlaceholder')"
@@ -496,7 +503,7 @@
             />
           </div>
 
-          <div class="qz-ic-row">
+          <div class="qz-me-acts qz-me-acts-start">
             <QzButton type="button" :loading="loading" @click="submitEnable">
               {{ loading ? t('personalCenter.security.twofa.enableSubmitting') : t('personalCenter.security.twofa.enableSubmit') }}
             </QzButton>
@@ -517,9 +524,9 @@
           :aria-label="t('personalCenter.security.twofa.recoveryTitle')"
           @click.self="recoveryCodes = []"
         >
-          <div class="qz-sec-modal">
+          <div class="qz-panel qz-sec-modal">
             <h4>{{ t('personalCenter.security.twofa.recoveryTitle') }}</h4>
-            <p class="qz-me-hint">{{ t('personalCenter.security.twofa.recoveryWarning') }}</p>
+            <p class="qz-field-hint">{{ t('personalCenter.security.twofa.recoveryWarning') }}</p>
             <div class="qz-sec-codes">
               <code v-for="(c, idx) in recoveryCodes" :key="idx">{{ c }}</code>
             </div>
@@ -534,7 +541,7 @@
           </div>
         </div>
       </Teleport>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -593,10 +600,10 @@ const telegramWidgetRef = ref<HTMLDivElement | null>(null)
 let cooldownTimer: number | null = null
 const telegramCallbackName = '__dujiaoSecurityTelegramBind'
 
-/** 警示条 tone：success → 品牌色底、warning → 琥珀底、error → 红底 */
+/** 警示条 tone：success → 成功色、warning → 警示色（默认）、error → 错误色 */
 const alertClass = (level: PageAlertLevel) => {
   if (level === 'error') return 'is-error'
-  if (level === 'success') return 'qz-ok-alert'
+  if (level === 'success') return 'is-success'
   return ''
 }
 
@@ -667,7 +674,7 @@ const loginStatusLabel = (status?: string) => {
   const normalized = (status || '').trim() || 'failed'
   return t(`personalCenter.security.loginLogsStatusMap.${normalized}`)
 }
-const loginStatusTone = (status?: string) => ((status || '').trim() === 'success' ? 'is-ok' : 'is-danger')
+const loginStatusTone = (status?: string) => ((status || '').trim() === 'success' ? 'is-success' : 'is-danger')
 const loginReasonLabel = (reason?: string) => {
   const normalized = (reason || '').trim()
   if (!normalized) return '-'
@@ -1325,94 +1332,261 @@ watch([showTelegramWidget, telegramBotUsername], () => {
 </script>
 
 <style scoped>
-/* 成功态警示条（复用 qz-ic-alert 底色体系，绿/品牌色 tone 与登录页一致） */
-.qz-ic-alert.qz-ok-alert {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+/* 安全面板：区块 .qz-panel + .qz-section-head、表单 .qz-field 三件套、登录记录行 .qz-card、状态 .qz-badge、
+   按钮 .qz-btn / QzButton（styles/base.css）；关闭 2FA 的方式切换来自 QzSegment。
+   恢复码弹窗 Teleport 到 body：scoped 规则跟随元素生效，token 由 body.qiaozhi-tokens 提供，弹窗盒子复用 .qz-panel。 */
+.qz-me-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
 }
 
-/* 绑定身份头像：复用 .qz-me-avatar 尺寸，图片铺满裁圆角 */
-.qz-me-avatar {
-  overflow: hidden;
+/* ---------- 区块面板 ---------- */
+.qz-panel.qz-me-sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
 }
+
+.qz-me-sec > .qz-section-head {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.qz-section-head small {
+  display: block;
+  margin-top: var(--qz-space-1);
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+
+.qz-me-acts {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--qz-space-2);
+}
+
+.qz-me-acts-start {
+  justify-content: flex-start;
+}
+
+/* 纵向内容流（绑定信息 / 提示 / 操作） */
+.qz-me-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-3);
+}
+
+.qz-me-sec .qz-field-hint,
+.qz-sec-modal .qz-field-hint {
+  margin: 0;
+}
+
+/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
+.qz-me-alert {
+  margin: 0;
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border-radius: var(--qz-radius-control);
+  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
+  color: var(--qz-warning);
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.qz-me-alert.is-error {
+  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
+  color: var(--qz-danger);
+}
+
+.qz-me-alert.is-success {
+  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
+  color: var(--qz-success);
+}
+
+/* ---------- 已绑定身份：头像 + 文本 ---------- */
+.qz-me-ident {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-3);
+  min-width: 0;
+}
+
+.qz-me-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-accent-subtle);
+  color: var(--qz-accent-strong);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+}
+
 .qz-me-avatar > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* 输入框 + 按钮同排（发送验证码） */
-.qz-sec-inline {
+.qz-me-ident-text {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.qz-sec-inline > input {
-  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
-.qz-sec-inline > .qz-me-act {
-  flex: 0 0 auto;
+
+.qz-me-ident-text b {
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
-button.qz-me-act {
-  cursor: pointer;
-}
-button.qz-me-act:disabled {
-  cursor: not-allowed;
+
+.qz-me-ident-text small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 /* Telegram 官方登录组件挂载点 */
 .qz-sec-widget {
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--qz-control-md);
+}
+
+/* ---------- 表单 ---------- */
+.qz-me-form {
+  display: grid;
+  gap: var(--qz-space-4);
+}
+
+.qz-me-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+
+/* 输入框 + 发送验证码按钮同排（按钮与输入同为 md 高） */
+.qz-sec-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+}
+
+.qz-sec-inline > .qz-field-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.qz-sec-inline > .qz-btn {
+  flex: none;
 }
 
 /* 6 位动态码输入居中 */
-.qz-sec-code {
-  text-align: center;
+.qz-field-control.qz-sec-code {
+  font-weight: 600;
   letter-spacing: 0.4em;
-  font-weight: 700;
+  text-align: center;
 }
 
-/* 功能区内的浅底子面板（状态信息 / 关闭 2FA / 重新生成 / 绑定流程） */
+/* ---------- 登录记录行 ---------- */
+.qz-me-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-2);
+}
+
+.qz-card.qz-me-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2) var(--qz-space-4);
+}
+
+.qz-me-row-main {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.qz-me-row-main b {
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.qz-me-row-main small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.qz-me-row-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2);
+  margin-left: auto;
+}
+
+/* ---------- 2FA：浅底子面板（状态信息 / 关闭 / 重新生成 / 绑定流程） ---------- */
 .qz-sec-sub {
   display: grid;
-  gap: 10px;
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  gap: var(--qz-space-3);
+  padding: var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
 }
 
-/* 2FA 二维码 + 密钥 */
+/* 二维码 + 密钥 */
 .qz-sec-qr {
   display: flex;
   justify-content: center;
 }
+
 .qz-sec-qr img {
   width: 190px;
   height: 190px;
-  padding: 8px;
-  border: 1px solid var(--line-strong);
-  border-radius: 14px;
-  background: #fff;
+  padding: var(--qz-space-2);
+  border: 1px solid var(--qz-border-strong);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
 }
+
 .qz-sec-secret {
   display: block;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 13px;
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--qz-text-sm);
   letter-spacing: 0.06em;
+  text-align: center;
   overflow-wrap: anywhere;
 }
 
-/* 恢复码弹窗（Teleport 到 body，走 qiaozhi-tokens 变量） */
+/* ---------- 恢复码弹窗（Teleport） ---------- */
 .qz-sec-mask {
   position: fixed;
   inset: 0;
@@ -1420,48 +1594,74 @@ button.qz-me-act:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  background: rgba(10, 10, 10, 0.5);
+  padding: var(--qz-space-4);
+  background: color-mix(in oklab, var(--qz-text) 55%, transparent);
   backdrop-filter: blur(4px);
 }
-.qz-sec-modal {
+
+/* 暗色里 --qz-text 是近白，遮罩改用页面底色压暗 */
+.dark .qz-sec-mask {
+  background: color-mix(in oklab, var(--qz-bg) 72%, transparent);
+}
+
+.qz-panel.qz-sec-modal {
   width: min(460px, 100%);
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - var(--qz-space-8));
   overflow-y: auto;
-  padding: 22px;
-  border-radius: 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
+  box-shadow: var(--qz-shadow-floating);
 }
+
 .qz-sec-modal h4 {
-  margin: 0 0 8px;
-  font-size: 16px;
+  margin: 0 0 var(--qz-space-2);
+  color: var(--qz-text);
+  font-size: var(--qz-text-lg);
   font-weight: 700;
-  color: var(--text);
+  line-height: var(--qz-leading-body);
+  letter-spacing: var(--qz-tracking-display);
 }
+
 .qz-sec-codes {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qz-space-2);
+  margin-top: var(--qz-space-4);
 }
+
 .qz-sec-codes code {
-  padding: 9px 10px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface-2);
-  color: var(--text);
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--qz-text-xs);
   text-align: center;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
+  overflow-wrap: anywhere;
 }
+
 .qz-sec-modal-acts {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: var(--qz-space-2);
+  margin-top: var(--qz-space-4);
 }
+
 .qz-sec-modal-acts > * {
   flex: 1 1 0;
+}
+
+@media (max-width: 760px) {
+  .qz-panel.qz-me-sec {
+    padding: var(--qz-space-4);
+  }
+
+  .qz-me-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qz-me-row-side {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
 }
 </style>
