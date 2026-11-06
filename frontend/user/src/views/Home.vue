@@ -381,8 +381,9 @@ const heroBadgeClass = 'inline-flex items-center gap-2 rounded-md border border-
 const templateMode = computed(() => appStore.config?.template_mode || 'card')
 const navBuiltin = computed(() => (appStore.config?.nav_config as { builtin?: Record<string, boolean> } | undefined)?.builtin)
 // 只供 loadLatestPosts 决定要不要拉、拉哪种类型，必须保持乐观读法（不要套 optionalFlagOn）：
-// 帖子只在 onMounted 拉一次，而内联的 window.__PUBLIC_CONFIG__ 不含 nav_config，
-// 若按关闭处理会直接跳过请求，完整配置到达后也不会补拉，区块显示出来就是空的。
+// 帖子只在 onMounted 拉一次，而内联的 window.__PUBLIC_CONFIG__ 不一定带 nav_config
+// （旧后端不带，此时 configComplete 为 false），若按关闭处理会直接跳过请求，
+// 完整配置到达后也不会补拉，区块显示出来就是空的。
 const blogEnabled = computed(() => navBuiltin.value?.blog !== false)
 const noticeEnabled = computed(() => navBuiltin.value?.notice !== false)
 // 显示用的门控读法：完整配置到达前按关闭处理，避免「最新动态」区块和博客 / 公告链接
