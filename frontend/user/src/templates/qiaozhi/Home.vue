@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { PackageOpen, Share2 } from 'lucide-vue-next'
@@ -266,6 +266,11 @@ const armReveal = () => {
     cleanupReveal = setupReveal(rootEl.value)
   })
 }
+
+// 搜索 / 分类切换后重新武装：新渲染的卡片带 is-pending，不重新观察会一直停在 opacity: 0
+watch([searchQuery, selectedCategory], () => {
+  armReveal()
+})
 
 onMounted(async () => {
   if (!appStore.config) void appStore.loadConfig()

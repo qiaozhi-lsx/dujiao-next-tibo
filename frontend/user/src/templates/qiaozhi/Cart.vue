@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ChevronLeft, ShoppingBag, ShoppingCart } from 'lucide-vue-next'
@@ -189,6 +189,11 @@ const armReveal = () => {
     cleanupReveal = setupReveal(rootEl.value)
   })
 }
+
+// 条目数变化（如删除最后一件后"撤销"）会新建带 is-pending 的条目和结算卡，需重新武装
+watch(() => cartItems.value.length, () => {
+  armReveal()
+})
 
 const itemTitle = (item: CartItem): string => {
   const text = getLocalizedText(item.title)
