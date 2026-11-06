@@ -1822,6 +1822,10 @@
       "back": "返回首页",
       "emptyHint": "挑一件心仪的，放进购物车再来结算吧。"
     },
+    "guestOrders": {
+      "eyebrow": "ORDERS",
+      "emptyBeforeQuery": "输入邮箱与订单密码后查看订单"
+    },
     "checkout": {
       "eyebrow": "CHECKOUT",
       "subtitle": "确认信息，核对金额，立即创建订单并前往支付。",
