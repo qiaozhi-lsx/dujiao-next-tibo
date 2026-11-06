@@ -10,7 +10,7 @@
         <p>{{ t('qiaozhi.products.hero.subtitle') }}</p>
       </div>
       <div class="qz-hero-actions">
-        <label class="qz-search" role="search">
+        <label class="qz-field-control qz-search" role="search">
           <Search />
           <input
             v-model="searchQuery"
@@ -40,7 +40,7 @@
         @select="onSelectCategory"
       />
       <div>
-        <div class="qz-section-heading">
+        <div class="qz-section-head">
           <div>
             <span class="qz-eyebrow">{{ t('qiaozhi.products.catalog.eyebrow') }}</span>
             <h2>{{ activeCategoryName }}</h2>
@@ -66,7 +66,7 @@
           <PackageOpen />
           <b>{{ searchQuery || selectedCategory !== null ? t('products.emptyFiltered') : t('products.empty') }}</b>
           <span v-if="searchQuery || selectedCategory !== null">
-            <button type="button" class="qz-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
+            <button type="button" class="qz-btn qz-btn--primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
           </span>
         </div>
       </div>
@@ -257,3 +257,94 @@ onUnmounted(() => {
   cleanupReveal?.()
 })
 </script>
+
+<style scoped>
+/* 列表页专属版式：hero（页 h1 用 2xl）、搜索框（.qz-field-control 上的宽度与清除钮）与商品网格。
+   `.qz-catalog` 两栏与骨架屏仍在 legacy.css。关键帧 qz-text-in 来自 legacy.css。 */
+
+/* ---------- Hero ---------- */
+.qz-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--qz-space-8);
+  margin-bottom: var(--qz-space-5);
+}
+.qz-hero-copy { min-width: 0; }
+.qz-hero-copy p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+}
+.qz-hero-title {
+  margin: var(--qz-space-1) 0 var(--qz-space-2);
+  color: var(--qz-text);
+  font-size: var(--qz-text-2xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+}
+.qz-hero-title > span {
+  display: inline-block;
+  animation: qz-text-in var(--qz-duration-considered) var(--qz-ease-enter) backwards;
+}
+.qz-hero-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--qz-space-2);
+}
+
+/* ---------- 搜索框：基类给高度 / 边框 / 焦点，这里只定宽与清除钮（带上基类名靠特指度覆盖 width:100%） ---------- */
+.qz-field-control.qz-search { width: min(380px, 35vw); }
+.qz-search input::-webkit-search-cancel-button,
+.qz-search input::-webkit-search-decoration,
+.qz-search input::-webkit-search-results-button,
+.qz-search input::-webkit-search-results-decoration {
+  appearance: none;
+  display: none;
+}
+.qz-search-clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: calc(-1 * var(--qz-space-2));
+  padding: 0;
+  border: 0;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text-muted);
+  cursor: pointer;
+  transition: color var(--qz-duration-fast) var(--qz-ease-standard), background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qz-search .qz-search-clear svg { width: 14px; height: 14px; color: inherit; }
+@media (hover: hover) and (pointer: fine) {
+  .qz-search-clear:hover { color: var(--qz-text); background: var(--qz-accent-subtle); }
+}
+.qz-search-clear:active { color: var(--qz-text); background: var(--qz-accent-subtle); }
+
+/* ---------- 商品网格 ---------- */
+.qz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+
+@media (max-width: 760px) {
+  .qz-hero {
+    display: grid;
+    gap: var(--qz-space-4);
+    margin-bottom: var(--qz-space-4);
+  }
+  .qz-hero-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .qz-field-control.qz-search { width: 100%; }
+  .qz-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--qz-space-2);
+  }
+}
+</style>

@@ -64,7 +64,7 @@
     <section v-else-if="orderExpired || orderCanceled" class="qz-pd-detail">
       <div class="qz-pd-pay-head">
         <div>
-          <span class="qz-eyebrow">PAYMENT</span>
+          <span class="qz-eyebrow">{{ t('qiaozhi.payment.pageEyebrow') }}</span>
           <h2>{{ orderCanceled ? t('payment.orderCanceled') : t('payment.orderExpired') }}</h2>
           <p class="qz-pd-pay-sub">{{ order.order_no }}</p>
         </div>

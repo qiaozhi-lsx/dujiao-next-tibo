@@ -1759,6 +1759,10 @@
       "share": "分享",
       "shared": "已复制"
     },
+    "home": {
+      "featuredEyebrow": "FEATURED",
+      "storeEyebrow": "STORE"
+    },
     "search": {
       "label": "搜索商品",
       "trigger": "搜索",
@@ -1772,11 +1776,15 @@
       "title": "为你精选",
       "unit": "个商品",
       "months": "个月",
-      "days": "天"
+      "days": "天",
+      "membershipEyebrow": "MEMBERSHIP"
     },
     "catalog": {
       "title": "商品分类",
       "unit": "件"
+    },
+    "categories": {
+      "eyebrow": "CATEGORIES"
     },
     "products": {
       "hero": {
@@ -1860,6 +1868,7 @@
     },
     "payment": {
       "eyebrow": "PAYMENT",
+      "pageEyebrow": "PAYMENT",
       "summaryTitle": "订单摘要",
       "scanEyebrow": "SCAN TO PAY",
       "modal": {

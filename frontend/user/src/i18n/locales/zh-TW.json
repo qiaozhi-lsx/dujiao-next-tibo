@@ -1759,6 +1759,10 @@
       "share": "分享",
       "shared": "已複製"
     },
+    "home": {
+      "featuredEyebrow": "FEATURED",
+      "storeEyebrow": "STORE"
+    },
     "search": {
       "label": "搜尋商品",
       "trigger": "搜尋",
@@ -1772,11 +1776,15 @@
       "title": "為你精選",
       "unit": "個商品",
       "months": "個月",
-      "days": "天"
+      "days": "天",
+      "membershipEyebrow": "MEMBERSHIP"
     },
     "catalog": {
       "title": "商品分類",
       "unit": "件"
+    },
+    "categories": {
+      "eyebrow": "CATEGORIES"
     },
     "products": {
       "hero": {
@@ -1860,6 +1868,7 @@
     },
     "payment": {
       "eyebrow": "PAYMENT",
+      "pageEyebrow": "PAYMENT",
       "summaryTitle": "訂單摘要",
       "scanEyebrow": "SCAN TO PAY",
       "modal": {
