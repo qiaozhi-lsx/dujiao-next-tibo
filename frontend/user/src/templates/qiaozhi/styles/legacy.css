@@ -4,8 +4,8 @@
    结构: 令牌层（旧 --bg / --surface / --ui-* 变量全部桥接到 --qz-* token，标准页面自动换肤）
          （顶栏 / 页脚 / 底部导航 / 容器 / 客服浮钮 / 语言弹层的外壳已迁至 layout.css）
          + 首页（qz-hero / qz-featured / qz-fcard + fa-* 艺术动画 / qz-catalog / qz-grid / qz-card）
-         + 详情页独占段已迁入 ProductDetail.vue / QzQtyStepper.vue 的 <style>；
-           这里剩下的 qz-pd-* / qz-ic-* 是 Payment / Checkout / 订单页仍在共用的规则
+         + 详情页独占段已迁入 ProductDetail.vue / QzQtyStepper.vue 的 <style>，结算页独占段已随 Checkout.vue 迁移删除；
+           这里剩下的 qz-pd-* / qz-ic-* 是 Payment / 订单页 / 个人中心仍在共用的规则
    字号地板：全表没有小于 11px（--qz-text-2xs）的 font-size；42–46px 的胶囊高度走 --qz-control-md。
    ========================================================================= */
 
@@ -213,54 +213,6 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-ic-alert { margin: 0px; padding: 10px 12px; border-radius: 12px; font-size: 13px; background: var(--amber-soft); color: var(--amber); }
 .qiaozhi-scope .qz-ic-alert.is-error { background: var(--red-soft); color: var(--red); }
 .qiaozhi-scope .qz-ic-spin { width: 16px; height: 16px; animation: 1s linear 0s infinite normal none running qz-ic-spin; }
-.qiaozhi-scope .qz-xcheck-main { display: grid; align-content: start; grid-auto-rows: max-content; gap: 22px; padding-top: 24px; padding-bottom: 70px; }
-.qiaozhi-scope .qz-xcheck-hero { padding: 30px 4px 8px; }
-.qiaozhi-scope .qz-xcheck-hero h1 { margin: 7px 0px 9px; color: var(--text); font-size: 44px; font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; }
-.qiaozhi-scope .qz-xcheck-hero p { max-width: 720px; margin: 0px; color: var(--muted); font-size: 15px; line-height: 1.75; }
-.qiaozhi-scope .qz-xcheck-panel { display: grid; grid-template-columns: minmax(0px, 1.4fr) minmax(260px, 0.8fr); gap: 22px; align-items: start; padding: 26px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); box-shadow: var(--shadow-soft); }
-.qiaozhi-scope .qz-xcheck-rules { padding: 20px; border: 1px solid var(--accent-line); border-radius: 16px; background: var(--accent-soft); }
-.qiaozhi-scope .qz-xcheck-rules h2 { margin: 0px 0px 10px; color: var(--accent-strong); font-size: 14px; font-weight: 700; }
-.qiaozhi-scope .qz-xcheck-rules ul { display: grid; gap: 8px; margin: 0px; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55; }
-.qiaozhi-scope .qz-xcheck { display: grid; gap: 14px; min-width: 0px; }
-.qiaozhi-scope .qz-xcheck-form { display: grid; gap: 12px; }
-.qiaozhi-scope .qz-xcheck-form label { display: grid; gap: 8px; }
-.qiaozhi-scope .qz-xcheck-form label > span { color: var(--text); font-size: 13px; font-weight: 700; }
-.qiaozhi-scope .qz-xcheck textarea, .qiaozhi-scope .qz-xcheck input { width: 100%; min-width: 0px; border: 1px solid var(--line-strong); border-radius: 12px; padding: 12px 14px; background: var(--surface-2); color: var(--text); font: 500 14px/1.6 var(--font-mono); outline: 0px; transition: border-color 0.15s, box-shadow 0.15s; }
-.qiaozhi-scope .qz-xcheck textarea { min-height: 120px; resize: vertical; }
-.qiaozhi-scope .qz-xcheck textarea:focus, .qiaozhi-scope .qz-xcheck input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
-.qiaozhi-scope .qz-xcheck textarea::placeholder, .qiaozhi-scope .qz-xcheck input::placeholder { color: var(--muted); }
-.qiaozhi-scope .qz-xcheck-inline { display: grid; grid-template-columns: minmax(0px, 1fr) auto; gap: 8px; }
-.qiaozhi-scope .qz-xcheck-btn { min-height: var(--qz-control-md); display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0px; border-radius: 11px; padding: 0px 16px; background: linear-gradient(90deg,var(--accent),var(--accent-strong)); color: var(--on-accent); font-size: 14px; font-weight: 800; white-space: nowrap; box-shadow: var(--shadow-primary); transition: transform 0.15s, opacity 0.15s; }
-.qiaozhi-scope .qz-xcheck-btn svg { width: 16px; height: 16px; }
-.qiaozhi-scope .qz-xcheck-btn:hover { transform: translateY(-1px); }
-.qiaozhi-scope .qz-xcheck-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-.qiaozhi-scope .qz-xcheck-spin { animation: 1s linear 0s infinite normal none running qz-xcheck-spin; }
-.qiaozhi-scope .qz-xcheck-note { margin: 0px; color: var(--muted); font-size: 12px; line-height: 1.55; }
-.qiaozhi-scope .qz-xcheck-error { margin: 0px; color: var(--red); font-size: 13px; }
-.qiaozhi-scope .qz-xcheck-results { display: grid; gap: 10px; margin: 0px; padding: 0px; list-style: none; }
-.qiaozhi-scope .qz-xcheck-results li { display: grid; grid-template-columns: 40px minmax(0px, 1fr) 22px; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
-.qiaozhi-scope .qz-xcheck-results img, .qiaozhi-scope .qz-xcheck-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-.qiaozhi-scope .qz-xcheck-avatar { display: grid; place-items: center; background: var(--line); color: var(--muted); }
-.qiaozhi-scope .qz-xcheck-avatar svg { width: 18px; height: 18px; }
-.qiaozhi-scope .qz-xcheck-results b { display: block; overflow: hidden; color: var(--text); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.qiaozhi-scope .qz-xcheck-results b small { color: var(--muted); font-weight: 500; }
-.qiaozhi-scope .qz-xcheck-results p { margin: 2px 0px 0px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
-.qiaozhi-scope .qz-xcheck-icon { width: 22px; height: 22px; }
-.qiaozhi-scope .qz-xcheck-results li.is-good { border-color: color-mix(in srgb,var(--accent-strong) 45%,var(--line)); }
-.qiaozhi-scope .qz-xcheck-results li.is-good .qz-xcheck-icon, .qiaozhi-scope .qz-xcheck-results li.is-good p { color: var(--accent-strong); }
-.qiaozhi-scope .qz-xcheck-results li.is-bad { border-color: color-mix(in srgb,var(--red) 40%,var(--line)); }
-.qiaozhi-scope .qz-xcheck-results li.is-bad .qz-xcheck-icon { color: var(--red); }
-.qiaozhi-scope .qz-xcheck-results li.is-warn .qz-xcheck-icon { color: var(--amber); }
-.qiaozhi-scope .qz-xcheck.is-compact .qz-xcheck-results li { background: var(--surface); }
-@media (max-width: 760px) {
-.qiaozhi-scope .qz-xcheck-hero h1 { font-size: 32px; }
-}
-@media (max-width: 760px) {
-.qiaozhi-scope .qz-xcheck-panel { grid-template-columns: 1fr; padding: 16px; }
-}
-@media (max-width: 420px) {
-.qiaozhi-scope .qz-xcheck-inline { grid-template-columns: 1fr; }
-}
 
 /* ---------- 关键帧全集 ---------- */
 @keyframes qz-text-in { 0% { opacity: 0; transform: translateY(14px); filter: blur(4px); } 100% { opacity: 1; transform: none; filter: none; } }
@@ -515,11 +467,11 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 }
 
 /* ---------- Arc 按钮语言（参考 uiarc.dev Button）：未迁移页面的按钮胶囊化 + 按压缩放 ---------- */
-.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button) {
+.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-order-back, .qz-order-btn, .qz-me-act, .qz-me-pager button) {
   border-radius: var(--r-pill);
   transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
-.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button):not(:disabled):active {
+.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-order-back, .qz-order-btn, .qz-me-act, .qz-me-pager button):not(:disabled):active {
   transform: scale(0.97);
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
