@@ -1825,6 +1825,21 @@
       "hasAccountPrefix": "Already have an account?",
       "goLogin": "Sign in"
     },
+    "forgot": {
+      "eyebrow": "RESET PASSWORD"
+    },
+    "notice": {
+      "eyebrow": "NOTICE"
+    },
+    "blog": {
+      "eyebrow": "BLOG"
+    },
+    "about": {
+      "eyebrow": "ABOUT"
+    },
+    "legal": {
+      "eyebrow": "LEGAL"
+    },
     "cart": {
       "eyebrow": "CART",
       "back": "Back to home",
