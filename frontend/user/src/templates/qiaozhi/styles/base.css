@@ -1,0 +1,330 @@
+/* =========================================================================
+   qiaozhi base classes (`.qz-*` primitives)
+
+   Ported from Arc UI (uiarc.dev, github.com/kuratlielia/arc-library, MIT): Button, Badge,
+   Input, Card, Segmented Control, Empty State and the foundation :focus-visible rule. Every
+   Arc variable is mapped to its `--qz-*` counterpart from tokens.css; this sheet consumes
+   tokens only (no colour literals, no raw type sizes, no raw control heights — the
+   style-conventions guard enforces it). Pages consume these classes and add layout on top.
+
+   Scope. Every rule starts with `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))`, the form
+   legacy.css already uses for body-reachable rules: `.qiaozhi-scope` is the layout root,
+   `body.qiaozhi-tokens` is what Teleport-ed overlays (drawer, modals, toasts) sit under.
+   `:where()` keeps the body branch at zero specificity, so a rule here weighs exactly
+   `.qiaozhi-scope .qz-x` (0,2,0) — legacy.css, imported after this sheet, still wins ties
+   while pages migrate, and page `<style scoped>` overrides stay cheap. State guards use
+   `:where(:not(…))` for the same reason.
+
+   Press feedback: `.qz-btn` / `.qz-icon-btn` scale by `--qz-press` on :active. QzButton.vue
+   and QzQtyStepper.vue write it per button width (.985 wide / .97 / .96 icon); the CSS
+   fallback is .97 for buttons and .96 for icon buttons.
+
+   Order: button → icon button → pill → chip / badge → field → card / panel → eyebrow /
+   section head / empty state → focus → reduced motion.
+   ========================================================================= */
+
+/* ---------- Button (Arc Button: .button / .primary .secondary .ghost .danger / .sm .lg) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-2);
+  min-height: var(--qz-control-md);
+  padding: 0 var(--qz-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--qz-radius-pill);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--qz-duration-spring) var(--qz-ease-spring),
+    color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard),
+    border-color var(--qz-duration-fast) var(--qz-ease-standard),
+    opacity var(--qz-duration-fast) var(--qz-ease-standard),
+    box-shadow var(--qz-duration-fast) var(--qz-ease-standard);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn svg { flex: none; width: 18px; height: 18px; }
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--primary { color: var(--qz-on-accent); background: var(--qz-accent); border-color: var(--qz-accent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--secondary { color: var(--qz-text); background: var(--qz-surface); border-color: var(--qz-border); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--ghost { color: var(--qz-text-secondary); background: transparent; border-color: transparent; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--danger { color: var(--qz-danger); background: var(--qz-surface); border-color: var(--qz-border); }
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--sm { min-height: var(--qz-control-sm); padding-inline: var(--qz-space-3); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--sm svg { width: 16px; height: 16px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--lg { min-height: var(--qz-control-lg); padding-inline: var(--qz-space-5); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--block { width: 100%; }
+
+/* Hover only answers a fine pointer; touch goes straight to the press colour below. */
+@media (hover: hover) and (pointer: fine) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--primary:hover:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { opacity: .91; box-shadow: var(--qz-shadow-resting); }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--secondary:hover:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { background: var(--qz-surface-muted); box-shadow: var(--qz-shadow-resting); }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--ghost:hover:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { color: var(--qz-text); background: var(--qz-surface-muted); }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--danger:hover:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { border-color: var(--qz-danger); background: var(--qz-surface-muted); }
+}
+
+/* Press: colour feedback for every input, plus the scale (instant in, spring out through the resting transition). */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--primary:active:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { opacity: .84; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--secondary:active:where(:not(:disabled, .is-inert, [aria-disabled="true"])),
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--ghost:active:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { color: var(--qz-text); background: var(--qz-surface-muted); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--danger:active:where(:not(:disabled, .is-inert, [aria-disabled="true"])) { border-color: var(--qz-danger); background: var(--qz-surface-muted); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn:active:where(:not(:disabled, .is-inert, [aria-disabled="true"], [aria-busy="true"])) {
+  transform: scale(var(--qz-press, .97));
+  transition: transform var(--qz-duration-instant) var(--qz-ease-standard);
+}
+
+/* Disabled: primary fades as a whole; secondary / danger keep their outline and mute the label, so they still read as a button that is off; ghost only mutes. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn:disabled,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn[aria-disabled="true"] { cursor: not-allowed; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--primary:disabled { opacity: .52; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--secondary:disabled,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--danger:disabled { color: var(--qz-text-muted); background: var(--qz-surface-muted); border-color: var(--qz-border); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--ghost:disabled { color: var(--qz-text-muted); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn[aria-busy="true"] { cursor: progress; }
+
+/* ---------- Icon button (Arc Button, icon-only secondary: square → circle, md 44 / sm 36 with 18 / 16 glyph) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--qz-control-md);
+  height: var(--qz-control-md);
+  padding: 0;
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface);
+  color: var(--qz-text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--qz-duration-spring) var(--qz-ease-spring),
+    color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard),
+    border-color var(--qz-duration-fast) var(--qz-ease-standard),
+    box-shadow var(--qz-duration-fast) var(--qz-ease-standard);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn svg { width: 18px; height: 18px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn--sm { width: var(--qz-control-sm); height: var(--qz-control-sm); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn--sm svg { width: 16px; height: 16px; }
+@media (hover: hover) and (pointer: fine) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn:hover:where(:not(:disabled, [aria-disabled="true"])) { color: var(--qz-text); background: var(--qz-surface-muted); box-shadow: var(--qz-shadow-resting); }
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn:active:where(:not(:disabled, [aria-disabled="true"])) {
+  color: var(--qz-text);
+  background: var(--qz-surface-muted);
+  transform: scale(var(--qz-press, .96));
+  transition: transform var(--qz-duration-instant) var(--qz-ease-standard);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn:disabled,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn[aria-disabled="true"] { color: var(--qz-text-muted); background: var(--qz-surface-muted); cursor: not-allowed; }
+
+/* ---------- Pill (Arc Segmented Control item; nav links and segment buttons) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-2);
+  min-height: var(--qz-control-sm);
+  padding: 0 var(--qz-space-3);
+  border: 0;
+  border-radius: var(--qz-radius-pill);
+  background: transparent;
+  color: var(--qz-text-secondary);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill svg { flex: none; width: 16px; height: 16px; }
+@media (hover: hover) and (pointer: fine) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill:hover:where(:not(.is-active)) { color: var(--qz-text); background: var(--qz-accent-subtle); }
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill:active:where(:not(.is-active)) { color: var(--qz-text); background: var(--qz-accent-subtle); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill.is-active { color: var(--qz-on-accent); background: var(--qz-accent); }
+
+/* ---------- Chip / Badge (Arc Badge, pill form; 24 / 22 high, 11px) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--qz-space-1);
+  min-height: 24px;
+  max-width: 100%;
+  padding: 0 var(--qz-space-2);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-2xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* Status badges tint 12% of the status colour behind the status colour itself; always pair with a label or icon. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-1);
+  min-height: 22px;
+  padding: 0 var(--qz-space-2);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-success { color: var(--qz-success); background: color-mix(in oklab, var(--qz-success) 12%, transparent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-warning { color: var(--qz-warning); background: color-mix(in oklab, var(--qz-warning) 12%, transparent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-danger { color: var(--qz-danger); background: color-mix(in oklab, var(--qz-danger) 12%, transparent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-info { color: var(--qz-info); background: color-mix(in oklab, var(--qz-info) 12%, transparent); }
+
+/* ---------- Field (Arc Input: .field / .label / .input / .description / .error) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field { display: grid; gap: var(--qz-space-2); min-width: 0; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-label { color: var(--qz-text); font-size: var(--qz-text-xs); font-weight: 600; line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-label b { color: var(--qz-danger); font-weight: inherit; }
+/* .qz-field-control sits on the input / select / textarea itself or on a wrapper around one (input + icon / button); focus answers with the border colour alone. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--qz-control-md);
+  padding: 0 var(--qz-space-4);
+  border: 1px solid var(--qz-border-strong);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+  outline: none;
+  transition:
+    border-color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(input, select, textarea).qz-field-control { display: block; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) textarea.qz-field-control { padding-block: var(--qz-space-3); resize: vertical; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control :is(input, select, textarea) {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control svg { flex: none; width: 18px; height: 18px; color: var(--qz-text-muted); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control::placeholder,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control :is(input, textarea)::placeholder { color: var(--qz-text-muted); }
+@media (hover: hover) and (pointer: fine) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:hover:where(:not(:disabled, [aria-invalid="true"], :has(:disabled, [aria-invalid="true"]))) { border-color: var(--qz-text); }
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:focus-within { border-color: var(--qz-accent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control[aria-invalid="true"],
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:has([aria-invalid="true"]) { border-color: var(--qz-danger); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:disabled,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:has(:disabled) { opacity: .5; background: var(--qz-surface-muted); cursor: not-allowed; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-hint { color: var(--qz-text-muted); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-error { color: var(--qz-danger); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
+
+/* ---------- Card / Panel (Arc Card surface; card = control radius, panel = panel radius) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-card {
+  position: relative;
+  min-width: 0;
+  padding: var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  box-shadow: var(--qz-shadow-resting);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-panel {
+  position: relative;
+  min-width: 0;
+  padding: var(--qz-space-5);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-panel);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  box-shadow: var(--qz-shadow-resting);
+}
+
+/* ---------- Eyebrow / section head (Arc Page Header kicker + title row) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-eyebrow {
+  display: block;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-2xs);
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  margin-bottom: var(--qz-space-3);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head > div { min-width: 0; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head h2 { margin: 0; color: var(--qz-text); font-size: var(--qz-text-lg); font-weight: 700; line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head > span { flex: none; color: var(--qz-text-muted); font-size: var(--qz-text-xs); white-space: nowrap; }
+
+/* ---------- Empty state (Arc Empty State: icon → title → description → action, centred) ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty {
+  display: grid;
+  place-items: center;
+  padding: var(--qz-space-10) var(--qz-space-5);
+  color: var(--qz-text-muted);
+  text-align: center;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > svg { width: 40px; height: 40px; margin-bottom: var(--qz-space-4); color: var(--qz-text-secondary); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > b { color: var(--qz-text); font-size: var(--qz-text-base); font-weight: 600; line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > span,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > p { margin: var(--qz-space-1) 0 0; font-size: var(--qz-text-sm); line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty .qz-btn { margin-top: var(--qz-space-5); }
+
+/* ---------- Keyboard focus (Arc foundation :focus-visible outline) ----------
+   Pointer focus draws nothing; keyboard focus draws the accent outline (WCAG 2.4.7). Left out: text fields
+   (they match :focus-visible on click too and answer with their border — see .qz-field-control), menu items
+   and listbox options (their highlight marks the position) and tabindex="-1" targets focused from script.
+   The latter two groups also drop the UA ring; text fields keep it until they move onto .qz-field-control. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is([role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"], [tabindex="-1"]):focus { outline: none; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :focus-visible:not(
+  input:not([type="button"], [type="checkbox"], [type="color"], [type="file"], [type="image"], [type="radio"], [type="range"], [type="reset"], [type="submit"]),
+  textarea,
+  [contenteditable]:not([contenteditable="false"]),
+  [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"],
+  [tabindex="-1"]
+) {
+  outline: 2px solid var(--qz-focus-outline);
+  outline-offset: 2px;
+}
+
+/* ---------- Reduced motion: no transitions, no press scale ---------- */
+@media (prefers-reduced-motion: reduce) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill, .qz-field-control) { transition: none; }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn):active { transform: none; transition: none; }
+}

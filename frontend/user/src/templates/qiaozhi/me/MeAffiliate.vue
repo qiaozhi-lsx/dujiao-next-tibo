@@ -122,7 +122,7 @@
             />
           </div>
         </div>
-        <QzButton type="submit" class="qz-arc-block" :loading="submittingWithdraw" :disabled="submittingWithdraw">
+        <QzButton type="submit" class="qz-btn--block" :loading="submittingWithdraw" :disabled="submittingWithdraw">
           {{ submittingWithdraw ? t('personalCenter.affiliate.withdrawing') : t('personalCenter.affiliate.withdrawSubmit') }}
         </QzButton>
       </form>
