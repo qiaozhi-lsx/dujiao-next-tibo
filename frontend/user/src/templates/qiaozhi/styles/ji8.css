@@ -59,7 +59,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .qiaozhi-scope > .j8-main > .min-h-screen { min-height: calc(100vh - var(--site-header-height)); }
 .qiaozhi-scope > .j8-main > .min-h-screen.flex-col > .mt-12 { margin-top: 0px; }
 .qiaozhi-scope .j8-container { width: min(1380px, 92vw); min-height: calc(-178px + 100vh); margin: 0px auto; padding: 34px 0px 60px; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-eyebrow { display: block; color: var(--accent-strong); font-size: 9px; font-weight: 800; letter-spacing: 0.17em; text-transform: uppercase; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-eyebrow { display: block; color: var(--accent-strong); font-size: 9px; font-weight: 800; letter-spacing: 0.17em; text-transform: uppercase; }
 .qiaozhi-scope .j8-header { position: fixed; top: 0px; left: 0px; right: 0px; z-index: 40; height: var(--site-header-height); display: grid; grid-template-columns: 220px 1fr auto; align-items: center; padding: 0px max(24px, 4vw); border-bottom: 1px solid var(--line); background: var(--header); backdrop-filter: blur(18px); }
 .qiaozhi-scope .j8-brand { display: flex; align-items: center; gap: 10px; width: max-content; min-width: 0px; }
 .qiaozhi-scope .j8-brand-mark { display: grid; place-items: center; flex: 0 0 auto; width: 38px; height: 38px; overflow: hidden; border-radius: var(--r-mark); background: rgb(255, 255, 255); box-shadow: var(--shadow-mark); color: var(--on-accent); font-weight: 800; }
@@ -133,25 +133,25 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .qiaozhi-scope .j8-panel, .qiaozhi-scope .j8-cat-panel { position: sticky; top: calc(var(--site-header-height) + 18px); border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); box-shadow: var(--shadow-soft); overflow: hidden; }
 .qiaozhi-scope .j8-panel > header, .qiaozhi-scope .j8-cat-panel > header { padding: 20px; border-bottom: 1px solid var(--line); }
 .qiaozhi-scope .j8-panel h2, .qiaozhi-scope .j8-cat-panel h2 { margin: 3px 0px 0px; color: var(--text); font-size: 20px; font-weight: 700; line-height: 1.25; }
-/* 分类列表同时用于桌面侧栏（.qiaozhi-scope 内）和手机抽屉（Teleport 到 body），前缀用 :is() 两边都命中 */
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-list { display: grid; gap: 4px; padding: 10px; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item { width: 100%; display: grid; grid-template-columns: 34px minmax(0px, 1fr) auto; align-items: center; gap: 10px; border: 1px solid transparent; border-radius: var(--r-item); padding: 9px; background: transparent; color: var(--muted); text-align: left; transition: background 0.15s, border-color 0.15s, color 0.15s; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item:hover, :is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item.is-active, :is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item.active { border-color: rgba(10, 10, 10, 0.14); background: var(--accent-soft); color: var(--text); }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item.is-child { padding-left: 24px; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--r-logo); overflow: hidden; background: var(--surface-2); color: var(--accent-strong); font-size: 11px; font-weight: 800; text-transform: uppercase; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo img { width: 100%; height: 100%; object-fit: contain; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo svg { width: 18px; height: 18px; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo.hot { background: var(--amber-soft); color: var(--amber); }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-brand-icon { display: inline-grid; place-items: center; width: 100%; height: 100%; overflow: hidden; color: var(--accent-strong); font-weight: 800; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-brand-icon > img { width: 100%; height: 100%; object-fit: contain; }
+/* 分类列表同时用于桌面侧栏（.qiaozhi-scope 内）和手机抽屉（Teleport 到 body），前缀用 :is() 两边都命中；body 一侧包在 :where() 里保持特指度与 .qiaozhi-scope 一致，不翻转后文层叠 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-list { display: grid; gap: 4px; padding: 10px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item { width: 100%; display: grid; grid-template-columns: 34px minmax(0px, 1fr) auto; align-items: center; gap: 10px; border: 1px solid transparent; border-radius: var(--r-item); padding: 9px; background: transparent; color: var(--muted); text-align: left; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item:hover, :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item.is-active, :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item.active { border-color: rgba(10, 10, 10, 0.14); background: var(--accent-soft); color: var(--text); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item.is-child { padding-left: 24px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--r-logo); overflow: hidden; background: var(--surface-2); color: var(--accent-strong); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo img { width: 100%; height: 100%; object-fit: contain; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo svg { width: 18px; height: 18px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo.hot { background: var(--amber-soft); color: var(--amber); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-brand-icon { display: inline-grid; place-items: center; width: 100%; height: 100%; overflow: hidden; color: var(--accent-strong); font-weight: 800; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-brand-icon > img { width: 100%; height: 100%; object-fit: contain; }
 .qiaozhi-scope .j8-brand-svg { fill: currentcolor; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo > .j8-brand-icon > svg { width: 18px; height: 18px; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo > .j8-brand-icon > img { box-sizing: border-box; padding: 6px; }
-.dark :is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-logo > .j8-brand-icon > img { background: rgb(238, 242, 245); }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-brand-icon > b { font-size: 14px; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item > span { font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item > b { min-width: 25px; padding: 3px 6px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--muted); font-size: 8px; font-weight: 600; line-height: 1.2; text-align: center; font-variant-numeric: tabular-nums; }
-:is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item.is-active > b, :is(.qiaozhi-scope, body.qiaozhi-tokens) .j8-cat-item.active > b { background: var(--surface); color: var(--accent-strong); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo > .j8-brand-icon > svg { width: 18px; height: 18px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo > .j8-brand-icon > img { box-sizing: border-box; padding: 6px; }
+.dark :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-logo > .j8-brand-icon > img { background: rgb(238, 242, 245); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-brand-icon > b { font-size: 14px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item > span { font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item > b { min-width: 25px; padding: 3px 6px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--muted); font-size: 8px; font-weight: 600; line-height: 1.2; text-align: center; font-variant-numeric: tabular-nums; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item.is-active > b, :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .j8-cat-item.active > b { background: var(--surface); color: var(--accent-strong); }
 .qiaozhi-scope .j8-section-heading, .qiaozhi-scope .j8-section-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
 .qiaozhi-scope .j8-section-heading > div, .qiaozhi-scope .j8-section-head > div { min-width: 0px; }
 .qiaozhi-scope .j8-section-heading h2, .qiaozhi-scope .j8-section-head h2 { margin: 2px 0px 0px; color: var(--text); font-size: 20px; font-weight: 700; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
