@@ -1851,6 +1851,7 @@
       "errPassword": "订单查询密码至少 6 位",
       "errChannel": "请选择支付方式",
       "errSubmit": "下单失败，请稍后重试",
+      "renewNeedsCaptcha": "支付已过期，请重新完成验证码后再次提交",
       "descExpand": "展开",
       "descCollapse": "收起"
     },
@@ -1904,7 +1905,8 @@
         "amountLabel": "合计",
         "timeLabel": "时间",
         "notQrCapable": "暂未获取到支付信息,请稍后重试或联系客服",
-        "closeAria": "关闭支付弹窗"
+        "closeAria": "关闭支付弹窗",
+        "qrAlt": "支付二维码"
       }
     },
     "orderDetail": {

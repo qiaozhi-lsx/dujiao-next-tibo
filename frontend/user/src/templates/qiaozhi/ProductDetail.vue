@@ -251,9 +251,12 @@ import { processHtmlForDisplay } from '../../utils/content'
 import { getFirstImageUrl, getImageUrl } from '../../utils/image'
 import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
+import { getAffiliateCode, getAffiliateVisitorKey } from '../../utils/affiliate'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useQiaozhiPrice } from './utils/price'
+import { shouldOpenInlineModal } from './utils/paymentDisplay'
+import { buildCreateAndPayPayload, hasManualFormFields } from './utils/orderPayload'
 import PaymentModal, { type PaymentModalItem, type PaymentModalOrder } from './PaymentModal.vue'
 import J8Button from './components/J8Button.vue'
 import J8QtyStepper from './components/J8QtyStepper.vue'
@@ -274,7 +277,7 @@ const {
   isSkuPurchasable, skuDisplayText, skuStockText,
   requiresLogin, requiresSKUSelection, canPurchase, cannotPurchaseReason,
   quantityEffectiveMin, quantityEffectiveLimit,
-  addToCart, loadProduct,
+  addToCart, buyNow, loadProduct,
 } = useProductDetail()
 
 const title = computed(() => getLocalizedText(product.value?.title))
@@ -471,7 +474,9 @@ const buildPaymentOrderPayload = (
     channelName: String(payData?.channel_name || channelInfo?.name || ''),
     providerType: String(payData?.provider_type || channelInfo?.providerType || ''),
     feeAmount: String(payData?.fee_amount || ''),
+    feePolicy: String(payData?.fee_policy || ''),
     payableAmount: String(payData?.payable_amount || ''),
+    payableCurrency: String(payData?.currency || ''),
     walletAddress: String(payData?.wallet_address || ''),
     chainAmount: String(payData?.chain_amount || ''),
     chain: String(payData?.chain || ''),
@@ -495,7 +500,18 @@ const handlePaymentPaid = (order: PaymentModalOrder) => {
 
 // 过期后「重新发起支付」：过期订单会被后台置为 canceled，无法复用旧单，
 // 走同一套下单链路重新建单（含校验/验证码/错误回显）。
+// 游客且验证码开启时，表单里的图形验证码 / Turnstile token 已在上一次建单时被消费，
+// 原样再发必被后端拒绝：先关弹窗、清空并刷新验证码、提示用户重填后再手动提交。
 const handleRenewPayment = async () => {
+  if (!userAuthStore.isAuthenticated && (captchaProvider.value === 'image' || captchaProvider.value === 'turnstile')) {
+    showPaymentModal.value = false
+    captchaPayload.value = {}
+    turnstileToken.value = ''
+    imageCaptchaRef.value?.refresh()
+    turnstileRef.value?.reset()
+    formError.value = t('qiaozhi.detail.renewNeedsCaptcha')
+    return
+  }
   await submitOrder()
   if (formError.value) {
     showPaymentModal.value = false
@@ -583,6 +599,11 @@ watch(showPaymentModal, (opened) => {
   }
 })
 
+// 切换网络后是另一笔支付记录：上一渠道的"已提交 / 提交失败"反馈不再适用，清掉。
+watch(() => paymentOrder.value?.channelId, () => {
+  paymentTxFeedback.value = null
+})
+
 const validateForm = (): string => {
   fieldErrors.value = {}
   if (!userAuthStore.isAuthenticated) {
@@ -613,6 +634,13 @@ const submitOrder = async () => {
     router.push(`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`)
     return
   }
+  // 手动表单商品需在结算页填写交付资料，商品页直接下单会被后端拒绝：
+  // 改走 classic 的 buy-now 路径（buyNowStore + /checkout?mode=buynow）。
+  // 放在游客表单校验之前：结算页会自己收集游客邮箱/密码/验证码，这里不必先填一遍。
+  if (hasManualFormFields(product.value?.manual_form_schema)) {
+    buyNow()
+    return
+  }
   const err = validateForm()
   if (Object.keys(fieldErrors.value).length) {
     return
@@ -628,19 +656,31 @@ const submitOrder = async () => {
     let payData: any = null
     const guestEmailInput = email.value.trim()
     const guestPasswordInput = orderPassword.value
+    // 分销归因与 classic useCheckout 一致：空值在序列化时不出现。
+    const affiliateCode = getAffiliateCode()
+    const affiliateVisitorKey = getAffiliateVisitorKey()
     if (userAuthStore.isAuthenticated) {
-      const res = await userOrderAPI.createAndPay({ items, channel_id: selectedChannelId.value || undefined })
+      const res = await userOrderAPI.createAndPay(buildCreateAndPayPayload({
+        items,
+        channelId: selectedChannelId.value,
+        affiliateCode,
+        affiliateVisitorKey,
+      }))
       payData = res.data?.data
     } else {
-      const res = await guestOrderAPI.createAndPay({
+      const res = await guestOrderAPI.createAndPay(buildCreateAndPayPayload({
         items,
-        channel_id: selectedChannelId.value || undefined,
-        email: guestEmailInput,
-        order_password: guestPasswordInput,
-        captcha_payload: captchaProvider.value === 'image'
-          ? captchaPayload.value
-          : (turnstileToken.value ? { turnstile_token: turnstileToken.value } : {}),
-      })
+        channelId: selectedChannelId.value,
+        affiliateCode,
+        affiliateVisitorKey,
+        guest: {
+          email: guestEmailInput,
+          orderPassword: guestPasswordInput,
+          captchaPayload: captchaProvider.value === 'image'
+            ? captchaPayload.value
+            : (turnstileToken.value ? { turnstile_token: turnstileToken.value } : {}),
+        },
+      }))
       saveGuestOrderAuth({ email: guestEmailInput, order_password: guestPasswordInput })
       payData = res.data?.data
     }
@@ -648,10 +688,11 @@ const submitOrder = async () => {
     if (!orderNo) throw new Error(t('qiaozhi.detail.errSubmit'))
 
     // 后端 /orders/create-and-pay 已直接返回支付字段:qr_code / pay_url /
-    // expires_at / interaction_mode。拿到完整响应就当页弹 Modal,不再跳 /pay。
-    // 没有支付字段(例如 channel_id 为 0、全额钱包抵扣、通道返错)时 fallback 到
+    // expires_at / interaction_mode。扫码类(qr)渠道拿到完整响应就当页弹 Modal,不再跳 /pay。
+    // 跳转类(redirect/wap/page)渠道走 /pay,由 usePayment 负责自动打开支付链接。
+    // 没有支付字段(例如 channel_id 为 0、全额钱包抵扣、通道返错)时同样 fallback 到
     // 旧的 /pay 独立页,保留原流程不丢失。
-    if (payData && (payData.qr_code || payData.pay_url) && !payData.order_paid) {
+    if (shouldOpenInlineModal(payData)) {
       paymentOrder.value = buildPaymentOrderPayload(
         payData,
         orderNo,
@@ -662,6 +703,9 @@ const submitOrder = async () => {
       const query = userAuthStore.isAuthenticated
         ? `order_no=${encodeURIComponent(orderNo)}`
         : `guest=1&order_no=${encodeURIComponent(orderNo)}`
+      // 「重新发起支付」会在弹窗打开时调到这里:/pay 是懒加载视图,先关弹窗,
+      // 避免 chunk 加载期间再点「重新发起」重复建单。
+      showPaymentModal.value = false
       router.push(`/pay?${query}`)
     }
   } catch (e: any) {

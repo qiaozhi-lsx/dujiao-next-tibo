@@ -51,6 +51,9 @@ export function useQiaozhiPrice() {
     currency,
     symbol: computed(() => currencySymbol(currency.value)),
     format: (amount: unknown) => formatQiaozhiPrice(amount, currency.value),
-    split: (amount: unknown) => splitQiaozhiPrice(amount, currency.value),
+    // 传入币种时按该币种取符号（如 Payment 页用订单币种），未传沿用站点币种。
+    split: (amount: unknown, currencyOverride?: string) => (
+      splitQiaozhiPrice(amount, String(currencyOverride || '').trim() || currency.value)
+    ),
   }
 }

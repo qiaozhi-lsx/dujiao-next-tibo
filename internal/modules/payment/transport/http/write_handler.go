@@ -465,7 +465,7 @@ var paymentTxHashErrorRules = concatMappedErrors(
 		{target: ErrPaymentChannelNotFound, code: response.CodeNotFound, key: "error.payment_channel_not_found"},
 		{target: ErrPaymentProviderNotSupported, code: response.CodeBadRequest, key: "error.payment_provider_not_supported"},
 		{target: ErrPaymentChannelConfigInvalid, code: response.CodeBadRequest, key: "error.payment_channel_config_invalid"},
-		{target: ErrPaymentGatewayRequestFailed, code: response.CodeBadRequest, key: "error.payment_tx_hash_failed"},
+		{target: ErrPaymentGatewayRequestFailed, code: response.CodeBadRequest, key: "error.payment_tx_hash_failed", logErr: true},
 		{target: ErrPaymentGatewayResponseInvalid, code: response.CodeInternal, key: "error.payment_tx_hash_failed", logErr: true},
 	},
 )

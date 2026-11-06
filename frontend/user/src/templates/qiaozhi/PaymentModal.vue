@@ -15,6 +15,15 @@
         tabindex="-1"
         @keydown="handleKeydown"
       >
+        <button
+          type="button"
+          class="pay-modal__close"
+          :aria-label="t('qiaozhi.payment.modal.closeAria')"
+          @click="handleClose"
+        >
+          <X aria-hidden="true" />
+        </button>
+
         <!-- 金额卡 -->
         <div class="pay-modal__amount-card">
           <button
@@ -29,7 +38,7 @@
           <div class="pay-modal__amount-top">
             <small class="pay-modal__amount-label">
               {{ t('qiaozhi.payment.modal.amountPaid') }}
-              <em class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
+              <em v-if="feeText" class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
             </small>
             <div class="pay-modal__amount-value">
               <b>{{ amountBigText }}</b>
@@ -66,13 +75,13 @@
             <b>{{ payCardTitle }}</b>
           </div>
 
-          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
             {{ countdownText }}
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
             <div class="pay-modal__qr">
-              <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR" />
+              <img v-if="qrImageUrl" :src="qrImageUrl" :alt="t('qiaozhi.payment.modal.qrAlt')" />
               <div v-else class="pay-modal__qr-placeholder">
                 <Loader2 class="pay-modal__spin" />
               </div>
@@ -104,7 +113,7 @@
           <div v-if="orderPastExpire" class="pay-modal__expired">
             <CircleX class="pay-modal__expired-icon" aria-hidden="true" />
             <b class="pay-modal__expired-title">{{ t('qiaozhi.payment.modal.payExpired') }}</b>
-            <button type="button" class="pay-modal__expired-btn" @click="handleRenew">
+            <button type="button" class="pay-modal__expired-btn" :disabled="renewing" @click="handleRenew">
               {{ t('qiaozhi.payment.modal.renewPayment') }}
             </button>
           </div>
@@ -112,7 +121,7 @@
 
         <!-- 加密货币操作：切换网络或币种 / 已转账但未到账 -->
         <div
-          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire"
+          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire && (switchableChannels.length || txHashSupported)"
           class="pay-modal__crypto-actions"
         >
           <div class="pay-modal__action-row">
@@ -127,7 +136,12 @@
               {{ t('qiaozhi.payment.modal.switchNetwork') }}
             </button>
 
-            <button type="button" class="pay-modal__action-btn is-solid" @click="toggleTxPanel">
+            <button
+              v-if="txHashSupported"
+              type="button"
+              class="pay-modal__action-btn is-solid"
+              @click="toggleTxPanel"
+            >
               <CheckCircle2 />
               {{ t('qiaozhi.payment.modal.txHashBtn') }}
             </button>
@@ -151,11 +165,12 @@
             <p v-else-if="switchError" class="pay-modal__panel-msg is-err">{{ switchError }}</p>
           </div>
 
-          <div v-if="txPanelOpen" class="pay-modal__panel">
+          <div v-if="txPanelOpen && txHashSupported" class="pay-modal__panel">
             <input
               v-model="txHashInput"
               class="pay-modal__input"
               type="text"
+              maxlength="128"
               autocomplete="off"
               spellcheck="false"
               :placeholder="t('qiaozhi.payment.modal.txHashPlaceholder')"
@@ -182,7 +197,7 @@
           <span :class="{ on: stepIdx >= 2 }">{{ t('qiaozhi.payment.modal.stepPaid') }}</span>
         </div>
 
-        <div class="pay-modal__stage">
+        <div class="pay-modal__stage" aria-live="polite">
           <div class="pay-modal__go" :class="goClass">
             <span v-if="stage === 'waiting'">
               <Loader2 v-if="!orderPastExpire" class="pay-modal__spin" aria-hidden="true" />
@@ -244,11 +259,20 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2, X } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
+import { useAppStore } from '../../stores/app'
 import { chainLabel } from '../../utils/cryptoChain'
 import { countdownTone } from '../../utils/countdownTone'
+import {
+  bareAmountText,
+  isPaidOrderStatus,
+  isTerminalOrderStatus,
+  parsePaidAtMs,
+  resolvePayableCurrency,
+  shouldShowFee,
+} from './utils/paymentDisplay'
 import bscLogo from '../../assets/chains/bsc.png'
 import tronLogo from '../../assets/chains/tron.png'
 import solanaLogo from '../../assets/chains/solana.png'
@@ -277,7 +301,9 @@ export interface PaymentModalOrder {
   maskedEmail?: string
   interactionMode?: 'qr' | 'redirect' | string
   feeAmount?: string
+  feePolicy?: string
   payableAmount?: string
+  payableCurrency?: string
   walletAddress?: string
   chainAmount?: string
   chain?: string
@@ -308,6 +334,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const appStore = useAppStore()
 
 type Stage = 'waiting' | 'running' | 'success'
 const stage = ref<Stage>('waiting')
@@ -318,10 +345,18 @@ const walletCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const switchPanelOpen = ref(false)
 const txPanelOpen = ref(false)
 const txHashInput = ref('')
-const now = ref(Date.now())
+// 倒计时用校正后的服务器时钟，避免客户端改时导致提前 / 延后过期。
+const now = ref(appStore.getServerTime())
 const nowTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const paidEmitTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const animationFrame = ref<number | null>(null)
+// 服务端已返回终态（取消 / 过期 / 退款）：不等倒计时走完，直接进入过期态。
+const forcedExpired = ref(false)
+// 支付成功时刻（服务端 paid_at），收据上的时间冻结在这一刻而不是随 now 继续走。
+const paidAt = ref<number | null>(null)
+// 「重新发起支付」在途标志：补查 + emit 期间禁用按钮，防连点并发两次补查而重复建单。
+const renewing = ref(false)
 const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
   : false
@@ -364,9 +399,11 @@ const expireMs = computed(() => {
   return Number.isNaN(ts) ? null : ts
 })
 
+// 过期态：倒计时走完，或服务端已返回终态（forcedExpired）；已进入支付成功流程后不再显示。
 const orderPastExpire = computed(() => {
-  if (expireMs.value === null) return false
-  return expireMs.value <= now.value && stage.value === 'waiting'
+  if (stage.value !== 'waiting') return false
+  if (forcedExpired.value) return true
+  return expireMs.value !== null && expireMs.value <= now.value
 })
 
 const showCountdown = computed(() => expireMs.value !== null && stage.value === 'waiting' && !orderPastExpire.value)
@@ -401,6 +438,10 @@ const cryptoTokenLabel = computed(() => {
 
 const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
+// 「已转账但未到账 → 提交交易哈希」只有 epusdt 网关实现了（GatewayTxHashSubmitter）；
+// 其他加密渠道（bepusdt / dujiaopay）同样有收款地址，但后端会直接回"不支持"，不给入口。
+const txHashSupported = computed(() => props.order?.providerType === 'epusdt')
+
 const cryptoChainLabel = computed(() => (props.order?.chain ? chainLabel(props.order.chain) : ''))
 
 // 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
@@ -434,18 +475,17 @@ const chainDotClass = computed(() => {
 const amountBigText = computed(() => {
   const o = props.order
   if (!o) return '-'
-  if (o.chainAmount) return `${o.chainAmount} ${cryptoTokenLabel.value || 'USDT'}`
+  // 链上数量后跟 tokenId 解析出的币种；网关没给 tokenId 时只显示数量，不臆测币种。
+  if (o.chainAmount) return cryptoTokenLabel.value ? `${o.chainAmount} ${cryptoTokenLabel.value}` : o.chainAmount
   // 实付金额 = 含手续费金额；后端未下发时回退订单金额。
   const payable = (o.payableAmount || '').trim()
-  return payable ? formatCurrency(payable, o.currency) : formatCurrency(o.amount, o.currency)
+  return payable ? formatCurrency(payable, resolvePayableCurrency(o)) : formatCurrency(o.amount, o.currency)
 })
 
 const feeText = computed(() => {
   const o = props.order
-  if (!o) return ''
-  const raw = (o.feeAmount || '').trim()
-  if (!raw || raw === '0' || raw === '0.00') return ''
-  return formatCurrency(raw, o.currency)
+  if (!o || !shouldShowFee(o)) return ''
+  return formatCurrency((o.feeAmount || '').trim(), o.currency)
 })
 
 // 加密货币单：链上数量与法币实付的换算关系。网关按 amount(法币) + 实时汇率报出链上数量，
@@ -455,7 +495,7 @@ const equivalentText = computed(() => {
   if (!o || !o.chainAmount) return ''
   const payable = (o.payableAmount || '').trim()
   if (!payable) return ''
-  return formatCurrency(payable, o.currency)
+  return formatCurrency(payable, resolvePayableCurrency(o))
 })
 
 const payCardTitle = computed(() => (
@@ -488,7 +528,7 @@ const formatDateText = (raw?: number | string | null) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const receiptTimeText = computed(() => formatDateText(now.value))
+const receiptTimeText = computed(() => formatDateText(paidAt.value ?? now.value))
 
 const shortSn = computed(() => {
   const sn = props.order?.sn || ''
@@ -554,9 +594,9 @@ const stopNowTimer = () => {
 
 const startNowTimer = () => {
   stopNowTimer()
-  now.value = Date.now()
+  now.value = appStore.getServerTime()
   nowTimer.value = setInterval(() => {
-    now.value = Date.now()
+    now.value = appStore.getServerTime()
   }, 1000)
 }
 
@@ -574,7 +614,16 @@ const cancelAnimation = () => {
   }
 }
 
-const runSuccessAnimation = () => {
+const clearPaidEmitTimer = () => {
+  if (paidEmitTimer.value !== null) {
+    clearTimeout(paidEmitTimer.value)
+    paidEmitTimer.value = null
+  }
+}
+
+// order 由触发方在确认已付的那一刻捕获传入：动画结束时才读 props.order 的话，
+// 动画期间若订单被换掉（重新发起支付的窄窗口），会对新的未付单 emit paid。
+const runSuccessAnimation = (order: PaymentModalOrder | null) => {
   cancelAnimation()
   const duration = prefersReducedMotion ? 300 : 2600
   const delay = prefersReducedMotion ? 0 : 350
@@ -590,27 +639,32 @@ const runSuccessAnimation = () => {
     }
     animationFrame.value = null
     stage.value = 'success'
-    const order = props.order
     const emitPaidDelay = prefersReducedMotion ? 400 : 1500
-    setTimeout(() => {
+    // 句柄保存下来：动画期间用户关闭弹窗 / 组件卸载时要取消，否则关掉后仍会触发 paid 跳转。
+    paidEmitTimer.value = setTimeout(() => {
+      paidEmitTimer.value = null
       if (order) emit('paid', order)
     }, emitPaidDelay)
   }
   animationFrame.value = requestAnimationFrame(tick)
 }
 
-const triggerSuccessFromPolling = () => {
+const triggerSuccessFromPolling = (paidAtRaw?: string | number | null) => {
+  // 此刻的 props.order 就是轮询确认已付的那一单（pollOnce 已校验 sn 未变），先捕获再起动画。
+  const order = props.order
   stopPolling()
   if (stage.value !== 'waiting') return
+  // 收据时间冻结在服务端支付时刻；解析不了就取当前服务器时间。倒计时钟随之停掉。
+  paidAt.value = parsePaidAtMs(paidAtRaw, appStore.getServerTime())
+  stopNowTimer()
   stage.value = 'running'
-  runSuccessAnimation()
+  runSuccessAnimation(order)
 }
-
-const PAID_STATUSES = new Set(['paid', 'fulfilling', 'partially_delivered', 'delivered', 'completed'])
 
 const pollOnce = async () => {
   const o = props.order
   if (!o || !o.sn) return
+  const sn = o.sn
   try {
     let resp
     if (o.guestCredentials && o.guestCredentials.email) {
@@ -621,29 +675,47 @@ const pollOnce = async () => {
     } else {
       resp = await userOrderAPI.detail(o.sn, { silentBusinessError: true })
     }
+    // 等待响应期间可能已关窗或已换单（重新发起支付）：迟到的响应不能再起动画 / 作用到新单上。
+    if (!props.open || props.order?.sn !== sn) return
     const data = resp?.data?.data
     const status = String(data?.status || '')
-    if (PAID_STATUSES.has(status)) {
-      triggerSuccessFromPolling()
+    if (isPaidOrderStatus(status)) {
+      triggerSuccessFromPolling(data?.paid_at)
+    } else if (isTerminalOrderStatus(status)) {
+      // 后台取消 / 过期 / 退款等终态：不必等倒计时走完，停轮询并切到过期态。
+      stopPolling()
+      forcedExpired.value = true
     }
   } catch {
-    // 轮询失败静默忽略；下一次 2s 继续
+    // 轮询失败静默忽略；下一次 5s 继续
   }
 }
 
 const startPolling = () => {
   stopPolling()
+  // 5s 一次，与 classic usePayment 一致；游客订单详情按 IP 限流 120 次/分钟，
+  // 2s 轮询在多标签页或同一出口 IP 下容易触顶被封 60s。
   pollTimer.value = setInterval(() => {
     void pollOnce()
-  }, 2000)
+  }, 5000)
 }
 
-// 过期瞬间可能刚完成付款、2s 轮询尚未翻转：重发起前先补查一次状态，
+// 过期态下轮询已停，而过期瞬间可能刚完成付款：重发起前先补查一次状态，
 // 已支付则直接进入成功流程，避免旧单已付、又新建一单的重复付款窗口。
 const handleRenew = async () => {
-  await pollOnce()
-  if (stage.value !== 'waiting') return
-  emit('renew-payment')
+  if (renewing.value) return
+  const sn = props.order?.sn
+  renewing.value = true
+  try {
+    await pollOnce()
+    // 补查期间关了窗或已换单（上一次重发起已建出新单），补查结果已被 pollOnce 丢弃，
+    // 不能据"stage 仍是 waiting"判定未付再建一单。
+    if (!props.open || stage.value !== 'waiting') return
+    if (props.order?.sn !== sn) return
+    emit('renew-payment')
+  } finally {
+    renewing.value = false
+  }
 }
 
 const trapFocus = (e: KeyboardEvent) => {
@@ -684,7 +756,9 @@ const amountCopied = ref(false)
 const amountCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const handleCopyAmount = async () => {
-  const text = amountBigText.value.trim()
+  const o = props.order
+  if (!o) return
+  const text = bareAmountText(o)
   if (!text) return
   try {
     await navigator.clipboard.writeText(text)
@@ -745,6 +819,9 @@ const resetState = () => {
   switchPanelOpen.value = false
   txPanelOpen.value = false
   txHashInput.value = ''
+  forcedExpired.value = false
+  paidAt.value = null
+  renewing.value = false
 }
 
 watch(() => props.open, async (opened) => {
@@ -752,15 +829,20 @@ watch(() => props.open, async (opened) => {
     resetState()
     startNowTimer()
     await renderQRCode()
-    if (props.order?.sn) startPolling()
+    // 二维码渲染是异步的：期间若弹窗已被关闭（else 分支已清理），不能再起轮询 / 锁滚动。
+    if (!props.open) return
+    // 打开时已过期的单不起轮询：orderPastExpire 的 watch 只在 false→true 时停轮询，这里等不到翻转。
+    if (props.order?.sn && !orderPastExpire.value) startPolling()
     previouslyFocused.value = (document.activeElement as HTMLElement) || null
     await nextTick()
+    if (!props.open) return
     modalRef.value?.focus()
     document.body.style.overflow = 'hidden'
   } else {
     stopNowTimer()
     stopPolling()
     cancelAnimation()
+    clearPaidEmitTimer()
     if (walletCopiedTimer.value !== null) {
       clearTimeout(walletCopiedTimer.value)
       walletCopiedTimer.value = null
@@ -774,12 +856,23 @@ watch(() => props.open, async (opened) => {
   }
 }, { immediate: true })
 
-watch(() => props.order, async () => {
+watch(() => props.order, async (next, prev) => {
   if (!props.open) return
   switchPanelOpen.value = false
   txPanelOpen.value = false
   txHashInput.value = ''
+  // 重新发起支付时弹窗不关、直接换成新订单：上一单的终态标记要清掉，
+  // 过期时已停掉的轮询也要为新单重新拉起（切换网络同单不换号，不走这里）。
+  if (next?.sn && next.sn !== prev?.sn) {
+    forcedExpired.value = false
+    if (stage.value === 'waiting' && !orderPastExpire.value) startPolling()
+  }
   await renderQRCode()
+})
+
+// 进入过期态（倒计时走完或服务端终态）后停止轮询；重发起前由 handleRenew 补查一次。
+watch(orderPastExpire, (expired) => {
+  if (expired) stopPolling()
 })
 
 watch(() => props.txFeedback, (feedback) => {
@@ -790,6 +883,7 @@ onBeforeUnmount(() => {
   stopNowTimer()
   stopPolling()
   cancelAnimation()
+  clearPaidEmitTimer()
   if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
   if (amountCopiedTimer.value !== null) clearTimeout(amountCopiedTimer.value)
   document.body.style.overflow = ''
@@ -833,7 +927,8 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
   display: flex; flex-direction: column;
-  padding: 20px;
+  /* 顶部多留 30px 给右上角关闭按钮，避免压到金额卡右上角的复制按钮。 */
+  padding: 50px 20px 20px;
   color: var(--text, #0a0a0a);
   font: 14px/1.5 -apple-system, "Segoe UI", "PingFang SC", sans-serif;
   animation: pay-modal-rise .3s var(--ux-spring);
@@ -841,6 +936,20 @@ onBeforeUnmount(() => {
 }
 
 @keyframes pay-modal-rise { from { transform: translateY(20px) scale(.98); opacity: 0; } }
+
+/* 右上角关闭按钮：沿用操作区胶囊按钮的底色 / 描边 / hover，圆形 30px。 */
+.pay-modal__close {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px;
+  border: 0; border-radius: 999px;
+  background: var(--ux-surface); color: var(--ux-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.pay-modal__close:hover { color: #000; background: var(--ux-surface-2); }
+.pay-modal__close svg { width: 16px; height: 16px; }
 
 .pay-modal::-webkit-scrollbar { width: 6px; height: 6px; }
 .pay-modal::-webkit-scrollbar-track { background: transparent; }
@@ -1193,6 +1302,7 @@ onBeforeUnmount(() => {
   background: var(--ux-accent); color: #fff;
   font-size: 14.5px; font-weight: 500;
 }
+.pay-modal__expired-btn:disabled { opacity: .55; cursor: not-allowed; }
 
 .pay-modal__rec {
   position: absolute;
