@@ -31,3 +31,31 @@ test('optionalFlagOn: complete config honours an explicit false', () => {
 test('optionalFlagOn: complete config honours an explicit true', () => {
   assert.equal(optionalFlagOn(true, true), true)
 })
+
+// composables/useNavConfig.ts 的 builtinNavItems（classic Navbar / VaultLayout 共用）对
+// 博客 / 公告 / 关于三项用的就是这一条规则：`optionalFlagOn(appStore.configComplete, builtin?.[key])`。
+// 该 composable 依赖 useI18n / pinia / lucide，node:test 里无法直接调用，这里复刻那段过滤循环
+// 作为行为说明——改一处要同步改另一处。
+const builtinNavKeys = ['blog', 'notice', 'about']
+const visibleBuiltinNavKeys = (complete: boolean, builtin: Record<string, boolean> | undefined): string[] =>
+  builtinNavKeys.filter((key) => optionalFlagOn(complete, builtin?.[key]))
+
+test('builtinNavItems rule: inline config (nav_config absent) yields no builtin items', () => {
+  // 旧写法 `builtin && builtin[key] === false` 在这里会放行全部三项，然后在完整配置到达时收回
+  assert.deepEqual(visibleBuiltinNavKeys(false, undefined), [])
+})
+
+test('builtinNavItems rule: complete config without nav_config shows all three', () => {
+  assert.deepEqual(visibleBuiltinNavKeys(true, undefined), ['blog', 'notice', 'about'])
+})
+
+test('builtinNavItems rule: complete config drops only the explicitly disabled items', () => {
+  assert.deepEqual(visibleBuiltinNavKeys(true, { blog: false, notice: true }), ['notice', 'about'])
+})
+
+test('builtinNavItems rule: items never flash — empty during the inline phase, settled once the full config lands', () => {
+  const inlinePhase = visibleBuiltinNavKeys(false, undefined)
+  const completePhase = visibleBuiltinNavKeys(true, { blog: true, notice: false, about: true })
+  assert.deepEqual(inlinePhase, [])
+  assert.deepEqual(completePhase, ['blog', 'about'])
+})
