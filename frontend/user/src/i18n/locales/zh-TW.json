@@ -1830,6 +1830,10 @@
       "back": "返回首頁",
       "emptyHint": "挑一件心儀的，放進購物車再來結算吧。"
     },
+    "guestOrders": {
+      "eyebrow": "ORDERS",
+      "emptyBeforeQuery": "輸入郵箱與訂單密碼後查看訂單"
+    },
     "checkout": {
       "eyebrow": "CHECKOUT",
       "subtitle": "確認資訊、核對金額，立即建立訂單並前往付款。",

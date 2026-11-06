@@ -65,14 +65,11 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .qiaozhi-scope .qz-section-heading > span { flex: 0 0 auto; color: var(--muted); font-size: 11px; white-space: nowrap; }
 /* qz-skeleton-card 已在文件顶部用字段级骨架重写，这里只保留 qz-skeleton-row */
 .qiaozhi-scope .qz-skeleton-row { height: 105px; margin: 10px; }
-.qiaozhi-scope .qz-empty { display: grid; place-items: center; min-height: 250px; padding: 35px; color: var(--muted); text-align: center; }
-.qiaozhi-scope .qz-empty svg { width: 38px; height: 38px; margin-bottom: 12px; color: var(--accent); }
-.qiaozhi-scope .qz-empty b { color: var(--text); font-size: 17px; }
-.qiaozhi-scope .qz-empty span { font-size: 12px; }
 .qiaozhi-scope .qz-btn-primary { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0px; border-radius: var(--r-icon); padding: 10px 15px; background: linear-gradient(135deg,var(--accent),var(--accent-strong)); box-shadow: var(--shadow-primary); color: var(--on-accent); font-size: 12px; font-weight: 700; white-space: nowrap; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
 .qiaozhi-scope .qz-btn-primary svg { width: 16px; height: 16px; }
 .qiaozhi-scope .qz-btn-primary:hover { transform: translateY(-1px); }
 .qiaozhi-scope .qz-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+/* 未迁移页面的空态按钮间距；PR-2 随 Checkout/Payment/OrderDetail 迁移一起删除 */
 .qiaozhi-scope .qz-empty .qz-btn-primary { margin-top: 18px; }
 @media (max-width: 1120px) {
 .qiaozhi-scope .qz-catalog { grid-template-columns: 220px minmax(0px, 1fr); }
@@ -287,7 +284,6 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-ic-hint { margin: -4px 0px 0px; font-size: 12px; line-height: 1.55; color: var(--muted); }
 .qiaozhi-scope .qz-ic-hint a { margin-left: 4px; color: var(--accent-strong); font-weight: 700; }
 .qiaozhi-scope .qz-ic-hint.is-ok { margin: 0px; color: var(--accent-strong); }
-.qiaozhi-scope .qz-ic-hint.is-right { margin-top: -10px; text-align: right; }
 .qiaozhi-scope .qz-ic-pay { display: grid; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
 .qiaozhi-scope .qz-ic-pay h3 { display: flex; align-items: center; gap: 6px; margin: 0px; font-size: 12px; font-weight: 700; color: var(--muted); }
 .qiaozhi-scope .qz-ic-pay h3 svg { width: 15px; height: 15px; }
@@ -615,60 +611,12 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-order-amount-grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* ---------- 游客订单查询页（qz-orders-* · 窄栏列表） ---------- */
-.qiaozhi-scope .qz-orders-page { width: min(920px, 94vw); padding-top: 24px; display: flex; flex-direction: column; gap: 14px; }
-.qiaozhi-scope .qz-orders-hero { display: grid; gap: 4px; }
-.qiaozhi-scope .qz-orders-title { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: var(--text); }
-.qiaozhi-scope .qz-orders-sub { font-size: 12.5px; color: var(--muted); }
-.qiaozhi-scope .qz-orders-search { padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
-.qiaozhi-scope .qz-orders-saved { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 7px 11px; margin-bottom: 10px; border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--surface-2); font-size: 11.5px; color: var(--muted); }
-.qiaozhi-scope .qz-orders-clear { padding: 0; border: 0; background: none; color: var(--accent-strong); font-size: 11.5px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.qiaozhi-scope .qz-orders-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; }
-.qiaozhi-scope .qz-orders-form input { min-width: 0; height: 40px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 13px; outline: 0px; transition: border-color 0.15s, box-shadow 0.15s; }
-.qiaozhi-scope .qz-orders-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
-.qiaozhi-scope .qz-orders-submit { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 18px; border: 0px; border-radius: 10px; background: var(--accent); color: var(--on-accent); font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer; transition: background 0.15s; }
-.qiaozhi-scope .qz-orders-submit:hover:not(:disabled) { background: var(--accent-strong); }
-.qiaozhi-scope .qz-orders-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-.qiaozhi-scope .qz-orders-submit svg { width: 15px; height: 15px; }
-.qiaozhi-scope .qz-orders-tip { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
-.qiaozhi-scope .qz-orders-error { margin-top: 8px; padding: 8px 11px; border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: 12px; font-weight: 600; }
-.qiaozhi-scope .qz-orders-list { display: flex; flex-direction: column; gap: 8px; }
-.qiaozhi-scope .qz-orders-item { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 11px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; transition: border-color 0.15s, box-shadow 0.15s; }
-.qiaozhi-scope .qz-orders-item:hover { border-color: var(--line-strong); box-shadow: var(--shadow-soft); }
-.qiaozhi-scope .qz-orders-main { flex: 1 1 260px; min-width: 0px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.qiaozhi-scope .qz-orders-sn { font-size: 12.5px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.qiaozhi-scope .qz-orders-time { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.qiaozhi-scope .qz-orders-prod { flex: 0 1 auto; min-width: 0px; max-width: 100%; display: flex; align-items: center; gap: 8px; }
-.qiaozhi-scope .qz-orders-thumb { flex: 0 0 auto; display: grid; place-items: center; width: 34px; height: 34px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 800; }
-.qiaozhi-scope .qz-orders-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.qiaozhi-scope .qz-orders-pname { min-width: 0px; max-width: 230px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; font-weight: 700; color: var(--text); }
-.qiaozhi-scope .qz-orders-pextra, .qiaozhi-scope .qz-orders-pqty { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: var(--muted); }
-.qiaozhi-scope .qz-orders-amt { display: flex; align-items: baseline; gap: 6px; flex: 0 0 auto; }
-.qiaozhi-scope .qz-orders-amt b { font-size: 14px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
-.qiaozhi-scope .qz-orders-amt small { font-size: 11px; font-weight: 700; }
-.qiaozhi-scope .qz-orders-amt .is-rose { color: var(--red); }
-.qiaozhi-scope .qz-orders-acts { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.qiaozhi-scope .qz-orders-act { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--text); font-size: 12px; font-weight: 700; white-space: nowrap; text-decoration: none; transition: background 0.15s, border-color 0.15s; }
-.qiaozhi-scope .qz-orders-act:hover { background: var(--surface-2); border-color: var(--accent-line); }
-.qiaozhi-scope .qz-orders-act.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.qiaozhi-scope .qz-orders-act.is-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
-.qiaozhi-scope .qz-orders-pager { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 4px; }
-.qiaozhi-scope .qz-orders-pager button { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer; transition: background 0.15s; }
-.qiaozhi-scope .qz-orders-pager button:hover:not(:disabled) { background: var(--surface-2); }
-.qiaozhi-scope .qz-orders-pager button:disabled { opacity: 0.4; cursor: not-allowed; }
-.qiaozhi-scope .qz-orders-pager button svg { width: 15px; height: 15px; }
-.qiaozhi-scope .qz-orders-pager span { font-size: 12.5px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-@media (max-width: 720px) {
-.qiaozhi-scope .qz-orders-form { grid-template-columns: 1fr; }
-.qiaozhi-scope .qz-orders-acts { margin-left: 0px; flex: 1 1 100%; justify-content: flex-end; }
-}
-
 /* ---------- Arc 按钮语言（参考 uiarc.dev Button）：全站胶囊化 + 按压缩放 ---------- */
-.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-pd-cart-icon, .qz-order-back, .qz-order-btn, .qz-orders-act, .qz-orders-submit, .qz-auth-submit, .qz-auth-oauth-btn, .qz-xcheck-btn, .qz-orders-pager button, .qz-me-act, .qz-me-pager button, .qz-pd-skus button, .qz-share, .qz-pd-back-link) {
+.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-pd-cart-icon, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button, .qz-pd-skus button, .qz-share) {
   border-radius: var(--r-pill);
   transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
-.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-pd-cart-icon, .qz-order-back, .qz-order-btn, .qz-orders-act, .qz-orders-submit, .qz-auth-submit, .qz-auth-oauth-btn, .qz-xcheck-btn, .qz-orders-pager button, .qz-me-act, .qz-me-pager button, .qz-pd-skus button, .qz-share, .qz-pd-back-link):not(:disabled):active {
+.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-pd-cart-icon, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button, .qz-pd-skus button, .qz-share):not(:disabled):active {
   transform: scale(0.97);
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }

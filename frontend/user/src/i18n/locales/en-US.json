@@ -1830,6 +1830,10 @@
       "back": "Back to home",
       "emptyHint": "Pick something you like and bring it back here to check out."
     },
+    "guestOrders": {
+      "eyebrow": "ORDERS",
+      "emptyBeforeQuery": "Enter your email and order password to look up orders"
+    },
     "checkout": {
       "eyebrow": "CHECKOUT",
       "subtitle": "Confirm your details, review the amount and head to payment.",
