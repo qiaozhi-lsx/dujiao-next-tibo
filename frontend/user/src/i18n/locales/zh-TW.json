@@ -1845,6 +1845,7 @@
       "errPassword": "訂單查詢密碼至少 6 位",
       "errChannel": "請選擇付款方式",
       "errSubmit": "下單失敗，請稍後重試",
+      "renewNeedsCaptcha": "支付已過期，請重新完成驗證碼後再次提交",
       "descExpand": "展開",
       "descCollapse": "收起"
     },

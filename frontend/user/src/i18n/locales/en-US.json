@@ -1845,6 +1845,7 @@
       "errPassword": "Order password must be at least 6 characters",
       "errChannel": "Please choose a payment method",
       "errSubmit": "Failed to place the order, please retry",
+      "renewNeedsCaptcha": "Payment expired. Please complete the captcha again and resubmit.",
       "descExpand": "Expand",
       "descCollapse": "Collapse"
     },

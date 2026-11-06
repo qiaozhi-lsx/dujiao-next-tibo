@@ -500,7 +500,18 @@ const handlePaymentPaid = (order: PaymentModalOrder) => {
 
 // 过期后「重新发起支付」：过期订单会被后台置为 canceled，无法复用旧单，
 // 走同一套下单链路重新建单（含校验/验证码/错误回显）。
+// 游客且验证码开启时，表单里的图形验证码 / Turnstile token 已在上一次建单时被消费，
+// 原样再发必被后端拒绝：先关弹窗、清空并刷新验证码、提示用户重填后再手动提交。
 const handleRenewPayment = async () => {
+  if (!userAuthStore.isAuthenticated && (captchaProvider.value === 'image' || captchaProvider.value === 'turnstile')) {
+    showPaymentModal.value = false
+    captchaPayload.value = {}
+    turnstileToken.value = ''
+    imageCaptchaRef.value?.refresh()
+    turnstileRef.value?.reset()
+    formError.value = t('qiaozhi.detail.renewNeedsCaptcha')
+    return
+  }
   await submitOrder()
   if (formError.value) {
     showPaymentModal.value = false
