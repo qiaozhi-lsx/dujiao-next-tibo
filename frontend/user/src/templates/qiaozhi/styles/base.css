@@ -90,7 +90,7 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn--ghost:disabled { color: var(--qz-text-muted); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn[aria-busy="true"] { cursor: progress; }
 
-/* ---------- Icon button (Arc Button, icon-only secondary: square → circle, md 44 / sm 36 with 18 / 16 glyph) ---------- */
+/* ---------- Icon button (Arc Button, icon-only secondary: square → circle, md 44 / sm 36 / lg 50 with 18 / 16 / 18 glyph) ---------- */
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn {
   position: relative;
   display: inline-grid;
@@ -117,6 +117,9 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn svg { width: 18px; height: 18px; }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn--sm { width: var(--qz-control-sm); height: var(--qz-control-sm); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn--sm svg { width: 16px; height: 16px; }
+/* lg sits beside a .qz-btn--lg CTA (product page add-to-cart); the glyph stays at the md 18px. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn--lg { width: var(--qz-control-lg); height: var(--qz-control-lg); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn--lg svg { width: 18px; height: 18px; }
 @media (hover: hover) and (pointer: fine) {
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-icon-btn:hover:where(:not(:disabled, [aria-disabled="true"])) { color: var(--qz-text); background: var(--qz-surface-muted); box-shadow: var(--qz-shadow-resting); }
 }

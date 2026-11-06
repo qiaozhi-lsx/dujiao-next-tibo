@@ -26,14 +26,17 @@
      contact panel glyphs and their "open" buttons, plus `--qz-on-brand` (the dark ink on those fills —
      `--qz-on-accent` is white in light mode and fails AA there). Same values in both themes (a brand
      colour does not follow the theme); kept here so no other sheet carries a colour literal.
-   - Status hues keep the template's warning / danger / info (`#c68416` / `#d84a5a` / `#2769a8`, dark
-     `#e0a63a` / `#f0697a` / `#7fb4ea`) plus a matching success (`#2f8f6f`, dark `#63c49e`) instead of
-     Arc's `--tone-*` pastels.
+   - Status hues are Arc's `--tone-*` colours mapped onto `--qz-success` / `-warning` / `-danger` / `-info`:
+     light takes Arc's deepened light tones (`oklch(50% 0.12 162)` / `oklch(55% 0.12 68)` / `oklch(53% 0.18 10)` /
+     `oklch(51% 0.11 240)`), each ≥ 4.5:1 on white (5.6 / 5.0 / 5.8 / 5.7) for the 11–12px badges, chips and
+     field errors that use them — the template's old `#2f8f6f` / `#c68416` / `#d84a5a` were 4.0 / 3.1 / 4.2:1.
+     Dark keeps Arc's pastels (`oklch(79% 0.14 162)` / `oklch(83% 0.12 78)` / `oklch(71% 0.155 8)` /
+     `oklch(79% 0.095 236)`).
    - Lengths are px, not rem (the legacy sheet is px-based). Added: `--qz-text-2xs: 11px` type floor,
      `--qz-header-bg`, `--qz-container`, `--qz-header-h`; `--qz-control-sm` grows to 40px below 760px.
    - Not carried over: `--control-on` / `--control-track` / `--control-thumb` / `--control-glyph` /
      `--control-fill` (form-control part colours; Arc's control heights are carried over as
-     `--qz-control-*`), `--tone-*`, `--arc-gradient-*`, `--series-*`, `--font-*`,
+     `--qz-control-*`), `--arc-gradient-*`, `--series-*`, `--font-*`,
      `--tracking-body`, `--ease-in-out`, `--text-4xl/5xl` and the global `:focus-visible` rules
      (focus styling is scoped in base.css; `--qz-focus-outline` keeps Arc's default colour).
    ========================================================================= */
@@ -58,11 +61,11 @@
   --qz-accent-strong: #27272a;
   --qz-accent-subtle: rgba(10, 10, 10, .1);
   --qz-on-accent: #ffffff;
-  /* Status (always paired with a label or icon) */
-  --qz-success: #2f8f6f;
-  --qz-warning: #c68416;
-  --qz-danger: #d84a5a;
-  --qz-info: #2769a8;
+  /* Status (always paired with a label or icon); Arc light tones, all ≥ 4.5:1 on --qz-surface */
+  --qz-success: oklch(50% 0.12 162);
+  --qz-warning: oklch(55% 0.12 68);
+  --qz-danger: oklch(53% 0.18 10);
+  --qz-info: oklch(51% 0.11 240);
   /* Chrome */
   --qz-header-bg: rgba(255, 255, 255, .9);
   /* Third-party brands (contact panel); theme-independent, repeated unchanged on the dark scope.
@@ -94,10 +97,10 @@
   --qz-accent-strong: #e4e4e7;
   --qz-accent-subtle: rgba(250, 250, 250, .14);
   --qz-on-accent: #0a0a0a;
-  --qz-success: #63c49e;
-  --qz-warning: #e0a63a;
-  --qz-danger: #f0697a;
-  --qz-info: #7fb4ea;
+  --qz-success: oklch(79% 0.14 162);
+  --qz-warning: oklch(83% 0.12 78);
+  --qz-danger: oklch(71% 0.155 8);
+  --qz-info: oklch(79% 0.095 236);
   --qz-header-bg: oklch(19% 0 0 / .9);
   --qz-brand-telegram: #26a5e4;
   --qz-brand-whatsapp: #25d366;

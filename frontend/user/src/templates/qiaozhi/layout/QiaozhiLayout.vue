@@ -153,7 +153,7 @@
       <RouterLink to="/" :class="{ 'is-active': section === 'shop' }"><ShoppingBag /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.shop') }}</span></RouterLink>
       <RouterLink :to="ordersPath" :class="{ 'is-active': section === 'orders' }"><ClipboardList /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.orders') }}</span></RouterLink>
       <RouterLink to="/cart" :class="{ 'is-active': section === 'cart' }"><ShoppingCart /><span class="qz-bottom-nav-label">{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="qz-cart-count">{{ cartCount }}</span></RouterLink>
-      <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': section === 'notice' }"><Megaphone /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
+      <RouterLink v-if="noticeSlot" to="/notice" :class="{ 'is-active': section === 'notice' }"><Megaphone /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
       <RouterLink v-else to="/2fa" :class="{ 'is-active': section === 'tfa' }"><ShieldCheck /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.tfa') }}</span></RouterLink>
       <RouterLink :to="accountPath" :class="{ 'is-active': section === 'account' }"><User /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.account') }}</span></RouterLink>
     </nav>
@@ -224,6 +224,10 @@ const ordersPath = computed(() => (userAuthStore.isAuthenticated ? '/me/orders' 
 // 顶栏胶囊与底部导航共用的高亮分区（/me/orders 归查订单，其余 /me/* 与 /auth 归个人中心）
 const section = computed(() => navSection(route.path))
 const accountPath = computed(() => (userAuthStore.isAuthenticated ? '/me' : '/auth/login'))
+// 底部导航第 4 格：公告开启时放公告，否则放 2FA。noticeEnabled 在内联配置阶段（configComplete 为 false，
+// 内联的 __PUBLIC_CONFIG__ 不含 nav_config）恒为 false，直接用它会让冷启动先显示 2FA、一个 RTT 后再换成公告；
+// 这里在完整配置到达前固定显示公告，只有完整配置明确关闭公告时才换成 2FA。
+const noticeSlot = computed(() => !appStore.configComplete || noticeEnabled.value)
 const cartCount = computed(() => cartStore.totalItems)
 
 const contact = computed(() => appStore.config?.contact as { telegram?: string; whatsapp?: string; email?: string; support_url?: string } | undefined)

@@ -188,7 +188,7 @@
               <div class="qz-pd-buttons">
                 <button
                   type="button"
-                  class="qz-icon-btn"
+                  class="qz-icon-btn qz-icon-btn--lg"
                   :disabled="!canPurchase"
                   :aria-label="t('productDetail.addToCart')"
                   :title="t('productDetail.addToCart')"
@@ -895,7 +895,7 @@ onMounted(() => {
   min-width: 0;
   margin: 0;
   color: var(--qz-text);
-  font-size: var(--qz-text-xl);
+  font-size: var(--qz-text-2xl);
   font-weight: 700;
   line-height: var(--qz-leading-body);
   letter-spacing: var(--qz-tracking-display);
@@ -1095,10 +1095,10 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-alert.is-error { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
 
-/* 购物车图标钮（md 圆钮）+ lg 主按钮 */
+/* 购物车图标钮（lg 圆钮）+ lg 主按钮：同为 --qz-control-lg 高，一行等高 */
 .qz-pd-page .qz-pd-buttons {
   display: grid;
-  grid-template-columns: var(--qz-control-md) minmax(0, 1fr);
+  grid-template-columns: var(--qz-control-lg) minmax(0, 1fr);
   gap: var(--qz-space-2);
   align-items: center;
 }
@@ -1172,12 +1172,13 @@ onMounted(() => {
     top: calc(var(--qz-header-h) + var(--qz-space-2));
     z-index: 5;
   }
+  /* 页面 h1：桌面 2xl（28），手机 xl（22） */
+  .qz-pd-page .qz-pd-title-row h1 { font-size: var(--qz-text-xl); }
 }
 @media (max-width: 640px) {
   .qz-pd-page .qz-pd-media { padding: var(--qz-space-3); }
   .qz-pd-page .qz-pd-stage { aspect-ratio: 16 / 9; }
   .qz-pd-page .qz-pd-info { padding: var(--qz-space-4) var(--qz-space-3); }
-  .qz-pd-page .qz-pd-title-row h1 { font-size: var(--qz-text-lg); }
   .qz-pd-page .qz-pd-price strong { font-size: var(--qz-text-2xl); }
   .qz-pd-page .qz-pd-form-row { grid-template-columns: 1fr; }
   .qz-pd-page .qz-pd-detail { padding: var(--qz-space-4) var(--qz-space-3) var(--qz-space-5); }
