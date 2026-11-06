@@ -74,6 +74,8 @@ const MOBILE_MEDIA = '@media (max-width: 760px)'
 // those saturated fills. Declared on both scopes like every colour token, but identical in
 // dark: a brand colour does not follow the theme, and only the dark ink clears 4.5:1 on it.
 const QZ_BRAND_TOKENS = ['--qz-brand-telegram', '--qz-brand-whatsapp', '--qz-brand-wechat', '--qz-brand-qq', '--qz-on-brand']
+// Same contract for the QR quiet-zone frame: white in both themes so a code on a dark surface keeps its light margin.
+const QZ_FIXED_TOKENS = [...QZ_BRAND_TOKENS, '--qz-qr-frame']
 const QZ_COLOR_TOKENS = [
   '--qz-bg', '--qz-surface', '--qz-surface-raised', '--qz-surface-muted',
   '--qz-text', '--qz-text-secondary', '--qz-text-muted',
@@ -81,15 +83,15 @@ const QZ_COLOR_TOKENS = [
   '--qz-accent', '--qz-accent-strong', '--qz-accent-subtle', '--qz-on-accent',
   '--qz-success', '--qz-warning', '--qz-danger', '--qz-info',
   '--qz-header-bg',
-  ...QZ_BRAND_TOKENS,
+  ...QZ_FIXED_TOKENS,
 ]
 const QZ_SHADOW_TOKENS = ['--qz-shadow-resting', '--qz-shadow-raised', '--qz-shadow-floating']
 const QZ_SIZE_TOKENS = [
   ...[1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24].map((step) => `--qz-space-${step}`),
-  '--qz-radius-control', '--qz-radius-panel', '--qz-radius-surface', '--qz-radius-pill',
+  '--qz-radius-control', '--qz-radius-panel', '--qz-radius-surface', '--qz-radius-pill', '--qz-radius-sm', '--qz-radius-xs',
   '--qz-control-sm', '--qz-control-md', '--qz-control-lg',
   '--qz-text-2xs', '--qz-text-xs', '--qz-text-sm', '--qz-text-base', '--qz-text-lg', '--qz-text-xl', '--qz-text-2xl', '--qz-text-3xl',
-  '--qz-leading-display', '--qz-leading-body', '--qz-tracking-display',
+  '--qz-leading-display', '--qz-leading-body', '--qz-tracking-display', '--qz-font-mono',
   '--qz-ease-enter', '--qz-ease-standard', '--qz-ease-exit', '--qz-ease-spring',
   '--qz-duration-instant', '--qz-duration-fast', '--qz-duration-standard', '--qz-duration-considered', '--qz-duration-spring',
   '--qz-focus-outline',
@@ -179,11 +181,11 @@ test('tokens.css defines the qz token contract on both scopes', () => {
   // Muted text on the white surface must keep ≥ 4.5:1 (WCAG AA): oklch 55% grey is ~4.9:1, Arc's 59% was ~4.1:1.
   assert.equal(light.get('--qz-text-muted'), 'oklch(55% 0 0)', 'light --qz-text-muted must stay at oklch(55% 0 0)')
 
-  // Brand colours are theme-independent values declared on both scopes.
+  // Brand colours and the QR frame are theme-independent values declared on both scopes.
   assert.deepEqual(
-    QZ_BRAND_TOKENS.filter((name) => light.get(name) !== dark.get(name)),
+    QZ_FIXED_TOKENS.filter((name) => light.get(name) !== dark.get(name)),
     [],
-    'brand tokens must have the same value on the light and dark scopes',
+    'brand / QR-frame tokens must have the same value on the light and dark scopes',
   )
   // White on the brand fills is 2.0–2.8:1; the fixed dark ink is ≥ 7.1:1 on every one of them.
   assert.equal(light.get('--qz-on-brand'), '#0a0a0a', '--qz-on-brand must stay the dark ink (#0a0a0a) in both themes')
@@ -198,14 +200,14 @@ test('tokens.css defines the qz token contract on both scopes', () => {
 //
 // Colours come from --qz-* (color-mix() of tokens is fine), every font-size is a
 // --qz-text-* step and every control height is a --qz-control-* step. The only fixed
-// heights are glyphs inside controls (16 / 18), badge (22), chip (24), the
-// empty-state icon (40) and the 1px box of the visually-hidden utility (.qz-sr-only).
+// heights are glyphs inside badges / chips (12) and controls (16 / 18), badge (22), chip (24),
+// the empty-state icon (40) and the 1px box of the visually-hidden utility (.qz-sr-only).
 // QzButton.vue keeps just its label morph / loader CSS; its size and variant looks live
 // in base.css as .qz-btn--*, so its <style> must not select .qz-btn at all.
 // ---------------------------------------------------------------------------
 const BASE_CSS = join(TEMPLATE_ROOT, 'styles', 'base.css')
 const QZ_BUTTON_VUE = join(TEMPLATE_ROOT, 'components', 'QzButton.vue')
-const BASE_PX_HEIGHTS = new Set(['1px', '16px', '18px', '22px', '24px', '40px'])
+const BASE_PX_HEIGHTS = new Set(['1px', '12px', '16px', '18px', '22px', '24px', '40px'])
 const QZ_BUTTON_STATE_CLASSES = ['is-sm', 'is-md', 'is-lg', 'is-primary', 'is-secondary', 'is-ghost', 'is-danger']
 
 const lineOf = (text: string, index: number) => text.slice(0, index).split('\n').length
