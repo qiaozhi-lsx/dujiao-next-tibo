@@ -61,7 +61,7 @@ function createClient(injectAuth: boolean) {
     const baseURL = `${API_BASE_URL}${API_PREFIX}`
     const timeout = 10000
 
-    async function request(method: string, path: string, bodyOrOptions?: any, options?: RequestOptions): Promise<{ data: any }> {
+    async function request(method: string, path: string, bodyOrOptions?: any, options?: RequestOptions): Promise<{ data: any; headers?: Headers }> {
         let body: any = undefined
         let opts: RequestOptions = {}
 
@@ -181,7 +181,8 @@ function createClient(injectAuth: boolean) {
             return Promise.reject(businessError)
         }
 
-        return { data }
+        // 暴露响应头,供调用方读取 CDN 的 Age 等元信息(同源请求可读全部头)
+        return { data, headers: response.headers }
     }
 
     return {

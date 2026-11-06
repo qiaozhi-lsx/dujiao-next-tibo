@@ -18,6 +18,16 @@ import (
 
 const publicConfigCacheTTL = 60 * time.Second
 
+// publicConfigCacheControl 覆盖 /api/v1/public 路由组中间件写的默认缓存头(max-age=10)。
+// 响应体里的 server_time 是每次现算的,浏览器本地缓存 10s 会让前端的服务器时间校准停滞;
+// 改为 max-age=0 让浏览器每次回源,s-maxage=10 仍让 CDN 边缘缓存 10s 并带 Age 头,
+// 前端按 Age 补偿 server_time。只在成功路径设置,错误路径由 response.Error 写 no-store。
+const publicConfigCacheControl = "public, max-age=0, s-maxage=10"
+
+func applyPublicConfigCacheControl(c *gin.Context) {
+	c.Header("Cache-Control", publicConfigCacheControl)
+}
+
 // ConfigCache 公开配置缓存端口。
 type ConfigCache interface {
 	CacheKey(resellerID *uint) string
@@ -143,6 +153,7 @@ func (h *Handler) GetConfig(c *gin.Context) {
 	if hit, err := h.cache.GetJSON(c.Request.Context(), cacheKey, &cached); err == nil && hit {
 		cached["server_time"] = time.Now().UnixMilli()
 		cached["app_version"] = version.Version
+		applyPublicConfigCacheControl(c)
 		response.Success(c, cached)
 		return
 	}
@@ -240,6 +251,7 @@ func (h *Handler) GetConfig(c *gin.Context) {
 	_ = h.cache.SetJSON(c.Request.Context(), cacheKey, data, publicConfigCacheTTL)
 	data["server_time"] = time.Now().UnixMilli()
 	data["app_version"] = version.Version
+	applyPublicConfigCacheControl(c)
 	response.Success(c, data)
 }
 
