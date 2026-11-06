@@ -90,12 +90,12 @@ export const useNavConfig = () => {
     const noticeEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.notice))
     const aboutEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.about))
 
-    /** 内置导航项（博客 / 公告 / 关于），受后台开关控制 */
+    /** 内置导航项（博客 / 公告 / 关于），受后台开关控制；门控规则同上，完整配置到达前一项都不输出 */
     const builtinNavItems = computed<NavItem[]>(() => {
         const builtin = navConfig.value?.builtin
         const result: NavItem[] = []
         for (const [key, def] of Object.entries(builtinNavDefs)) {
-            if (builtin && builtin[key] === false) continue
+            if (!optionalFlagOn(appStore.configComplete, builtin?.[key])) continue
             result.push({ key, path: def.path, label: t(def.label), icon: def.icon, type: 'route', target: '_self' })
         }
         return result

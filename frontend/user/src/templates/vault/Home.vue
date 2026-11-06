@@ -178,6 +178,7 @@ import { useProductList } from '../../composables/useProductList'
 import { useProductListGroups } from '../../composables/useProductListGroups'
 import { usePageSeo } from '../../composables/usePageSeo'
 import { useAppStore } from '../../stores/app'
+import { optionalFlagOn } from '../../utils/configFlags'
 import VaultProductCard from './components/VaultProductCard.vue'
 import VaultProductListItem from './components/VaultProductListItem.vue'
 import VaultCategorySidebar from './components/VaultCategorySidebar.vue'
@@ -255,9 +256,14 @@ const catColor = (idx: number) => catColors[idx % catColors.length]
 const catName = (cat: PublicCategory) => getLocalizedText(cat.name) || cat.slug || ''
 
 const navBuiltin = computed(() => (appStore.config?.nav_config as { builtin?: Record<string, boolean> } | undefined)?.builtin)
+// 只供 loadPosts 决定要不要拉、拉哪种类型，必须保持乐观读法（不要套 optionalFlagOn）：
+// 帖子只在 onMounted 拉一次，而内联的 window.__PUBLIC_CONFIG__ 不含 nav_config，
+// 若按关闭处理会直接跳过请求，完整配置到达后也不会补拉。
 const blogEnabled = computed(() => navBuiltin.value?.blog !== false)
 const noticeEnabled = computed(() => navBuiltin.value?.notice !== false)
-const latestVisible = computed(() => blogEnabled.value || noticeEnabled.value)
+// 显示用的门控读法：完整配置到达前按关闭处理，避免「最新动态」随帖子先返回而闪现、
+// 再被关闭的开关收走，与 VaultLayout 的内置导航项保持一致（见 utils/configFlags.ts）
+const latestVisible = computed(() => optionalFlagOn(appStore.configComplete, navBuiltin.value?.blog) || optionalFlagOn(appStore.configComplete, navBuiltin.value?.notice))
 
 const formatDate = (value: string) => (value ? new Date(value).toLocaleDateString() : '')
 
@@ -307,7 +313,8 @@ const loadCategories = async () => {
 }
 
 const loadPosts = async () => {
-  if (!latestVisible.value) return
+  // 乐观判断（见 blogEnabled 注释）：内联阶段两个开关都读成开启，照常发请求；真关闭时区块本就不渲染
+  if (!blogEnabled.value && !noticeEnabled.value) return
   try {
     const params: Record<string, unknown> = { page: 1, page_size: 3 }
     if (blogEnabled.value && !noticeEnabled.value) params.type = 'blog'
