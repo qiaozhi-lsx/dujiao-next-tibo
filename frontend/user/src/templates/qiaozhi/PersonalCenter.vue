@@ -1,20 +1,20 @@
 <template>
-  <div class="j8-me">
+  <div class="qz-me">
     <!-- 账户头卡 -->
-    <header class="j8-me-profile">
-      <div class="j8-me-ident">
-        <span class="j8-me-avatar" aria-hidden="true">{{ displayInitial }}</span>
-        <div class="j8-me-idtext">
-          <h1 class="j8-me-name">{{ userProfileStore.displayName }}</h1>
-          <p class="j8-me-mail">{{ userProfileStore.profile?.email || t('personalCenter.subtitle') }}</p>
+    <header class="qz-me-profile">
+      <div class="qz-me-ident">
+        <span class="qz-me-avatar" aria-hidden="true">{{ displayInitial }}</span>
+        <div class="qz-me-idtext">
+          <h1 class="qz-me-name">{{ userProfileStore.displayName }}</h1>
+          <p class="qz-me-mail">{{ userProfileStore.profile?.email || t('personalCenter.subtitle') }}</p>
         </div>
       </div>
-      <div class="j8-me-badges">
-        <span class="j8-me-pill" :class="emailVerifiedVariant === 'success' ? 'is-ok' : 'is-warn'">
+      <div class="qz-me-badges">
+        <span class="qz-me-pill" :class="emailVerifiedVariant === 'success' ? 'is-ok' : 'is-warn'">
           <ShieldCheck aria-hidden="true" />
           {{ emailVerifiedLabel }}
         </span>
-        <span v-if="userProfileStore.currentLevel" class="j8-me-pill is-ok">
+        <span v-if="userProfileStore.currentLevel" class="qz-me-pill is-ok">
           <img
             v-if="isImagePath(userProfileStore.currentLevel.icon)"
             :src="getImageUrl(userProfileStore.currentLevel.icon!)"
@@ -27,10 +27,10 @@
       </div>
     </header>
 
-    <div class="j8-me-layout">
+    <div class="qz-me-layout">
       <!-- 左侧 Tabs 导航 -->
-      <aside class="j8-me-nav">
-        <J8Tabs
+      <aside class="qz-me-nav">
+        <QzTabs
           :items="navItems"
           :model-value="currentSection"
           :orientation="wideNav ? 'vertical' : 'horizontal'"
@@ -42,8 +42,8 @@
       </aside>
 
       <!-- 面板内容 -->
-      <section class="j8-me-content">
-        <p v-if="globalAlert" class="j8-me-alert">{{ globalAlert.message }}</p>
+      <section class="qz-me-content">
+        <p v-if="globalAlert" class="qz-me-alert">{{ globalAlert.message }}</p>
         <Transition :name="transitionName" mode="out-in">
           <component :is="panelComponent" :key="currentSection" />
         </Transition>
@@ -57,7 +57,7 @@ import { computed, onMounted, onUnmounted, ref, watch, type Component } from 'vu
 import { useI18n } from 'vue-i18n'
 import { Crown, ShieldCheck } from 'lucide-vue-next'
 import { getImageUrl } from '../../utils/image'
-import J8Tabs, { type J8TabItem } from './components/J8Tabs.vue'
+import QzTabs, { type QzTabItem } from './components/QzTabs.vue'
 import { usePersonalCenter, type PersonalSection } from '../../composables/usePersonalCenter'
 import MeOverview from './me/MeOverview.vue'
 import MeOrders from './me/MeOrders.vue'
@@ -79,7 +79,7 @@ const {
   switchSection, emailVerifiedLabel, emailVerifiedVariant, isImagePath, levelName,
 } = usePersonalCenter(() => props.section)
 
-const navItems = computed<J8TabItem[]>(() => visibleSectionItems.value.map((item) => ({
+const navItems = computed<QzTabItem[]>(() => visibleSectionItems.value.map((item) => ({
   key: item.key,
   label: t(item.label),
   icon: item.icon,
@@ -114,7 +114,7 @@ watch(currentSection, (next) => {
   else direction.value = 'fwd'
   previousIndex = nextAt
 })
-const transitionName = computed(() => (direction.value === 'back' ? 'j8-me-back' : 'j8-me-fwd'))
+const transitionName = computed(() => (direction.value === 'back' ? 'qz-me-back' : 'qz-me-fwd'))
 
 onMounted(() => {
   mq = window.matchMedia('(min-width: 1024px)')

@@ -1,20 +1,20 @@
 <template>
   <RouterLink
     :to="`/products/${product.slug}`"
-    class="j8-fcard j8-reveal is-pending"
+    class="qz-fcard qz-reveal is-pending"
     :class="[`is-${variant}`, wideClass]"
     :data-reveal="1"
   >
-    <div class="j8-fcard-head">
+    <div class="qz-fcard-head">
       <div>
         <h3>{{ title }}<em v-if="em">{{ em }}</em></h3>
         <p>{{ desc }}</p>
       </div>
-      <span v-if="tag" class="j8-fcard-tag">{{ tag }}</span>
+      <span v-if="tag" class="qz-fcard-tag">{{ tag }}</span>
     </div>
 
     <!-- ========== 艺术区 ========== -->
-    <div class="j8-fart" :class="`is-${variant}`" aria-hidden="true">
+    <div class="qz-fart" :class="`is-${variant}`" aria-hidden="true">
       <!-- ChatGPT 卡堆 -->
       <div v-if="variant === 'chatgpt'" class="fa-gpt">
         <div class="fa-gpt-card c3"><small>{{ shortTitle }}</small><b>{{ tier3.name }}</b><em>{{ tier3.price }}</em></div>
@@ -29,11 +29,11 @@
         <div class="fa-gem-star">
           <svg viewBox="0 0 160 160">
             <defs>
-              <linearGradient id="j8-gem-grad" x1="0" y1="1" x2="1" y2="0">
+              <linearGradient id="qz-gem-grad" x1="0" y1="1" x2="1" y2="0">
                 <stop stop-color="#4f8bff" /><stop offset=".55" stop-color="#8d6bff" /><stop offset="1" stop-color="#d65fb4" />
               </linearGradient>
             </defs>
-            <path fill="url(#j8-gem-grad)" d="M80 5C91 48 112 69 155 80C112 91 91 112 80 155C69 112 48 91 5 80C48 69 69 48 80 5Z" />
+            <path fill="url(#qz-gem-grad)" d="M80 5C91 48 112 69 155 80C112 91 91 112 80 155C69 112 48 91 5 80C48 69 69 48 80 5Z" />
           </svg>
         </div>
         <svg class="fa-twinkle t1" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z" /></svg>
@@ -70,7 +70,7 @@
         <span class="fa-word w3">¡Hola!</span>
         <span class="fa-word w4">你好</span>
         <div class="fa-icon">
-          <span class="j8-brand-icon"><img v-if="icon" :src="icon" alt="" loading="lazy" /><Bird v-else class="fa-fallback-icon" /></span>
+          <span class="qz-brand-icon"><img v-if="icon" :src="icon" alt="" loading="lazy" /><Bird v-else class="fa-fallback-icon" /></span>
         </div>
         <div v-if="artNumber" class="fa-num">
           <b><span class="fa-count" :style="{ '--to': artNumber }"></span><small>{{ artNumberUnit }}</small></b>
@@ -88,7 +88,7 @@
           <i class="a4"><Sun /></i>
         </span>
         <div class="fa-icon">
-          <span class="j8-brand-icon"><img v-if="icon" :src="icon" alt="" loading="lazy" /><Smile v-else class="fa-fallback-icon" /></span>
+          <span class="qz-brand-icon"><img v-if="icon" :src="icon" alt="" loading="lazy" /><Smile v-else class="fa-fallback-icon" /></span>
         </div>
         <svg class="fa-twinkle t1" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z" /></svg>
         <svg class="fa-twinkle t2" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z" /></svg>
@@ -107,7 +107,7 @@
         <svg class="fa-twinkle t2" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z" /></svg>
         <div class="fa-tools-row">
           <span v-for="(tool, i) in tools" :key="tool.id" class="fa-tool" :class="{ 'is-out': tool.soldOut }" :style="{ animationDelay: `${i * -0.55}s` }">
-            <span class="j8-brand-icon tool-icon"><img v-if="tool.icon" :src="tool.icon" alt="" loading="lazy" /><span v-else class="tool-letter">{{ tool.letter }}</span></span>
+            <span class="qz-brand-icon tool-icon"><img v-if="tool.icon" :src="tool.icon" alt="" loading="lazy" /><span v-else class="tool-letter">{{ tool.letter }}</span></span>
             <em>{{ tool.price }}</em>
           </span>
         </div>
@@ -117,17 +117,17 @@
       <div v-else class="fa-default">
         <span class="fa-glow"></span>
         <div class="fa-icon">
-          <span class="j8-brand-icon"><img v-if="icon" :src="icon" alt="" loading="lazy" /><Package v-else class="fa-fallback-icon" /></span>
+          <span class="qz-brand-icon"><img v-if="icon" :src="icon" alt="" loading="lazy" /><Package v-else class="fa-fallback-icon" /></span>
         </div>
       </div>
     </div>
 
-    <div class="j8-fcard-foot">
-      <div class="j8-fcard-price">
+    <div class="qz-fcard-foot">
+      <div class="qz-fcard-price">
         <strong>{{ priceParts.symbol }}{{ priceParts.major }}</strong>
         <small>{{ priceParts.minor }} {{ t('qiaozhi.card.priceFrom') }}</small>
       </div>
-      <span class="j8-fcard-cta">
+      <span class="qz-fcard-cta">
         {{ ctaText }}
         <ChevronRight />
       </span>

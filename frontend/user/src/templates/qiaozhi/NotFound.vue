@@ -1,31 +1,31 @@
 <template>
-  <div class="j8-container j8-404">
-    <div class="j8-404-card">
-      <div class="j8-404-badge">
+  <div class="qz-container qz-404">
+    <div class="qz-404-card">
+      <div class="qz-404-badge">
         <Info />
         <span>{{ brandSiteName }}</span>
       </div>
 
-      <div class="j8-404-pixel" aria-hidden="true">
+      <div class="qz-404-pixel" aria-hidden="true">
         <span v-for="n in 16" :key="n" :class="'px-' + n"></span>
       </div>
 
-      <p class="j8-404-code">404</p>
-      <h1 class="j8-404-title">{{ t('notFoundPage.title') }}</h1>
-      <p class="j8-404-desc">{{ t('notFoundPage.description', { site: brandSiteName }) }}</p>
+      <p class="qz-404-code">404</p>
+      <h1 class="qz-404-title">{{ t('notFoundPage.title') }}</h1>
+      <p class="qz-404-desc">{{ t('notFoundPage.description', { site: brandSiteName }) }}</p>
 
-      <div class="j8-404-quick">
-        <p class="j8-eyebrow">{{ t('notFoundPage.quickLinksTitle') }}</p>
-        <div class="j8-404-chip-row">
-          <RouterLink class="j8-404-chip" to="/products"><ShoppingBag /><span>{{ t('nav.products') }}</span></RouterLink>
-          <RouterLink class="j8-404-chip" to="/notice"><Bell /><span>{{ t('nav.notice') }}</span></RouterLink>
-          <RouterLink class="j8-404-chip" to="/blog"><BookOpen /><span>{{ t('nav.blog') }}</span></RouterLink>
+      <div class="qz-404-quick">
+        <p class="qz-eyebrow">{{ t('notFoundPage.quickLinksTitle') }}</p>
+        <div class="qz-404-chip-row">
+          <RouterLink class="qz-404-chip" to="/products"><ShoppingBag /><span>{{ t('nav.products') }}</span></RouterLink>
+          <RouterLink class="qz-404-chip" to="/notice"><Bell /><span>{{ t('nav.notice') }}</span></RouterLink>
+          <RouterLink class="qz-404-chip" to="/blog"><BookOpen /><span>{{ t('nav.blog') }}</span></RouterLink>
         </div>
       </div>
 
-      <div class="j8-404-actions">
-        <RouterLink class="j8-404-btn j8-404-btn--primary" to="/"><HomeIcon /><span>{{ t('notFoundPage.backHome') }}</span></RouterLink>
-        <button type="button" class="j8-404-btn j8-404-btn--ghost" @click="goBack"><ArrowLeft /><span>{{ t('notFoundPage.backPrevious') }}</span></button>
+      <div class="qz-404-actions">
+        <RouterLink class="qz-404-btn qz-404-btn--primary" to="/"><HomeIcon /><span>{{ t('notFoundPage.backHome') }}</span></RouterLink>
+        <button type="button" class="qz-404-btn qz-404-btn--ghost" @click="goBack"><ArrowLeft /><span>{{ t('notFoundPage.backPrevious') }}</span></button>
       </div>
     </div>
   </div>

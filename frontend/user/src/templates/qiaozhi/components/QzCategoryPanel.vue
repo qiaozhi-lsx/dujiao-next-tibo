@@ -1,13 +1,13 @@
 <template>
   <!-- 桌面：侧栏面板 -->
-  <aside class="j8-panel j8-only-desktop">
+  <aside class="qz-panel qz-only-desktop">
     <header>
-      <span class="j8-eyebrow">CATEGORIES</span>
+      <span class="qz-eyebrow">CATEGORIES</span>
       <h2>{{ t('qiaozhi.catalog.title') }}</h2>
     </header>
-    <div class="j8-cat-list">
-      <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="emit('select', null)">
-        <span class="j8-cat-logo hot"><Star /></span>
+    <div class="qz-cat-list">
+      <button type="button" class="qz-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="emit('select', null)">
+        <span class="qz-cat-logo hot"><Star /></span>
         <span>{{ t('products.allCategories') }}</span>
         <b>{{ totalCount }}</b>
       </button>
@@ -15,13 +15,13 @@
         v-for="cat in visibleCategories"
         :key="cat.id"
         type="button"
-        class="j8-cat-item"
+        class="qz-cat-item"
         :class="{ 'is-active': selectedCategory === cat.id, 'is-child': cat.parentId > 0 }"
         :aria-pressed="selectedCategory === cat.id"
         @click="emit('select', cat.id)"
       >
-        <span class="j8-cat-logo">
-          <span class="j8-brand-icon">
+        <span class="qz-cat-logo">
+          <span class="qz-brand-icon">
             <img v-if="cat.icon" :src="cat.icon" alt="" loading="lazy" />
             <b v-else>{{ cat.name.slice(0, 1) }}</b>
           </span>
@@ -33,27 +33,27 @@
   </aside>
 
   <!-- 移动端：分类抽屉 -->
-  <button type="button" class="j8-cat-btn j8-only-mobile" @click="drawerOpen = true">
+  <button type="button" class="qz-cat-btn qz-only-mobile" @click="drawerOpen = true">
     <FolderOpen />
     <span>{{ activeCategoryName }}</span>
     <ChevronDown />
   </button>
 
   <Teleport to="body">
-    <Transition name="j8-drawer">
-      <div v-if="drawerOpen" class="j8-drawer">
-        <div class="j8-drawer-backdrop" @click="drawerOpen = false"></div>
-        <div class="j8-drawer-panel">
+    <Transition name="qz-drawer">
+      <div v-if="drawerOpen" class="qz-drawer">
+        <div class="qz-drawer-backdrop" @click="drawerOpen = false"></div>
+        <div class="qz-drawer-panel">
           <header>
             <div>
-              <span class="j8-eyebrow">CATEGORIES</span>
+              <span class="qz-eyebrow">CATEGORIES</span>
               <h2>{{ t('qiaozhi.catalog.title') }}</h2>
             </div>
-            <button type="button" class="j8-drawer-close" :aria-label="t('common.cancel')" @click="drawerOpen = false"><X /></button>
+            <button type="button" class="qz-drawer-close" :aria-label="t('common.cancel')" @click="drawerOpen = false"><X /></button>
           </header>
-          <div class="j8-cat-list">
-            <button type="button" class="j8-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="pick(null)">
-              <span class="j8-cat-logo hot"><Star /></span>
+          <div class="qz-cat-list">
+            <button type="button" class="qz-cat-item" :class="{ 'is-active': selectedCategory === null }" :aria-pressed="selectedCategory === null" @click="pick(null)">
+              <span class="qz-cat-logo hot"><Star /></span>
               <span>{{ t('products.allCategories') }}</span>
               <b>{{ totalCount }}</b>
             </button>
@@ -61,13 +61,13 @@
               v-for="cat in visibleCategories"
               :key="cat.id"
               type="button"
-              class="j8-cat-item"
+              class="qz-cat-item"
               :class="{ 'is-active': selectedCategory === cat.id, 'is-child': cat.parentId > 0 }"
               :aria-pressed="selectedCategory === cat.id"
               @click="pick(cat.id)"
             >
-              <span class="j8-cat-logo">
-                <span class="j8-brand-icon">
+              <span class="qz-cat-logo">
+                <span class="qz-brand-icon">
                   <img v-if="cat.icon" :src="cat.icon" alt="" loading="lazy" />
                   <b v-else>{{ cat.name.slice(0, 1) }}</b>
                 </span>

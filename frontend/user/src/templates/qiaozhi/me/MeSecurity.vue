@@ -1,19 +1,19 @@
 <template>
-  <div class="j8-me-panel">
+  <div class="qz-me-panel">
     <!-- ==================== 安全总览 ==================== -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.security.title') }}</h2>
           <small>{{ requiresOldEmailCode ? t('personalCenter.security.subtitle') : t('personalCenter.security.subtitleBindOnly') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">{{ t('personalCenter.tabs.security') }}</span>
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">{{ t('personalCenter.tabs.security') }}</span>
         </div>
       </div>
       <p
         v-if="securityAlert"
-        class="j8-ic-alert"
+        class="qz-ic-alert"
         :class="alertClass(securityAlert.level)"
         :role="securityAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -22,38 +22,38 @@
     </div>
 
     <!-- ==================== Telegram 绑定 ==================== -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.security.telegramTitle') }}</h2>
           <small>{{ telegramEnabled ? t('personalCenter.security.telegramSubtitle') : t('personalCenter.security.telegramDisabledTip') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill" :class="telegramBound ? 'is-ok' : 'is-warn'">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill" :class="telegramBound ? 'is-ok' : 'is-warn'">
             {{ telegramBound ? t('personalCenter.security.telegramBound') : t('personalCenter.security.telegramUnbound') }}
           </span>
         </div>
       </div>
 
-      <div class="j8-me-rows">
-        <p v-if="userProfileStore.loadingTelegramBinding" class="j8-me-hint">
+      <div class="qz-me-rows">
+        <p v-if="userProfileStore.loadingTelegramBinding" class="qz-me-hint">
           {{ t('personalCenter.security.telegramLoading') }}
         </p>
 
         <template v-else-if="telegramBound">
-          <div class="j8-me-ident">
-            <span v-if="telegramAvatarUrl" class="j8-me-avatar">
+          <div class="qz-me-ident">
+            <span v-if="telegramAvatarUrl" class="qz-me-avatar">
               <img :src="telegramAvatarUrl" alt="Telegram Avatar" />
             </span>
-            <div class="j8-me-row-main">
+            <div class="qz-me-row-main">
               <b>{{ telegramDisplayName }}</b>
               <small>{{ t('personalCenter.security.telegramBindID', { id: telegramProviderUserId }) }}</small>
               <small>{{ t('personalCenter.security.telegramBindTime', { time: formatDate(userProfileStore.telegramBinding?.auth_at) }) }}</small>
             </div>
           </div>
 
-          <div class="j8-me-card-acts">
-            <J8Button
+          <div class="qz-me-card-acts">
+            <QzButton
               type="button"
               variant="secondary"
               size="sm"
@@ -62,59 +62,59 @@
               @click="handleUnbindTelegram"
             >
               {{ userProfileStore.unbindingTelegram ? t('personalCenter.security.telegramUnbinding') : t('personalCenter.security.telegramUnbind') }}
-            </J8Button>
+            </QzButton>
           </div>
-          <p v-if="!canUnbindTelegram" class="j8-me-hint">
+          <p v-if="!canUnbindTelegram" class="qz-me-hint">
             {{ t('personalCenter.security.telegramUnbindDisabledTip') }}
           </p>
 
           <template v-if="showTelegramMiniAppEntry">
-            <p class="j8-me-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
-            <div class="j8-me-card-acts">
-              <J8Button type="button" variant="secondary" size="sm" @click="openTelegramMiniAppEntry">
+            <p class="qz-me-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
+            <div class="qz-me-card-acts">
+              <QzButton type="button" variant="secondary" size="sm" @click="openTelegramMiniAppEntry">
                 {{ t('personalCenter.security.telegramMiniAppEntryAction') }}
-              </J8Button>
+              </QzButton>
             </div>
           </template>
         </template>
 
         <template v-else>
-          <p class="j8-me-hint">
+          <p class="qz-me-hint">
             {{ telegramEnabled
               ? (showMiniAppBindAction ? t('personalCenter.security.telegramMiniAppBindHint') : t('personalCenter.security.telegramUnboundTip'))
               : t('personalCenter.security.telegramDisabledTip') }}
           </p>
 
-          <div v-if="showMiniAppBindAction" class="j8-me-card-acts">
-            <J8Button
+          <div v-if="showMiniAppBindAction" class="qz-me-card-acts">
+            <QzButton
               type="button"
               :loading="userProfileStore.bindingTelegram"
               :disabled="miniAppInitData === ''"
               @click="handleTelegramMiniAppBind"
             >
               {{ userProfileStore.bindingTelegram ? t('personalCenter.security.telegramMiniAppBinding') : t('personalCenter.security.telegramMiniAppBindAction') }}
-            </J8Button>
+            </QzButton>
           </div>
-          <div v-else-if="showTelegramWidget" ref="telegramWidgetRef" class="j8-sec-widget"></div>
+          <div v-else-if="showTelegramWidget" ref="telegramWidgetRef" class="qz-sec-widget"></div>
           <template v-else-if="showTelegramOidcBind">
-            <div class="j8-me-card-acts">
-              <J8Button
+            <div class="qz-me-card-acts">
+              <QzButton
                 type="button"
                 :disabled="userProfileStore.bindingTelegram"
                 @click="startTelegramOidcBind"
               >
                 {{ t('personalCenter.security.telegramOidcBindButton') }}
-              </J8Button>
+              </QzButton>
             </div>
-            <p class="j8-me-hint">{{ t('personalCenter.security.telegramOidcBindHint') }}</p>
+            <p class="qz-me-hint">{{ t('personalCenter.security.telegramOidcBindHint') }}</p>
           </template>
 
           <template v-if="showTelegramMiniAppEntry">
-            <p class="j8-me-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
-            <div class="j8-me-card-acts">
-              <J8Button type="button" variant="secondary" size="sm" @click="openTelegramMiniAppEntry">
+            <p class="qz-me-hint">{{ t('personalCenter.security.telegramMiniAppEntryHint') }}</p>
+            <div class="qz-me-card-acts">
+              <QzButton type="button" variant="secondary" size="sm" @click="openTelegramMiniAppEntry">
                 {{ t('personalCenter.security.telegramMiniAppEntryAction') }}
-              </J8Button>
+              </QzButton>
             </div>
           </template>
         </template>
@@ -122,27 +122,27 @@
     </div>
 
     <!-- ==================== Google 绑定 ==================== -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.security.googleTitle') }}</h2>
           <small>{{ googleAuthorizationEnabled ? t('personalCenter.security.googleSubtitle') : t('personalCenter.security.googleDisabledTip') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill" :class="googleBound ? 'is-ok' : 'is-warn'">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill" :class="googleBound ? 'is-ok' : 'is-warn'">
             {{ googleBound ? t('personalCenter.security.googleBound') : t('personalCenter.security.googleUnbound') }}
           </span>
         </div>
       </div>
 
-      <div class="j8-me-rows">
-        <p v-if="userProfileStore.loadingGoogleBinding" class="j8-me-hint">
+      <div class="qz-me-rows">
+        <p v-if="userProfileStore.loadingGoogleBinding" class="qz-me-hint">
           {{ t('personalCenter.security.googleLoading') }}
         </p>
 
         <template v-else-if="googleBound">
-          <div class="j8-me-ident">
-            <span class="j8-me-avatar">
+          <div class="qz-me-ident">
+            <span class="qz-me-avatar">
               <img
                 v-if="googleAvatarUrl"
                 :src="googleAvatarUrl"
@@ -150,7 +150,7 @@
               />
               <template v-else>G</template>
             </span>
-            <div class="j8-me-row-main">
+            <div class="qz-me-row-main">
               <b>{{ googleDisplayName }}</b>
               <small v-if="googleEmail">{{ googleEmail }}</small>
               <small>{{ t('personalCenter.security.googleBindID', { id: googleProviderUserId }) }}</small>
@@ -158,8 +158,8 @@
             </div>
           </div>
 
-          <div class="j8-me-card-acts">
-            <J8Button
+          <div class="qz-me-card-acts">
+            <QzButton
               type="button"
               variant="secondary"
               size="sm"
@@ -168,15 +168,15 @@
               @click="handleUnbindGoogle"
             >
               {{ userProfileStore.unbindingGoogle ? t('personalCenter.security.googleUnbinding') : t('personalCenter.security.googleUnbind') }}
-            </J8Button>
+            </QzButton>
           </div>
-          <p v-if="!canUnbindGoogle" class="j8-me-hint">
+          <p v-if="!canUnbindGoogle" class="qz-me-hint">
             {{ t('personalCenter.security.googleUnbindDisabledTip') }}
           </p>
         </template>
 
         <template v-else>
-          <p class="j8-me-hint">
+          <p class="qz-me-hint">
             {{ !googleAuthorizationEnabled
               ? t('personalCenter.security.googleDisabledTip')
               : isTelegramMiniApp
@@ -196,7 +196,7 @@
             @credential="handleGoogleBind"
             @error="handleGoogleScriptError"
           />
-          <p v-if="userProfileStore.bindingGoogle" class="j8-me-hint" role="status">
+          <p v-if="userProfileStore.bindingGoogle" class="qz-me-hint" role="status">
             {{ t('personalCenter.security.googleBinding') }}
           </p>
         </template>
@@ -204,17 +204,17 @@
     </div>
 
     <!-- ==================== 邮箱换绑 / 绑定 ==================== -->
-    <div class="j8-me-card">
-      <form class="j8-ic" novalidate @submit.prevent="handleChangeEmail">
-        <div class="j8-ic-field">
+    <div class="qz-me-card">
+      <form class="qz-ic" novalidate @submit.prevent="handleChangeEmail">
+        <div class="qz-ic-field">
           <label for="qz-me-sec-current-email">{{ t('personalCenter.security.currentEmailLabel') }}</label>
           <input id="qz-me-sec-current-email" :value="currentEmailDisplay" type="email" disabled />
-          <p v-if="!requiresOldEmailCode" class="j8-ic-hint">
+          <p v-if="!requiresOldEmailCode" class="qz-ic-hint">
             {{ t('personalCenter.security.bindOnlyTip') }}
           </p>
         </div>
 
-        <div class="j8-ic-field">
+        <div class="qz-ic-field">
           <label for="qz-me-sec-new-email">{{ t('personalCenter.security.newEmailLabel') }}</label>
           <input
             id="qz-me-sec-new-email"
@@ -225,10 +225,10 @@
           />
         </div>
 
-        <div :class="requiresOldEmailCode ? 'j8-ic-row' : ''">
-          <div v-if="requiresOldEmailCode" class="j8-ic-field">
+        <div :class="requiresOldEmailCode ? 'qz-ic-row' : ''">
+          <div v-if="requiresOldEmailCode" class="qz-ic-field">
             <label for="qz-me-sec-old-code">{{ t('personalCenter.security.oldCodeLabel') }}</label>
-            <div class="j8-sec-inline">
+            <div class="qz-sec-inline">
               <input
                 id="qz-me-sec-old-code"
                 v-model="securityForm.oldCode"
@@ -237,7 +237,7 @@
               />
               <button
                 type="button"
-                class="j8-me-act"
+                class="qz-me-act"
                 :disabled="userProfileStore.sendingCode || oldCodeCooldown > 0"
                 @click="handleSendOldCode"
               >
@@ -246,9 +246,9 @@
             </div>
           </div>
 
-          <div class="j8-ic-field">
+          <div class="qz-ic-field">
             <label for="qz-me-sec-new-code">{{ t('personalCenter.security.newCodeLabel') }}</label>
-            <div class="j8-sec-inline">
+            <div class="qz-sec-inline">
               <input
                 id="qz-me-sec-new-code"
                 v-model="securityForm.newCode"
@@ -257,7 +257,7 @@
               />
               <button
                 type="button"
-                class="j8-me-act"
+                class="qz-me-act"
                 :disabled="userProfileStore.sendingCode || newCodeCooldown > 0"
                 @click="handleSendNewCode"
               >
@@ -267,56 +267,56 @@
           </div>
         </div>
 
-        <div class="j8-me-card-acts">
-          <J8Button type="submit" :loading="userProfileStore.changingEmail">
+        <div class="qz-me-card-acts">
+          <QzButton type="submit" :loading="userProfileStore.changingEmail">
             {{ userProfileStore.changingEmail
               ? t('personalCenter.security.submitting')
               : (requiresOldEmailCode ? t('personalCenter.security.submit') : t('personalCenter.security.bindSubmit')) }}
-          </J8Button>
+          </QzButton>
         </div>
       </form>
     </div>
 
     <!-- ==================== 最近登录记录 ==================== -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.security.loginLogsTitle') }}</h2>
           <small>{{ t('personalCenter.security.loginLogsTip') }}</small>
         </div>
       </div>
 
-      <p v-if="userProfileStore.loadingLoginLogs" class="j8-me-hint">
+      <p v-if="userProfileStore.loadingLoginLogs" class="qz-me-hint">
         {{ t('personalCenter.security.loginLogsLoading') }}
       </p>
-      <p v-else-if="userProfileStore.recentLoginLogs.length === 0" class="j8-me-hint">
+      <p v-else-if="userProfileStore.recentLoginLogs.length === 0" class="qz-me-hint">
         {{ t('personalCenter.security.loginLogsEmpty') }}
       </p>
-      <div v-else class="j8-me-rows">
-        <div v-for="item in userProfileStore.recentLoginLogs" :key="item.id" class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else class="qz-me-rows">
+        <div v-for="item in userProfileStore.recentLoginLogs" :key="item.id" class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ formatDate(item.created_at) }}</b>
             <small>{{ t('personalCenter.security.loginLogsIp') }}：{{ item.client_ip || '-' }}</small>
             <small>{{ t('personalCenter.security.loginLogsReason') }}：{{ loginReasonLabel(item.fail_reason) }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill" :class="loginStatusTone(item.status)">{{ loginStatusLabel(item.status) }}</span>
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill" :class="loginStatusTone(item.status)">{{ loginStatusLabel(item.status) }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ==================== 登录密码 ==================== -->
-    <div v-if="canManagePassword" class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div v-if="canManagePassword" class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ requiresOldPassword ? t('personalCenter.security.passwordTitle') : t('personalCenter.security.setPasswordTitle') }}</h2>
           <small>{{ requiresOldPassword ? t('personalCenter.security.passwordSubtitle') : t('personalCenter.security.setPasswordSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="j8-ic" novalidate @submit.prevent="handleChangePassword">
-        <div v-if="requiresOldPassword" class="j8-ic-field">
+      <form class="qz-ic" novalidate @submit.prevent="handleChangePassword">
+        <div v-if="requiresOldPassword" class="qz-ic-field">
           <label for="qz-me-sec-old-password">{{ t('personalCenter.security.currentPasswordLabel') }}</label>
           <input
             id="qz-me-sec-old-password"
@@ -327,8 +327,8 @@
           />
         </div>
 
-        <div class="j8-ic-row">
-          <div class="j8-ic-field">
+        <div class="qz-ic-row">
+          <div class="qz-ic-field">
             <label for="qz-me-sec-new-password">{{ t('personalCenter.security.newPasswordLabel') }}</label>
             <input
               id="qz-me-sec-new-password"
@@ -338,7 +338,7 @@
               :placeholder="t('personalCenter.security.passwordPlaceholder')"
             />
           </div>
-          <div class="j8-ic-field">
+          <div class="qz-ic-field">
             <label for="qz-me-sec-confirm-password">{{ t('personalCenter.security.confirmPasswordLabel') }}</label>
             <input
               id="qz-me-sec-confirm-password"
@@ -350,25 +350,25 @@
           </div>
         </div>
 
-        <div class="j8-me-card-acts">
-          <J8Button type="submit" :loading="userProfileStore.changingPassword">
+        <div class="qz-me-card-acts">
+          <QzButton type="submit" :loading="userProfileStore.changingPassword">
             {{ userProfileStore.changingPassword
               ? (requiresOldPassword ? t('personalCenter.security.changePasswordSubmitting') : t('personalCenter.security.setPasswordSubmitting'))
               : (requiresOldPassword ? t('personalCenter.security.changePassword') : t('personalCenter.security.setPassword')) }}
-          </J8Button>
+          </QzButton>
         </div>
       </form>
     </div>
 
     <!-- ==================== 两步验证（2FA） ==================== -->
-    <div v-if="canManagePassword" class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div v-if="canManagePassword" class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.security.twofa.title') }}</h2>
           <small>{{ t('personalCenter.security.twofa.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill" :class="{ 'is-ok': status?.enabled }">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill" :class="{ 'is-ok': status?.enabled }">
             {{ status?.enabled ? t('personalCenter.security.twofa.statusEnabled') : t('personalCenter.security.twofa.statusDisabled') }}
           </span>
         </div>
@@ -376,7 +376,7 @@
 
       <p
         v-if="twofaAlert"
-        class="j8-ic-alert"
+        class="qz-ic-alert"
         :class="alertClass(twofaAlert.level)"
         :role="twofaAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -384,10 +384,10 @@
       </p>
 
       <!-- 已启用：状态 + 关闭 / 重新生成恢复码 -->
-      <div v-if="status?.enabled" class="j8-me-rows">
-        <div class="j8-sec-sub">
-          <p class="j8-me-hint">{{ t('personalCenter.security.twofa.enabledAt', { date: formatDate(status.enabled_at) }) }}</p>
-          <p class="j8-me-hint">
+      <div v-if="status?.enabled" class="qz-me-rows">
+        <div class="qz-sec-sub">
+          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.enabledAt', { date: formatDate(status.enabled_at) }) }}</p>
+          <p class="qz-me-hint">
             {{ t('personalCenter.security.twofa.recoveryRemaining', {
               remaining: status.recovery_codes_remaining,
               total: status.recovery_codes_total,
@@ -395,28 +395,28 @@
           </p>
         </div>
 
-        <div class="j8-ic-row">
-          <J8Button type="button" variant="secondary" @click="openRegenerate">
+        <div class="qz-ic-row">
+          <QzButton type="button" variant="secondary" @click="openRegenerate">
             {{ t('personalCenter.security.twofa.regenerateAction') }}
-          </J8Button>
-          <J8Button type="button" variant="danger" @click="openDisable">
+          </QzButton>
+          <QzButton type="button" variant="danger" @click="openDisable">
             {{ t('personalCenter.security.twofa.disableAction') }}
-          </J8Button>
+          </QzButton>
         </div>
 
         <!-- 关闭 2FA 表单 -->
-        <div v-if="mode === 'disable'" class="j8-sec-sub">
-          <p class="j8-me-hint">{{ t('personalCenter.security.twofa.disableHint') }}</p>
-          <J8Segment
+        <div v-if="mode === 'disable'" class="qz-sec-sub">
+          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.disableHint') }}</p>
+          <QzSegment
             :model-value="disableMode"
             :items="disableModeItems"
             @update:model-value="onDisableModeChange"
           />
-          <div class="j8-ic-field">
+          <div class="qz-ic-field">
             <input
               v-if="disableMode === 'code'"
               v-model="disableCode"
-              class="j8-sec-code"
+              class="qz-sec-code"
               inputmode="numeric"
               maxlength="6"
               :aria-label="t('personalCenter.security.twofa.codePlaceholder')"
@@ -430,65 +430,65 @@
               :placeholder="t('personalCenter.security.twofa.recoveryPlaceholder')"
             />
           </div>
-          <div class="j8-ic-row">
-            <J8Button type="button" variant="danger" :loading="loading" @click="submitDisable">
+          <div class="qz-ic-row">
+            <QzButton type="button" variant="danger" :loading="loading" @click="submitDisable">
               {{ loading ? t('personalCenter.security.twofa.disableSubmitting') : t('personalCenter.security.twofa.disableSubmit') }}
-            </J8Button>
-            <J8Button type="button" variant="secondary" @click="resetMode">
+            </QzButton>
+            <QzButton type="button" variant="secondary" @click="resetMode">
               {{ t('personalCenter.security.twofa.cancel') }}
-            </J8Button>
+            </QzButton>
           </div>
         </div>
 
         <!-- 重新生成恢复码表单 -->
-        <div v-if="mode === 'regenerate'" class="j8-sec-sub">
-          <p class="j8-me-hint">{{ t('personalCenter.security.twofa.regenerateHint') }}</p>
-          <div class="j8-ic-field">
+        <div v-if="mode === 'regenerate'" class="qz-sec-sub">
+          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.regenerateHint') }}</p>
+          <div class="qz-ic-field">
             <input
               v-model="regenerateCode"
-              class="j8-sec-code"
+              class="qz-sec-code"
               inputmode="numeric"
               maxlength="6"
               :aria-label="t('personalCenter.security.twofa.codePlaceholder')"
               :placeholder="t('personalCenter.security.twofa.codePlaceholder')"
             />
           </div>
-          <div class="j8-ic-row">
-            <J8Button type="button" :loading="loading" @click="submitRegenerate">
+          <div class="qz-ic-row">
+            <QzButton type="button" :loading="loading" @click="submitRegenerate">
               {{ loading ? t('personalCenter.security.twofa.regenerateSubmitting') : t('personalCenter.security.twofa.regenerateSubmit') }}
-            </J8Button>
-            <J8Button type="button" variant="secondary" @click="resetMode">
+            </QzButton>
+            <QzButton type="button" variant="secondary" @click="resetMode">
               {{ t('personalCenter.security.twofa.cancel') }}
-            </J8Button>
+            </QzButton>
           </div>
         </div>
       </div>
 
       <!-- 未启用：绑定流程 -->
-      <div v-else class="j8-me-rows">
-        <p class="j8-me-hint">{{ t('personalCenter.security.twofa.notEnabledHint') }}</p>
+      <div v-else class="qz-me-rows">
+        <p class="qz-me-hint">{{ t('personalCenter.security.twofa.notEnabledHint') }}</p>
 
-        <div v-if="!setupResult" class="j8-me-card-acts">
-          <J8Button type="button" :loading="loading" @click="startSetup">
+        <div v-if="!setupResult" class="qz-me-card-acts">
+          <QzButton type="button" :loading="loading" @click="startSetup">
             {{ loading ? t('personalCenter.security.twofa.startingSetup') : t('personalCenter.security.twofa.startSetup') }}
-          </J8Button>
+          </QzButton>
         </div>
 
-        <div v-else class="j8-sec-sub">
-          <p class="j8-me-hint">{{ t('personalCenter.security.twofa.setupStep1') }}</p>
-          <div v-if="qrcodeDataUrl" class="j8-sec-qr">
+        <div v-else class="qz-sec-sub">
+          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.setupStep1') }}</p>
+          <div v-if="qrcodeDataUrl" class="qz-sec-qr">
             <img :src="qrcodeDataUrl" alt="2FA QR" />
           </div>
-          <div class="j8-me-rows">
-            <p class="j8-me-hint">{{ t('personalCenter.security.twofa.secret') }}</p>
-            <code class="j8-sec-secret">{{ setupResult.secret }}</code>
+          <div class="qz-me-rows">
+            <p class="qz-me-hint">{{ t('personalCenter.security.twofa.secret') }}</p>
+            <code class="qz-sec-secret">{{ setupResult.secret }}</code>
           </div>
 
-          <p class="j8-me-hint">{{ t('personalCenter.security.twofa.setupStep2') }}</p>
-          <div class="j8-ic-field">
+          <p class="qz-me-hint">{{ t('personalCenter.security.twofa.setupStep2') }}</p>
+          <div class="qz-ic-field">
             <input
               v-model="enableCode"
-              class="j8-sec-code"
+              class="qz-sec-code"
               inputmode="numeric"
               maxlength="6"
               :aria-label="t('personalCenter.security.twofa.codePlaceholder')"
@@ -496,13 +496,13 @@
             />
           </div>
 
-          <div class="j8-ic-row">
-            <J8Button type="button" :loading="loading" @click="submitEnable">
+          <div class="qz-ic-row">
+            <QzButton type="button" :loading="loading" @click="submitEnable">
               {{ loading ? t('personalCenter.security.twofa.enableSubmitting') : t('personalCenter.security.twofa.enableSubmit') }}
-            </J8Button>
-            <J8Button type="button" variant="secondary" @click="cancelSetup">
+            </QzButton>
+            <QzButton type="button" variant="secondary" @click="cancelSetup">
               {{ t('personalCenter.security.twofa.cancel') }}
-            </J8Button>
+            </QzButton>
           </div>
         </div>
       </div>
@@ -511,25 +511,25 @@
       <Teleport to="body">
         <div
           v-if="recoveryCodes.length > 0"
-          class="j8-sec-mask"
+          class="qz-sec-mask"
           role="dialog"
           aria-modal="true"
           :aria-label="t('personalCenter.security.twofa.recoveryTitle')"
           @click.self="recoveryCodes = []"
         >
-          <div class="j8-sec-modal">
+          <div class="qz-sec-modal">
             <h4>{{ t('personalCenter.security.twofa.recoveryTitle') }}</h4>
-            <p class="j8-me-hint">{{ t('personalCenter.security.twofa.recoveryWarning') }}</p>
-            <div class="j8-sec-codes">
+            <p class="qz-me-hint">{{ t('personalCenter.security.twofa.recoveryWarning') }}</p>
+            <div class="qz-sec-codes">
               <code v-for="(c, idx) in recoveryCodes" :key="idx">{{ c }}</code>
             </div>
-            <div class="j8-sec-modal-acts">
-              <J8Button type="button" variant="secondary" @click="copyRecoveryCodes">
+            <div class="qz-sec-modal-acts">
+              <QzButton type="button" variant="secondary" @click="copyRecoveryCodes">
                 {{ copied ? t('personalCenter.security.twofa.copied') : t('personalCenter.security.twofa.copy') }}
-              </J8Button>
-              <J8Button type="button" @click="acknowledgeRecoveryCodes">
+              </QzButton>
+              <QzButton type="button" @click="acknowledgeRecoveryCodes">
                 {{ t('personalCenter.security.twofa.acknowledge') }}
-              </J8Button>
+              </QzButton>
             </div>
           </div>
         </div>
@@ -562,8 +562,8 @@ import {
   tryBuildGoogleRedirectCredentialCallbackURL,
 } from '../../../utils/googleRedirect'
 import GoogleIdentityButton from '../../../components/auth/GoogleIdentityButton.vue'
-import J8Button from '../components/J8Button.vue'
-import J8Segment, { type J8SegmentItem } from '../components/J8Segment.vue'
+import QzButton from '../components/QzButton.vue'
+import QzSegment, { type QzSegmentItem } from '../components/QzSegment.vue'
 import { formatDate } from './support'
 
 const { t } = useI18n()
@@ -596,7 +596,7 @@ const telegramCallbackName = '__dujiaoSecurityTelegramBind'
 /** 警示条 tone：success → 品牌色底、warning → 琥珀底、error → 红底 */
 const alertClass = (level: PageAlertLevel) => {
   if (level === 'error') return 'is-error'
-  if (level === 'success') return 'j8-ok-alert'
+  if (level === 'success') return 'qz-ok-alert'
   return ''
 }
 
@@ -1105,7 +1105,7 @@ const disableCode = ref('')
 const disableRecovery = ref('')
 const regenerateCode = ref('')
 
-const disableModeItems = computed<J8SegmentItem[]>(() => [
+const disableModeItems = computed<QzSegmentItem[]>(() => [
   { key: 'code', label: t('personalCenter.security.twofa.useCode') },
   { key: 'recovery', label: t('personalCenter.security.twofa.useRecovery') },
 ])
@@ -1325,58 +1325,58 @@ watch([showTelegramWidget, telegramBotUsername], () => {
 </script>
 
 <style scoped>
-/* 成功态警示条（复用 j8-ic-alert 底色体系，绿/品牌色 tone 与登录页一致） */
-.j8-ic-alert.j8-ok-alert {
+/* 成功态警示条（复用 qz-ic-alert 底色体系，绿/品牌色 tone 与登录页一致） */
+.qz-ic-alert.qz-ok-alert {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
 
-/* 绑定身份头像：复用 .j8-me-avatar 尺寸，图片铺满裁圆角 */
-.j8-me-avatar {
+/* 绑定身份头像：复用 .qz-me-avatar 尺寸，图片铺满裁圆角 */
+.qz-me-avatar {
   overflow: hidden;
 }
-.j8-me-avatar > img {
+.qz-me-avatar > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 /* 输入框 + 按钮同排（发送验证码） */
-.j8-sec-inline {
+.qz-sec-inline {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.j8-sec-inline > input {
+.qz-sec-inline > input {
   flex: 1 1 auto;
   min-width: 0;
 }
-.j8-sec-inline > .j8-me-act {
+.qz-sec-inline > .qz-me-act {
   flex: 0 0 auto;
 }
-button.j8-me-act {
+button.qz-me-act {
   cursor: pointer;
 }
-button.j8-me-act:disabled {
+button.qz-me-act:disabled {
   cursor: not-allowed;
 }
 
 /* Telegram 官方登录组件挂载点 */
-.j8-sec-widget {
+.qz-sec-widget {
   display: flex;
   align-items: center;
   min-height: 44px;
 }
 
 /* 6 位动态码输入居中 */
-.j8-sec-code {
+.qz-sec-code {
   text-align: center;
   letter-spacing: 0.4em;
   font-weight: 700;
 }
 
 /* 功能区内的浅底子面板（状态信息 / 关闭 2FA / 重新生成 / 绑定流程） */
-.j8-sec-sub {
+.qz-sec-sub {
   display: grid;
   gap: 10px;
   padding: 14px;
@@ -1386,11 +1386,11 @@ button.j8-me-act:disabled {
 }
 
 /* 2FA 二维码 + 密钥 */
-.j8-sec-qr {
+.qz-sec-qr {
   display: flex;
   justify-content: center;
 }
-.j8-sec-qr img {
+.qz-sec-qr img {
   width: 190px;
   height: 190px;
   padding: 8px;
@@ -1398,7 +1398,7 @@ button.j8-me-act:disabled {
   border-radius: 14px;
   background: #fff;
 }
-.j8-sec-secret {
+.qz-sec-secret {
   display: block;
   padding: 10px 12px;
   border: 1px solid var(--line);
@@ -1413,7 +1413,7 @@ button.j8-me-act:disabled {
 }
 
 /* 恢复码弹窗（Teleport 到 body，走 qiaozhi-tokens 变量） */
-.j8-sec-mask {
+.qz-sec-mask {
   position: fixed;
   inset: 0;
   z-index: 1200;
@@ -1424,7 +1424,7 @@ button.j8-me-act:disabled {
   background: rgba(10, 10, 10, 0.5);
   backdrop-filter: blur(4px);
 }
-.j8-sec-modal {
+.qz-sec-modal {
   width: min(460px, 100%);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
@@ -1434,19 +1434,19 @@ button.j8-me-act:disabled {
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
-.j8-sec-modal h4 {
+.qz-sec-modal h4 {
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
-.j8-sec-codes {
+.qz-sec-codes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 14px;
 }
-.j8-sec-codes code {
+.qz-sec-codes code {
   padding: 9px 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1456,12 +1456,12 @@ button.j8-me-act:disabled {
   font-family: var(--font-mono);
   font-size: 12.5px;
 }
-.j8-sec-modal-acts {
+.qz-sec-modal-acts {
   display: flex;
   gap: 8px;
   margin-top: 16px;
 }
-.j8-sec-modal-acts > * {
+.qz-sec-modal-acts > * {
   flex: 1 1 0;
 }
 </style>

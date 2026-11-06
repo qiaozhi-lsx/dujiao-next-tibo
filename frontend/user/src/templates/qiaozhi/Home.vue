@@ -1,17 +1,17 @@
 <template>
-  <div ref="rootEl" class="j8-container">
+  <div ref="rootEl" class="qz-container">
     <!-- 引导区 -->
-    <section class="j8-hero is-home">
-      <div class="j8-hero-copy">
-        <span class="j8-eyebrow">{{ t('qiaozhi.hero.eyebrow') }}</span>
-        <h1 class="j8-hero-title">
+    <section class="qz-hero is-home">
+      <div class="qz-hero-copy">
+        <span class="qz-eyebrow">{{ t('qiaozhi.hero.eyebrow') }}</span>
+        <h1 class="qz-hero-title">
           <span>{{ t('qiaozhi.hero.titleB') }}</span>
         </h1>
         <p>{{ t('qiaozhi.hero.subtitle') }}</p>
       </div>
-      <p class="j8-shortlink">{{ t('qiaozhi.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
-      <div class="j8-hero-actions">
-        <J8Search
+      <p class="qz-shortlink">{{ t('qiaozhi.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
+      <div class="qz-hero-actions">
+        <QzSearch
           v-model="searchQuery"
           :items="searchItems"
           :label="t('qiaozhi.search.label')"
@@ -24,7 +24,7 @@
           :clear-label="t('qiaozhi.search.clear')"
           @select="onSearchSelect"
         />
-        <button type="button" class="j8-share" @click="shareSite">
+        <button type="button" class="qz-share" @click="shareSite">
           <Share2 />
           {{ shared ? t('qiaozhi.hero.shared') : t('qiaozhi.hero.share') }}
         </button>
@@ -32,56 +32,56 @@
     </section>
 
     <!-- 为你精选 -->
-    <section v-if="featuredProducts.length" class="j8-featured">
-      <div class="j8-section-heading">
+    <section v-if="featuredProducts.length" class="qz-featured">
+      <div class="qz-section-heading">
         <div>
-          <span class="j8-eyebrow">FEATURED</span>
+          <span class="qz-eyebrow">FEATURED</span>
           <h2>{{ t('qiaozhi.featured.title') }}</h2>
         </div>
         <span>{{ featuredProducts.length + (toolsCard ? 1 : 0) }} {{ t('qiaozhi.featured.unit') }}</span>
       </div>
-      <div class="j8-featured-grid" :data-count="Math.min(featuredProducts.length, 5)">
-        <J8FeaturedCard v-for="product in featuredProducts" :key="product.id" :product="product" />
-        <J8FeaturedCard v-if="toolsCard" :product="toolsCard.product" :tools="toolsCard.tools" />
+      <div class="qz-featured-grid" :data-count="Math.min(featuredProducts.length, 5)">
+        <QzFeaturedCard v-for="product in featuredProducts" :key="product.id" :product="product" />
+        <QzFeaturedCard v-if="toolsCard" :product="toolsCard.product" :tools="toolsCard.tools" />
       </div>
     </section>
 
     <!-- 全部商品目录 -->
-    <section class="j8-catalog">
-      <J8CategoryPanel
+    <section class="qz-catalog">
+      <QzCategoryPanel
         :categories="panelCategories"
         :selected-category="selectedCategory"
         :total-count="allProducts.length"
         @select="selectedCategory = $event"
       />
       <div>
-        <div class="j8-section-heading">
+        <div class="qz-section-heading">
           <div>
-            <span class="j8-eyebrow">STORE</span>
+            <span class="qz-eyebrow">STORE</span>
             <h2>{{ activeCategoryName }}</h2>
           </div>
           <span>{{ filteredProducts.length }} {{ t('qiaozhi.catalog.unit') }}</span>
         </div>
 
-        <div v-if="loading" class="j8-grid">
-          <div v-for="i in 6" :key="i" class="j8-skeleton-card" aria-hidden="true">
-            <span class="j8-skeleton-art"><span></span></span>
-            <span class="j8-skeleton-title"></span>
-            <span class="j8-skeleton-spec"></span>
-            <div class="j8-skeleton-bottom">
-              <span class="j8-skeleton-price"></span>
-              <span class="j8-skeleton-action"></span>
+        <div v-if="loading" class="qz-grid">
+          <div v-for="i in 6" :key="i" class="qz-skeleton-card" aria-hidden="true">
+            <span class="qz-skeleton-art"><span></span></span>
+            <span class="qz-skeleton-title"></span>
+            <span class="qz-skeleton-spec"></span>
+            <div class="qz-skeleton-bottom">
+              <span class="qz-skeleton-price"></span>
+              <span class="qz-skeleton-action"></span>
             </div>
           </div>
         </div>
-        <div v-else-if="filteredProducts.length" class="j8-grid">
-          <J8ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
+        <div v-else-if="filteredProducts.length" class="qz-grid">
+          <QzProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
         </div>
-        <div v-else class="j8-empty">
+        <div v-else class="qz-empty">
           <PackageOpen />
           <b>{{ searchQuery ? t('products.emptyFiltered') : t('products.empty') }}</b>
           <span v-if="searchQuery || selectedCategory">
-            <button type="button" class="j8-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
+            <button type="button" class="qz-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
           </span>
         </div>
       </div>
@@ -109,10 +109,10 @@ import { useAnnouncement, type HomeAnnouncement } from '../../composables/useAnn
 import { buildCategoryGroups } from '../../utils/category'
 import { getImageUrl } from '../../utils/image'
 import AnnouncementModal from '../../components/AnnouncementModal.vue'
-import J8FeaturedCard from './components/J8FeaturedCard.vue'
-import J8ProductCard from './components/J8ProductCard.vue'
-import J8CategoryPanel, { type PanelCategory } from './components/J8CategoryPanel.vue'
-import J8Search from './components/J8Search.vue'
+import QzFeaturedCard from './components/QzFeaturedCard.vue'
+import QzProductCard from './components/QzProductCard.vue'
+import QzCategoryPanel, { type PanelCategory } from './components/QzCategoryPanel.vue'
+import QzSearch from './components/QzSearch.vue'
 import type { SearchableItem } from './utils/searchRank'
 import { setupReveal } from './utils/reveal'
 import { useQiaozhiPrice } from './utils/price'

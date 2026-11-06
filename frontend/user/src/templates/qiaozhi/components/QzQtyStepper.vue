@@ -1,6 +1,6 @@
 <template>
   <div
-    class="j8-qty"
+    class="qz-qty"
     :class="{ 'is-shake': qtyShake }"
     role="group"
     :aria-label="t('productDetail.quantity')"
@@ -8,7 +8,7 @@
   >
     <button
       type="button"
-      class="j8-qty-btn"
+      class="qz-qty-btn"
       :aria-disabled="modelValue <= min"
       :aria-label="t('qiaozhi.qty.decrease')"
       @pointerdown="handlePointerDown"
@@ -16,10 +16,10 @@
     >
       <Minus />
     </button>
-    <span class="j8-qty-num" aria-live="polite" aria-atomic="true">
-      <span class="j8-sr-only">{{ t('productDetail.quantityAria', { count: modelValue }) }}</span>
+    <span class="qz-qty-num" aria-live="polite" aria-atomic="true">
+      <span class="qz-sr-only">{{ t('productDetail.quantityAria', { count: modelValue }) }}</span>
       <span
-        class="j8-qty-col"
+        class="qz-qty-col"
         :class="{ 'is-hide': rollDigits.hundreds === null }"
         :style="{ transform: `translateY(${-(rollDigits.hundreds || 0) * 26}px)` }"
         aria-hidden="true"
@@ -27,7 +27,7 @@
         <span v-for="d in 10" :key="`h-${d}`">{{ d - 1 }}</span>
       </span>
       <span
-        class="j8-qty-col"
+        class="qz-qty-col"
         :class="{ 'is-hide': rollDigits.tens === null }"
         :style="{ transform: `translateY(${-(rollDigits.tens || 0) * 26}px)` }"
         aria-hidden="true"
@@ -35,7 +35,7 @@
         <span v-for="d in 10" :key="`t-${d}`">{{ d - 1 }}</span>
       </span>
       <span
-        class="j8-qty-col"
+        class="qz-qty-col"
         :style="{ transform: `translateY(${-rollDigits.ones * 26}px)` }"
         aria-hidden="true"
       >
@@ -44,7 +44,7 @@
     </span>
     <button
       type="button"
-      class="j8-qty-btn is-plus"
+      class="qz-qty-btn is-plus"
       :aria-disabled="max !== null && modelValue >= max"
       :aria-label="t('qiaozhi.qty.increase')"
       @pointerdown="handlePointerDown"
@@ -118,7 +118,7 @@ const handleQtyKeydown = (event: KeyboardEvent) => {
   }
 }
 
-/* ---------- 按压：按被按按钮宽度写入 --j8-press（与 J8Button 同一手感规则），低动态偏好下不设 ---------- */
+/* ---------- 按压：按被按按钮宽度写入 --qz-press（与 QzButton 同一手感规则），低动态偏好下不设 ---------- */
 let reducedMq: MediaQueryList | null = null
 const handlePointerDown = (event: PointerEvent) => {
   const el = event.currentTarget as HTMLElement | null
@@ -126,7 +126,7 @@ const handlePointerDown = (event: PointerEvent) => {
   reducedMq ??= window.matchMedia('(prefers-reduced-motion: reduce)')
   if (reducedMq.matches) return
   const width = el.offsetWidth
-  el.style.setProperty('--j8-press', String(width > 220 ? 0.985 : (width > 0 && width <= 48 ? 0.96 : 0.97)))
+  el.style.setProperty('--qz-press', String(width > 220 ? 0.985 : (width > 0 && width <= 48 ? 0.96 : 0.97)))
 }
 
 onUnmounted(() => {
@@ -135,5 +135,5 @@ onUnmounted(() => {
 </script>
 
 <style>
-/* 样式全部在 templates/qiaozhi/styles/ji8.css：.j8-qty / .j8-qty-btn / .j8-qty-num / .j8-qty-col / .j8-sr-only（含 is-shake / is-hide 与 reduced-motion），组件不重复定义 */
+/* 样式全部在 templates/qiaozhi/styles/legacy.css：.qz-qty / .qz-qty-btn / .qz-qty-num / .qz-qty-col / .qz-sr-only（含 is-shake / is-hide 与 reduced-motion），组件不重复定义 */
 </style>

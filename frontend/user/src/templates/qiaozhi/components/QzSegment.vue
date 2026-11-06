@@ -1,5 +1,5 @@
 <template>
-  <div class="j8-seg" role="tablist" :aria-label="ariaLabel">
+  <div class="qz-seg" role="tablist" :aria-label="ariaLabel">
     <button
       v-for="item in items"
       :key="item.key"
@@ -14,20 +14,20 @@
     >
       {{ item.label }}
     </button>
-    <span ref="glowEl" class="j8-seg-glow" :class="{ 'is-instant': !glowReady }" aria-hidden="true" />
+    <span ref="glowEl" class="qz-seg-glow" :class="{ 'is-instant': !glowReady }" aria-hidden="true" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-export interface J8SegmentItem {
+export interface QzSegmentItem {
   key: string
   label: string
 }
 
 const props = withDefaults(defineProps<{
-  items: J8SegmentItem[]
+  items: QzSegmentItem[]
   modelValue: string
   ariaLabel?: string
 }>(), {

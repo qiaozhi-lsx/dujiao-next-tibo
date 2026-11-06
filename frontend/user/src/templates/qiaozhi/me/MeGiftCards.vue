@@ -1,41 +1,41 @@
 <template>
-  <div class="j8-me-panel">
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+  <div class="qz-me-panel">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.giftCard.title') }}</h2>
           <small>{{ t('personalCenter.giftCard.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">
             <Gift />
             {{ t('personalCenter.tabs.giftCard') }}
           </span>
         </div>
       </div>
 
-      <p v-if="panelAlert" class="j8-ic-alert panel-alert" :class="panelAlertClass" role="alert">
+      <p v-if="panelAlert" class="qz-ic-alert panel-alert" :class="panelAlertClass" role="alert">
         {{ panelAlert.message }}
       </p>
 
       <!-- 兑换结果 -->
-      <div v-if="lastRedeem" class="j8-ic-pay gift-success">
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
+      <div v-if="lastRedeem" class="qz-ic-pay gift-success">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">
             <Check />
             {{ t('personalCenter.giftCard.successTitle') }}
           </span>
         </div>
-        <div class="j8-me-kv">
-          <div class="j8-me-kv-row">
+        <div class="qz-me-kv">
+          <div class="qz-me-kv-row">
             <span>{{ t('personalCenter.giftCard.successCode') }}</span>
             <b class="gift-code">{{ String(lastRedeem.gift_card?.code || '-').toUpperCase() }}</b>
           </div>
-          <div class="j8-me-kv-row">
+          <div class="qz-me-kv-row">
             <span>{{ t('personalCenter.giftCard.successAmount') }}</span>
             <b>{{ redeemedAmountText }}</b>
           </div>
-          <div class="j8-me-kv-row">
+          <div class="qz-me-kv-row">
             <span>{{ t('personalCenter.giftCard.successBalance') }}</span>
             <b>{{ currentBalanceText }}</b>
           </div>
@@ -43,11 +43,11 @@
       </div>
 
       <!-- 兑换表单 -->
-      <form class="j8-ic" novalidate @submit.prevent="submitRedeem">
-        <div class="j8-ic-field">
-          <label for="j8-gift-code">{{ t('personalCenter.giftCard.codeLabel') }}</label>
+      <form class="qz-ic" novalidate @submit.prevent="submitRedeem">
+        <div class="qz-ic-field">
+          <label for="qz-gift-code">{{ t('personalCenter.giftCard.codeLabel') }}</label>
           <input
-            id="j8-gift-code"
+            id="qz-gift-code"
             v-model="redeemForm.code"
             type="text"
             maxlength="80"
@@ -57,7 +57,7 @@
           />
         </div>
 
-        <div v-if="redeemCaptchaEnabled" class="j8-ic-field">
+        <div v-if="redeemCaptchaEnabled" class="qz-ic-field">
           <label>{{ t('auth.common.captchaLabel') }}</label>
           <ImageCaptcha
             v-if="captchaProvider === 'image'"
@@ -75,12 +75,12 @@
         </div>
 
         <div class="gift-actions">
-          <J8Button type="submit" :loading="submitting">
+          <QzButton type="submit" :loading="submitting">
             {{ submitting ? t('personalCenter.giftCard.redeeming') : t('personalCenter.giftCard.redeemButton') }}
-          </J8Button>
-          <J8Button type="button" variant="secondary" :disabled="submitting" @click="resetForm">
+          </QzButton>
+          <QzButton type="button" variant="secondary" :disabled="submitting" @click="resetForm">
             {{ t('personalCenter.giftCard.resetButton') }}
-          </J8Button>
+          </QzButton>
         </div>
       </form>
     </div>
@@ -96,7 +96,7 @@ import { useAppStore } from '../../../stores/app'
 import type { PageAlert } from '../../../utils/alerts'
 import ImageCaptcha from '../../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../../components/captcha/TurnstileCaptcha.vue'
-import J8Button from '../components/J8Button.vue'
+import QzButton from '../components/QzButton.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -248,16 +248,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.j8-me-panel .panel-alert {
+.qz-me-panel .panel-alert {
   margin: 0 0 12px;
 }
 
-.j8-me-panel .panel-alert.is-ok {
+.qz-me-panel .panel-alert.is-ok {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
 
-.j8-me-panel .gift-success {
+.qz-me-panel .gift-success {
   margin-bottom: 14px;
   animation: gift-success-burst 0.45s ease both;
 }
@@ -273,19 +273,19 @@ onMounted(() => {
   }
 }
 
-.j8-me-panel .is-code {
+.qz-me-panel .is-code {
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-.j8-me-panel .gift-code {
+.qz-me-panel .gift-code {
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.j8-me-panel .gift-actions {
+.qz-me-panel .gift-actions {
   display: flex;
   align-items: center;
   gap: 10px;

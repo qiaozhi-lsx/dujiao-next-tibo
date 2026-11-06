@@ -1,14 +1,14 @@
-// Regression guard for the mobile category drawer in J8CategoryPanel.vue.
+// Regression guard for the mobile category drawer in QzCategoryPanel.vue.
 //
 // The drawer is `<Teleport to="body">`, so it renders outside the `.qiaozhi-scope`
-// layout root. Its ji8.css rules therefore have to start from `body.qiaozhi-tokens`
+// layout root. Its legacy.css rules therefore have to start from `body.qiaozhi-tokens`
 // (the class QiaozhiLayout.vue adds to <body> on mount) — a plain
-// `.qiaozhi-scope .j8-drawer…` prefix never matches and the drawer degrades to a
+// `.qiaozhi-scope .qz-drawer…` prefix never matches and the drawer degrades to a
 // column of unstyled buttons.
 //
 // Project uses node:test (no DOM, no vitest), so this is a static check: collect the
 // static classes used inside the Teleport block and assert each one has at least one
-// ji8.css selector reachable from body scope. Picked up by pnpm run test via the shim
+// legacy.css selector reachable from body scope. Picked up by pnpm run test via the shim
 // at tests/qiaozhiDrawerScope.test.ts.
 import test from 'node:test'
 import assert from 'node:assert/strict'
@@ -21,13 +21,13 @@ const BODY_SCOPE = 'body.qiaozhi-tokens'
 // Static `class="…"` attributes only; Vue `:class="{ … }"` bindings carry runtime state classes.
 const STATIC_CLASS_ATTR = /(?<![:\w-])class="([^"]+)"/g
 
-// `is-*` state classes and Vue <Transition name="j8-drawer"> classes are not drawer markup.
-const isStateOrTransitionClass = (cls: string) => cls.startsWith('is-') || /^j8-drawer-(enter|leave)/.test(cls)
+// `is-*` state classes and Vue <Transition name="qz-drawer"> classes are not drawer markup.
+const isStateOrTransitionClass = (cls: string) => cls.startsWith('is-') || /^qz-drawer-(enter|leave)/.test(cls)
 
 function teleportedClasses(sfc: string): string[] {
   const start = sfc.indexOf('<Teleport to="body">')
   const end = sfc.indexOf('</Teleport>', start)
-  assert.ok(start >= 0 && end > start, 'J8CategoryPanel.vue should teleport the drawer to body')
+  assert.ok(start >= 0 && end > start, 'QzCategoryPanel.vue should teleport the drawer to body')
   const classes = new Set<string>()
   for (const [, attr = ''] of sfc.slice(start, end).matchAll(STATIC_CLASS_ATTR)) {
     for (const cls of attr.split(/\s+/)) {
@@ -75,10 +75,10 @@ const mentionsClass = (selector: string, cls: string) =>
   new RegExp(`\\.${cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`).test(selector)
 
 test('teleported drawer markup is styled from body scope', () => {
-  const classes = teleportedClasses(read('../components/J8CategoryPanel.vue'))
-  assert.ok(classes.includes('j8-drawer'), `expected drawer classes inside <Teleport>, got: ${classes.join(', ')}`)
+  const classes = teleportedClasses(read('../components/QzCategoryPanel.vue'))
+  assert.ok(classes.includes('qz-drawer'), `expected drawer classes inside <Teleport>, got: ${classes.join(', ')}`)
 
-  const bodyScoped = selectors(read('../styles/ji8.css')).filter(startsFromBodyScope)
+  const bodyScoped = selectors(read('../styles/legacy.css')).filter(startsFromBodyScope)
   const unreachable = classes.filter((cls) => !bodyScoped.some((selector) => mentionsClass(selector, cls)))
-  assert.deepEqual(unreachable, [], `drawer classes with no body-scoped rule in ji8.css: ${unreachable.join(', ')}`)
+  assert.deepEqual(unreachable, [], `drawer classes with no body-scoped rule in legacy.css: ${unreachable.join(', ')}`)
 })

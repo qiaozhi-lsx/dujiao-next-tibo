@@ -1,8 +1,8 @@
 <template>
-  <div ref="rootEl" class="j8-select" :class="attrs.class as string | undefined" :style="attrs.style as any">
+  <div ref="rootEl" class="qz-select" :class="attrs.class as string | undefined" :style="attrs.style as any">
     <button
       type="button"
-      class="j8-select-btn"
+      class="qz-select-btn"
       :class="{ 'is-open': open, 'is-placeholder': showPlaceholder }"
       :disabled="disabled"
       v-bind="buttonAttrs"
@@ -13,17 +13,17 @@
       @keydown="onKeydown"
       @blur="closePanel"
     >
-      <span class="j8-select-label">{{ selectedItem ? selectedItem.label : placeholder }}</span>
-      <ChevronDown class="j8-select-chevron" aria-hidden="true" />
+      <span class="qz-select-label">{{ selectedItem ? selectedItem.label : placeholder }}</span>
+      <ChevronDown class="qz-select-chevron" aria-hidden="true" />
     </button>
-    <Transition name="j8-select-pop">
-      <div v-if="open" class="j8-select-panel" role="listbox">
+    <Transition name="qz-select-pop">
+      <div v-if="open" class="qz-select-panel" role="listbox">
         <div
           v-for="(item, index) in items"
           :id="optionDomId(index)"
           :key="`${String(item.value)}-${index}`"
           role="option"
-          class="j8-select-opt"
+          class="qz-select-opt"
           :class="{ 'is-active': item.value === modelValue, 'is-highlight': index === highlight, 'is-disabled': item.disabled }"
           :aria-selected="item.value === modelValue"
           :aria-disabled="item.disabled || undefined"
@@ -31,8 +31,8 @@
           @click="choose(item)"
           @pointermove="onHover(index)"
         >
-          <span class="j8-select-opt-text">{{ item.label }}</span>
-          <Check v-if="item.value === modelValue" class="j8-select-check" aria-hidden="true" />
+          <span class="qz-select-opt-text">{{ item.label }}</span>
+          <Check v-if="item.value === modelValue" class="qz-select-check" aria-hidden="true" />
         </div>
       </div>
     </Transition>
@@ -43,7 +43,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useAttrs } from 'vue'
 import { Check, ChevronDown } from 'lucide-vue-next'
 
-export interface J8SelectItem {
+export interface QzSelectItem {
   value: string | number
   label: string
   disabled?: boolean
@@ -51,7 +51,7 @@ export interface J8SelectItem {
 
 const props = withDefaults(defineProps<{
   modelValue?: string | number | null
-  items: J8SelectItem[]
+  items: QzSelectItem[]
   placeholder?: string
   disabled?: boolean
 }>(), {
@@ -75,14 +75,14 @@ const buttonAttrs = computed(() => {
 })
 
 let uid = 0
-const instanceId = `j8sel-${(++uid).toString(36)}${Math.random().toString(36).slice(2, 7)}`
+const instanceId = `qzsel-${(++uid).toString(36)}${Math.random().toString(36).slice(2, 7)}`
 const optionDomId = (index: number) => `${instanceId}-opt-${index}`
 
 const rootEl = ref<HTMLElement | null>(null)
 const open = ref(false)
 const highlight = ref(-1)
 
-const selectedItem = computed<J8SelectItem | null>(() => {
+const selectedItem = computed<QzSelectItem | null>(() => {
   const found = props.items.find((item) => item.value === props.modelValue)
   return found ?? null
 })
@@ -100,7 +100,7 @@ const firstEnabled = (from: number, step: number): number => {
 }
 
 const scrollHighlightIntoView = () => {
-  const panel = rootEl.value?.querySelector('.j8-select-panel')
+  const panel = rootEl.value?.querySelector('.qz-select-panel')
   if (!panel || highlight.value < 0) return
   const el = panel.children[highlight.value] as HTMLElement | undefined
   el?.scrollIntoView({ block: 'nearest' })
@@ -130,14 +130,14 @@ const onHover = (index: number) => {
   if (index !== highlight.value && !props.items[index]?.disabled) highlight.value = index
 }
 
-const choose = (item: J8SelectItem) => {
+const choose = (item: QzSelectItem) => {
   if (item.disabled) return
   closePanel()
   if (item.value !== props.modelValue) {
     emit('update:modelValue', item.value)
     emit('change', item.value)
   }
-  const btn = rootEl.value?.querySelector('.j8-select-btn') as HTMLButtonElement | null
+  const btn = rootEl.value?.querySelector('.qz-select-btn') as HTMLButtonElement | null
   btn?.focus({ preventScroll: true })
 }
 

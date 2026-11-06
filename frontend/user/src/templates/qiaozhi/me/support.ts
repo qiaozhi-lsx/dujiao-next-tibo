@@ -4,7 +4,7 @@ import { orderStatusLabel, orderStatusVariant } from '../../../utils/status'
 
 /**
  * qiaozhi 个人中心面板共用工具：状态胶囊 tone / 文本格式化 / 会员等级名。
- * tone 与 ji8.css 的 .j8-me-pill.is-* 对应。
+ * tone 与 legacy.css 的 .qz-me-pill.is-* 对应。
  */
 export type MePillTone = 'ok' | 'warn' | 'danger' | 'info' | 'neutral'
 

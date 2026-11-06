@@ -1,30 +1,30 @@
 <template>
-  <div class="j8-container j8-pd">
+  <div class="qz-container qz-pd">
     <!-- 返回 -->
-    <button type="button" class="j8-pd-back" @click="goBack">
+    <button type="button" class="qz-pd-back" @click="goBack">
       <ChevronLeft />
       {{ t('qiaozhi.detail.back') }}
     </button>
 
     <!-- 骨架 -->
-    <div v-if="loading" class="j8-pd-skeleton">
-      <div class="j8-pd-sk-block"></div>
-      <div class="j8-pd-sk-line is-lg"></div>
-      <div class="j8-pd-sk-line"></div>
-      <div class="j8-pd-sk-line is-sm"></div>
-      <div class="j8-pd-sk-line is-btn"></div>
+    <div v-if="loading" class="qz-pd-skeleton">
+      <div class="qz-pd-sk-block"></div>
+      <div class="qz-pd-sk-line is-lg"></div>
+      <div class="qz-pd-sk-line"></div>
+      <div class="qz-pd-sk-line is-sm"></div>
+      <div class="qz-pd-sk-line is-btn"></div>
     </div>
 
     <template v-else-if="product">
-      <div class="j8-pd-card">
+      <div class="qz-pd-card">
         <!-- 左：媒体区（粘性居中，滚动长表单时图片保持可见） -->
-        <div class="j8-pd-media">
-          <div class="j8-pd-media-sticky">
-            <div class="j8-pd-stage">
+        <div class="qz-pd-media">
+          <div class="qz-pd-media-sticky">
+            <div class="qz-pd-stage">
               <img v-if="currentImage" :src="currentImage" :alt="title" />
-              <span v-else class="j8-pd-logo j8-brand-icon"><b>{{ title.slice(0, 1) }}</b></span>
+              <span v-else class="qz-pd-logo qz-brand-icon"><b>{{ title.slice(0, 1) }}</b></span>
             </div>
-            <div v-if="gallery.length > 1" class="j8-pd-thumbs">
+            <div v-if="gallery.length > 1" class="qz-pd-thumbs">
               <button
                 v-for="(img, i) in gallery"
                 :key="i"
@@ -39,28 +39,28 @@
         </div>
 
         <!-- 右：购买区（内嵌下单） -->
-        <div class="j8-pd-info">
+        <div class="qz-pd-info">
           <h1>{{ title }}</h1>
 
-          <div class="j8-pd-chips">
+          <div class="qz-pd-chips">
             <span class="is-accent"><Zap />{{ fulfillmentLabel }}</span>
             <span class="is-accent">{{ purchaseTypeLabel }}</span>
             <span :class="soldOut ? 'is-danger' : 'is-accent'">{{ stockLabel }}</span>
-            <button type="button" class="j8-pd-share" @click="shareProduct"><Share2 />{{ t('qiaozhi.detail.share') }}</button>
+            <button type="button" class="qz-pd-share" @click="shareProduct"><Share2 />{{ t('qiaozhi.detail.share') }}</button>
           </div>
 
-          <div class="j8-pd-price-row">
-            <div class="j8-pd-price">
-              <span class="j8-pd-price-sym">{{ unitPriceParts.symbol }}</span>
+          <div class="qz-pd-price-row">
+            <div class="qz-pd-price">
+              <span class="qz-pd-price-sym">{{ unitPriceParts.symbol }}</span>
               <strong>{{ unitPriceParts.major }}{{ unitPriceParts.minor }}</strong>
             </div>
-            <div v-if="promoTag" class="j8-pd-price-tag" :class="promoTag.tone">{{ promoTag.text }}</div>
+            <div v-if="promoTag" class="qz-pd-price-tag" :class="promoTag.tone">{{ promoTag.text }}</div>
           </div>
 
           <!-- 规格 -->
-          <div v-if="plans.length" class="j8-pd-field">
+          <div v-if="plans.length" class="qz-pd-field">
             <label>{{ t('qiaozhi.detail.spec') }}</label>
-            <div class="j8-pd-skus">
+            <div class="qz-pd-skus">
               <button
                 v-for="plan in plans"
                 :key="plan.id"
@@ -73,79 +73,79 @@
                 <small>{{ plan.hint }}</small>
               </button>
             </div>
-            <p v-if="requiresSKUSelection" class="j8-pd-hint">{{ t('productDetail.skuRequired') }}</p>
+            <p v-if="requiresSKUSelection" class="qz-pd-hint">{{ t('productDetail.skuRequired') }}</p>
           </div>
 
           <!-- 数量 -->
-          <div class="j8-pd-field">
+          <div class="qz-pd-field">
             <label>{{ t('productDetail.quantity') }}</label>
-            <J8QtyStepper v-model="quantity" :min="quantityEffectiveMin" :max="quantityEffectiveLimit" />
+            <QzQtyStepper v-model="quantity" :min="quantityEffectiveMin" :max="quantityEffectiveLimit" />
           </div>
 
           <template v-if="pitchLine">
-            <p class="j8-pd-desc" :class="{ 'j8-pd-desc--clamp': !descExpanded }">{{ pitchLine }}</p>
-            <button type="button" class="j8-pd-desc-toggle" @click="descExpanded = !descExpanded">
+            <p class="qz-pd-desc" :class="{ 'qz-pd-desc--clamp': !descExpanded }">{{ pitchLine }}</p>
+            <button type="button" class="qz-pd-desc-toggle" @click="descExpanded = !descExpanded">
               {{ descExpanded ? t('qiaozhi.detail.descCollapse') : t('qiaozhi.detail.descExpand') }}
             </button>
           </template>
 
           <!-- 内嵌下单 -->
-          <div class="j8-pd-actions">
-            <form class="j8-ic" novalidate @submit.prevent="submitOrder">
+          <div class="qz-pd-actions">
+            <form class="qz-ic" novalidate @submit.prevent="submitOrder">
               <!-- 游客字段 -->
               <template v-if="!userAuthStore.isAuthenticated">
-                <div class="j8-ic-row">
-                  <div class="j8-ic-field">
-                    <label for="j8-ic-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
+                <div class="qz-ic-row">
+                  <div class="qz-ic-field">
+                    <label for="qz-ic-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
                     <input
-                      id="j8-ic-email"
+                      id="qz-ic-email"
                       v-model="email"
                       type="email"
                       autocomplete="email"
                       :placeholder="t('qiaozhi.detail.emailPlaceholder')"
                       :aria-invalid="!!fieldErrors.email"
-                      :aria-describedby="fieldErrors.email ? 'j8-ic-email-err' : undefined"
+                      :aria-describedby="fieldErrors.email ? 'qz-ic-email-err' : undefined"
                     />
-                    <p v-if="fieldErrors.email" id="j8-ic-email-err" class="j8-ic-error">{{ fieldErrors.email }}</p>
+                    <p v-if="fieldErrors.email" id="qz-ic-email-err" class="qz-ic-error">{{ fieldErrors.email }}</p>
                   </div>
-                  <div class="j8-ic-field">
-                    <label for="j8-ic-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
+                  <div class="qz-ic-field">
+                    <label for="qz-ic-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
                     <input
-                      id="j8-ic-password"
+                      id="qz-ic-password"
                       v-model="orderPassword"
                       type="password"
                       autocomplete="new-password"
                       :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
                       :aria-invalid="!!fieldErrors.password"
-                      :aria-describedby="fieldErrors.password ? 'j8-ic-password-err' : undefined"
+                      :aria-describedby="fieldErrors.password ? 'qz-ic-password-err' : undefined"
                     />
-                    <p v-if="fieldErrors.password" id="j8-ic-password-err" class="j8-ic-error">{{ fieldErrors.password }}</p>
+                    <p v-if="fieldErrors.password" id="qz-ic-password-err" class="qz-ic-error">{{ fieldErrors.password }}</p>
                   </div>
                 </div>
-                <div v-if="captchaProvider === 'image'" class="j8-ic-field">
+                <div v-if="captchaProvider === 'image'" class="qz-ic-field">
                   <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
                   <ImageCaptcha ref="imageCaptchaRef" v-model="captchaPayload" />
                 </div>
-                <div v-else-if="captchaProvider === 'turnstile'" class="j8-ic-field">
+                <div v-else-if="captchaProvider === 'turnstile'" class="qz-ic-field">
                   <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
                   <TurnstileCaptcha ref="turnstileRef" v-model="turnstileToken" :site-key="turnstileSiteKey" />
                 </div>
-                <p class="j8-ic-hint">
+                <p class="qz-ic-hint">
                   {{ t('qiaozhi.detail.guestHint') }}
                   <RouterLink :to="`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`">{{ t('qiaozhi.detail.loginToBuy') }}</RouterLink>
                 </p>
               </template>
-              <p v-else class="j8-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
+              <p v-else class="qz-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
 
               <!-- 支付方式 -->
-              <div v-if="channels.length" class="j8-ic-pay">
+              <div v-if="channels.length" class="qz-ic-pay">
                 <h3><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
-                <div class="j8-ic-channels">
+                <div class="qz-ic-channels">
                   <button
                     v-for="ch in channels"
                     :key="ch.id"
                     type="button"
-                    class="j8-ic-channel"
+                    class="qz-ic-channel"
                     :class="{ 'is-active': selectedChannelId === ch.id }"
                     @click="selectedChannelId = ch.id"
                   >
@@ -159,18 +159,18 @@
                 </div>
               </div>
 
-              <div class="j8-ic-total">
+              <div class="qz-ic-total">
                 <span>{{ t('qiaozhi.detail.totalDue') }}</span>
                 <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
               </div>
 
-              <p v-if="formError" class="j8-ic-alert is-error" role="alert">{{ formError }}</p>
-              <p v-else-if="cannotPurchaseReason" class="j8-ic-alert" role="status">{{ cannotPurchaseReason }}</p>
+              <p v-if="formError" class="qz-ic-alert is-error" role="alert">{{ formError }}</p>
+              <p v-else-if="cannotPurchaseReason" class="qz-ic-alert" role="status">{{ cannotPurchaseReason }}</p>
 
-              <div class="j8-pd-buttons">
+              <div class="qz-pd-buttons">
                 <button
                   type="button"
-                  class="j8-pd-cart-icon"
+                  class="qz-pd-cart-icon"
                   :disabled="!canPurchase"
                   :aria-label="t('productDetail.addToCart')"
                   :title="t('productDetail.addToCart')"
@@ -178,16 +178,16 @@
                 >
                   <ShoppingCart />
                 </button>
-                <J8Button
+                <QzButton
                   type="submit"
                   size="lg"
-                  class="j8-arc-block"
+                  class="qz-arc-block"
                   :loading="submitting"
                   :disabled="!canPurchase"
                 >
                   <CreditCard v-if="!submitting" />
                   <span>{{ submitting ? t('qiaozhi.detail.submitting') : t('qiaozhi.detail.submitAndPay') }}</span>
-                </J8Button>
+                </QzButton>
               </div>
             </form>
           </div>
@@ -195,15 +195,15 @@
       </div>
 
       <!-- 商品详情 -->
-      <div v-if="detailHtml" class="j8-pd-detail">
+      <div v-if="detailHtml" class="qz-pd-detail">
         <h2>{{ t('qiaozhi.detail.details') }}</h2>
-        <div class="j8-pd-prose" v-html="detailHtml"></div>
+        <div class="qz-pd-prose" v-html="detailHtml"></div>
       </div>
 
       <!-- 相关文章 -->
-      <div v-if="relatedPosts.length" class="j8-pd-detail">
+      <div v-if="relatedPosts.length" class="qz-pd-detail">
         <h2>{{ t('productDetail.relatedPosts') }}</h2>
-        <div class="j8-pd-posts">
+        <div class="qz-pd-posts">
           <RouterLink v-for="rp in relatedPosts" :key="rp.id" :to="`/blog/${rp.slug}`">
             <b>{{ getLocalizedText(rp.title) }}</b>
             <small>{{ rp.summary ? getLocalizedText(rp.summary).slice(0, 60) : '' }}</small>
@@ -213,10 +213,10 @@
     </template>
 
     <!-- 错误 -->
-    <div v-else class="j8-empty">
+    <div v-else class="qz-empty">
       <PackageOpen />
       <b>{{ t('productDetail.notFound') }}</b>
-      <button type="button" class="j8-btn-primary" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
+      <button type="button" class="qz-btn-primary" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
     </div>
 
     <!-- 当页支付 Modal -->
@@ -258,8 +258,8 @@ import { useQiaozhiPrice } from './utils/price'
 import { shouldOpenInlineModal } from './utils/paymentDisplay'
 import { buildCreateAndPayPayload, hasManualFormFields } from './utils/orderPayload'
 import PaymentModal, { type PaymentModalItem, type PaymentModalOrder } from './PaymentModal.vue'
-import J8Button from './components/J8Button.vue'
-import J8QtyStepper from './components/J8QtyStepper.vue'
+import QzButton from './components/QzButton.vue'
+import QzQtyStepper from './components/QzQtyStepper.vue'
 
 const route = useRoute()
 const router = useRouter()

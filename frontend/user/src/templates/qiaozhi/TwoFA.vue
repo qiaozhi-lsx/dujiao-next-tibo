@@ -1,8 +1,8 @@
 <template>
-  <div ref="rootEl" class="j8-container">
+  <div ref="rootEl" class="qz-container">
     <div class="tfa-wrap">
-      <div class="tfa-card j8-reveal is-pending">
-        <span class="j8-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
+      <div class="tfa-card qz-reveal is-pending">
+        <span class="qz-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
         <h1>{{ t('qiaozhi.tfa.title') }}</h1>
         <p class="tfa-desc">{{ t('qiaozhi.tfa.desc') }}</p>
 

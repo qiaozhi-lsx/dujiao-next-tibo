@@ -1,18 +1,18 @@
 <template>
-  <div ref="rootEl" class="j8-container j8-orders-page">
+  <div ref="rootEl" class="qz-container qz-orders-page">
     <!-- 标题 -->
-    <div class="j8-orders-hero j8-reveal is-pending">
-      <h1 class="j8-orders-title">{{ t('guestOrders.title') }}</h1>
-      <p class="j8-orders-sub">{{ t('guestOrders.subtitle') }}</p>
+    <div class="qz-orders-hero qz-reveal is-pending">
+      <h1 class="qz-orders-title">{{ t('guestOrders.title') }}</h1>
+      <p class="qz-orders-sub">{{ t('guestOrders.subtitle') }}</p>
     </div>
 
     <!-- 查询表单 -->
-    <section class="j8-orders-search j8-reveal is-pending">
-      <div v-if="hasSavedAuth" class="j8-orders-saved">
+    <section class="qz-orders-search qz-reveal is-pending">
+      <div v-if="hasSavedAuth" class="qz-orders-saved">
         <span>{{ t('guestOrders.savedHint', { email: savedAuth.email || '-' }) }}</span>
-        <button type="button" class="j8-orders-clear" @click="clearSaved">{{ t('guestOrders.clearSaved') }}</button>
+        <button type="button" class="qz-orders-clear" @click="clearSaved">{{ t('guestOrders.clearSaved') }}</button>
       </div>
-      <form class="j8-orders-form" novalidate @submit.prevent="handleSearch">
+      <form class="qz-orders-form" novalidate @submit.prevent="handleSearch">
         <input
           v-model="email"
           type="email"
@@ -26,30 +26,30 @@
           :placeholder="t('guestOrders.passwordPlaceholder')"
         />
         <input v-model="orderNo" type="text" :placeholder="t('guestOrders.orderNoPlaceholder')" />
-        <button type="submit" class="j8-orders-submit" :disabled="loading">
+        <button type="submit" class="qz-orders-submit" :disabled="loading">
           <Search />
           {{ loading ? t('guestOrders.searching') : t('guestOrders.search') }}
         </button>
       </form>
-      <p class="j8-orders-tip">{{ t('guestOrders.tip') }}</p>
-      <p v-if="error" class="j8-orders-error" role="alert">{{ error }}</p>
+      <p class="qz-orders-tip">{{ t('guestOrders.tip') }}</p>
+      <p v-if="error" class="qz-orders-error" role="alert">{{ error }}</p>
     </section>
 
     <!-- 空态 -->
-    <div v-if="orders.length === 0 && !loading" class="j8-empty j8-reveal is-pending">
+    <div v-if="orders.length === 0 && !loading" class="qz-empty qz-reveal is-pending">
       <PackageOpen />
       <b>{{ emptyMessage }}</b>
     </div>
 
     <!-- 订单列表 -->
-    <div v-else class="j8-orders-list">
+    <div v-else class="qz-orders-list">
       <article
         v-for="row in rows"
         :key="row.order.order_no"
-        class="j8-orders-item j8-reveal is-pending"
+        class="qz-orders-item qz-reveal is-pending"
       >
-        <div v-if="row.product" class="j8-orders-prod">
-          <span class="j8-orders-thumb">
+        <div v-if="row.product" class="qz-orders-prod">
+          <span class="qz-orders-thumb">
             <img
               v-if="row.product.image"
               :src="row.product.image"
@@ -59,31 +59,31 @@
             />
             <template v-else>{{ row.product.initial }}</template>
           </span>
-          <b class="j8-orders-pname">{{ row.product.title }}</b>
-          <span v-if="row.product.extraCount" class="j8-orders-pextra">
+          <b class="qz-orders-pname">{{ row.product.title }}</b>
+          <span v-if="row.product.extraCount" class="qz-orders-pextra">
             {{ t('guestOrders.moreItems', { count: row.product.extraCount }) }}
           </span>
-          <span v-else-if="row.product.quantity > 1" class="j8-orders-pqty">× {{ row.product.quantity }}</span>
+          <span v-else-if="row.product.quantity > 1" class="qz-orders-pqty">× {{ row.product.quantity }}</span>
         </div>
-        <div class="j8-orders-main">
-          <b class="j8-orders-sn">{{ row.order.order_no }}</b>
-          <span class="j8-orders-time">{{ formatDate(row.order.created_at) }}</span>
+        <div class="qz-orders-main">
+          <b class="qz-orders-sn">{{ row.order.order_no }}</b>
+          <span class="qz-orders-time">{{ formatDate(row.order.created_at) }}</span>
         </div>
-        <div class="j8-orders-amt">
+        <div class="qz-orders-amt">
           <b>{{ formatMoney(row.order.total_amount, row.order.currency) }}</b>
           <small v-if="discountText(row.order)" class="is-rose">{{ discountText(row.order) }}</small>
         </div>
-        <div class="j8-orders-acts">
-          <span class="j8-order-badge" :class="toneClass(row.order.status)">{{ statusLabel(row.order.status) }}</span>
+        <div class="qz-orders-acts">
+          <span class="qz-order-badge" :class="toneClass(row.order.status)">{{ statusLabel(row.order.status) }}</span>
           <RouterLink
-            class="j8-orders-act"
+            class="qz-orders-act"
             :to="{ name: 'guest-order-detail', params: { order_no: row.order.order_no } }"
           >
             {{ t('guestOrders.viewDetails') }}
           </RouterLink>
           <RouterLink
             v-if="row.order.status === 'pending_payment'"
-            class="j8-orders-act is-primary"
+            class="qz-orders-act is-primary"
             :to="`/pay?guest=1&order_no=${encodeURIComponent(row.order.order_no)}`"
           >
             {{ t('guestOrders.payNow') }}
@@ -93,7 +93,7 @@
     </div>
 
     <!-- 分页 -->
-    <div v-if="pagination.total_page > 1" class="j8-orders-pager">
+    <div v-if="pagination.total_page > 1" class="qz-orders-pager">
       <button
         type="button"
         :disabled="pagination.page <= 1 || loading"

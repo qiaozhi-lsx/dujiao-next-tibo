@@ -1,32 +1,32 @@
 <template>
   <RouterLink
     :to="`/products/${product.slug}`"
-    class="j8-card j8-reveal is-pending"
+    class="qz-card qz-reveal is-pending"
     :class="{ 'is-sold-out': soldOut }"
     :data-reveal="1"
   >
-    <div class="j8-card-top">
-      <span class="j8-card-icon" :class="{ 'is-logo': !cover && !!icon }">
-        <span class="j8-brand-icon">
+    <div class="qz-card-top">
+      <span class="qz-card-icon" :class="{ 'is-logo': !cover && !!icon }">
+        <span class="qz-brand-icon">
           <img v-if="image" :src="image" alt="" loading="lazy" @error="imageErrored = true" />
           <b v-else>{{ letter }}</b>
         </span>
       </span>
-      <span v-if="badge" class="j8-card-badge" :class="{ 'is-sold': soldOut }">{{ badge }}</span>
+      <span v-if="badge" class="qz-card-badge" :class="{ 'is-sold': soldOut }">{{ badge }}</span>
     </div>
     <h3>{{ title }}</h3>
-    <div class="j8-card-chips">
+    <div class="qz-card-chips">
       <span :class="chipTone(0)">{{ fulfillmentLabel }}</span>
       <span v-if="purchaseLabel" :class="chipTone(1)">{{ purchaseLabel }}</span>
       <span v-if="soldOut" class="tone-3">{{ t('products.stockStatus.outOfStock') }}</span>
     </div>
-    <div class="j8-card-bottom">
-      <div class="j8-card-price">
+    <div class="qz-card-bottom">
+      <div class="qz-card-price">
         <small>{{ t('qiaozhi.card.finalPrice') }}</small>
         <strong>{{ priceText }}</strong>
         <del v-if="originalPriceText">{{ originalPriceText }}</del>
       </div>
-      <span class="j8-card-stock">{{ stockLabel }}</span>
+      <span class="qz-card-stock">{{ stockLabel }}</span>
     </div>
   </RouterLink>
 </template>

@@ -1,86 +1,86 @@
 <template>
-  <div ref="rootEl" class="j8-container j8-xcheck-main">
+  <div ref="rootEl" class="qz-container qz-xcheck-main">
     <!-- 返回条 -->
-    <button type="button" class="j8-pd-back" @click="goBack">
+    <button type="button" class="qz-pd-back" @click="goBack">
       <ChevronLeft />
       {{ backLabel }}
     </button>
 
     <!-- 顶部文案 -->
-    <section class="j8-xcheck-hero">
-      <span class="j8-eyebrow">{{ t('qiaozhi.checkout.eyebrow') }}</span>
+    <section class="qz-xcheck-hero">
+      <span class="qz-eyebrow">{{ t('qiaozhi.checkout.eyebrow') }}</span>
       <h1>{{ t('checkout.title') }}</h1>
       <p>{{ t('qiaozhi.checkout.subtitle') }}</p>
     </section>
 
     <!-- 空购物车 -->
-    <div v-if="cartItems.length === 0" class="j8-empty">
+    <div v-if="cartItems.length === 0" class="qz-empty">
       <PackageOpen />
       <b>{{ t('checkout.empty') }}</b>
       <span>{{ t('qiaozhi.checkout.emptyHint') }}</span>
-      <RouterLink to="/products" class="j8-btn-primary">{{ t('checkout.emptyAction') }}</RouterLink>
+      <RouterLink to="/products" class="qz-btn-primary">{{ t('checkout.emptyAction') }}</RouterLink>
     </div>
 
     <!-- 结算主体 -->
-    <div v-else class="j8-xcheck-grid">
+    <div v-else class="qz-xcheck-grid">
       <!-- 左：商品 + 表单 -->
-      <div class="j8-xcheck-left">
+      <div class="qz-xcheck-left">
         <!-- 订单明细 -->
-        <section class="j8-pd-card j8-xcheck-card j8-reveal is-pending" :data-reveal="1">
-          <header class="j8-xcheck-card-head">
-            <span class="j8-eyebrow">{{ t('qiaozhi.checkout.sectionItems') }}</span>
+        <section class="qz-pd-card qz-xcheck-card qz-reveal is-pending" :data-reveal="1">
+          <header class="qz-xcheck-card-head">
+            <span class="qz-eyebrow">{{ t('qiaozhi.checkout.sectionItems') }}</span>
             <h2>{{ t('checkout.itemsTitle') }}</h2>
           </header>
-          <ul class="j8-xcheck-items">
+          <ul class="qz-xcheck-items">
             <li
               v-for="item in cartItems"
               :key="cartItemKey(item)"
-              class="j8-xcheck-item"
+              class="qz-xcheck-item"
               :class="{ 'is-warn': itemStockExceeded(item) }"
             >
-              <div class="j8-xcheck-item-thumb">
+              <div class="qz-xcheck-item-thumb">
                 <img
                   v-if="checkoutItemImage(item)"
                   :src="checkoutItemImage(item)"
                   :alt="getLocalizedText(item.title)"
                   loading="lazy"
                 />
-                <span v-else class="j8-pd-logo j8-brand-icon">
+                <span v-else class="qz-pd-logo qz-brand-icon">
                   <b>{{ (getLocalizedText(item.title) || '·').slice(0, 1) }}</b>
                 </span>
               </div>
-              <div class="j8-xcheck-item-body">
+              <div class="qz-xcheck-item-body">
                 <RouterLink
-                  class="j8-xcheck-item-title"
+                  class="qz-xcheck-item-title"
                   :to="`/products/${item.slug}`"
                 >
                   {{ getLocalizedText(item.title) }}
                 </RouterLink>
-                <div class="j8-xcheck-item-meta">
+                <div class="qz-xcheck-item-meta">
                   <span>{{ t('checkout.quantityLabel') }} × {{ item.quantity }}</span>
                   <span v-if="itemSkuDisplay(item)">{{ itemSkuDisplay(item) }}</span>
                 </div>
                 <p
                   v-if="itemStockHint(item)"
-                  class="j8-xcheck-item-stock"
+                  class="qz-xcheck-item-stock"
                   :class="{ 'is-warn': itemStockExceeded(item) }"
                 >
                   {{ itemStockHint(item) }}
                 </p>
               </div>
-              <div class="j8-xcheck-item-price">
+              <div class="qz-xcheck-item-price">
                 <div
-                  class="j8-pd-price"
+                  class="qz-pd-price"
                   :class="{ 'is-discount': checkoutItemHasPriceDiscount(item) }"
                 >
                   <strong>
                     {{ checkoutItemPriceParts(item).integer }}<small>{{ checkoutItemPriceParts(item).decimal }}</small>
                   </strong>
-                  <span class="j8-xcheck-item-cur">{{ checkoutItemCurrency }}</span>
+                  <span class="qz-xcheck-item-cur">{{ checkoutItemCurrency }}</span>
                 </div>
                 <del
                   v-if="checkoutItemHasPriceDiscount(item)"
-                  class="j8-xcheck-item-old"
+                  class="qz-xcheck-item-old"
                 >
                   {{ checkoutItemOriginalPriceParts(item).integer }}{{ checkoutItemOriginalPriceParts(item).decimal }} {{ checkoutItemCurrency }}
                 </del>
@@ -90,29 +90,29 @@
         </section>
 
         <!-- 交付资料 / 游客 / 优惠码 表单 -->
-        <section class="j8-pd-card j8-xcheck-card j8-reveal is-pending" :data-reveal="1">
-          <header class="j8-xcheck-card-head">
-            <span class="j8-eyebrow">{{ t('qiaozhi.checkout.sectionInfo') }}</span>
+        <section class="qz-pd-card qz-xcheck-card qz-reveal is-pending" :data-reveal="1">
+          <header class="qz-xcheck-card-head">
+            <span class="qz-eyebrow">{{ t('qiaozhi.checkout.sectionInfo') }}</span>
             <h2>{{ t('qiaozhi.checkout.infoTitle') }}</h2>
           </header>
 
-          <form class="j8-ic" novalidate @submit.prevent="handleSubmit">
+          <form class="qz-ic" novalidate @submit.prevent="handleSubmit">
             <!-- 交付信息 -->
             <template v-if="manualFormProducts.length">
               <div
                 v-for="product in manualFormProducts"
                 :key="product.itemKey"
-                class="j8-xcheck-manual"
+                class="qz-xcheck-manual"
               >
                 <h3>
                   {{ manualItemTitle(product) }}
                 </h3>
-                <p class="j8-ic-hint">{{ t('checkout.manualFormTip') }}</p>
-                <div class="j8-xcheck-manual-grid">
+                <p class="qz-ic-hint">{{ t('checkout.manualFormTip') }}</p>
+                <div class="qz-xcheck-manual-grid">
                   <div
                     v-for="field in product.fields"
                     :key="`${product.itemKey}-${field.key}`"
-                    class="j8-ic-field"
+                    class="qz-ic-field"
                   >
                     <label :for="manualFieldId(product.itemKey, field.key)">
                       {{ getManualFieldLabel(field) }}
@@ -130,7 +130,7 @@
                       @input="setManualFieldValue(product.itemKey, field.key, ($event.target as HTMLTextAreaElement).value)"
                     ></textarea>
 
-                    <J8Select
+                    <QzSelect
                       v-else-if="field.type === 'select'"
                       :id="manualFieldId(product.itemKey, field.key)"
                       :model-value="getManualFieldValue(product.itemKey, field.key)"
@@ -142,13 +142,13 @@
 
                     <div
                       v-else-if="field.type === 'radio'"
-                      class="j8-ic-options"
+                      class="qz-ic-options"
                       :aria-labelledby="manualFieldId(product.itemKey, field.key)"
                     >
                       <label v-for="option in field.options" :key="option">
                         <input
                           type="radio"
-                          :name="`j8-ic-radio-${product.itemKey}-${field.key}`"
+                          :name="`qz-ic-radio-${product.itemKey}-${field.key}`"
                           :value="option"
                           :checked="getManualFieldValue(product.itemKey, field.key) === option"
                           @change="setManualFieldValue(product.itemKey, field.key, option)"
@@ -159,7 +159,7 @@
 
                     <div
                       v-else-if="field.type === 'checkbox'"
-                      class="j8-ic-options"
+                      class="qz-ic-options"
                       :aria-labelledby="manualFieldId(product.itemKey, field.key)"
                     >
                       <label v-for="option in field.options" :key="option">
@@ -187,7 +187,7 @@
                     <p
                       v-if="submitAttempted && manualFieldError(product.itemKey, field.key)"
                       :id="manualFieldErrId(product.itemKey, field.key)"
-                      class="j8-ic-error"
+                      class="qz-ic-error"
                     >
                       {{ manualFieldError(product.itemKey, field.key) }}
                     </p>
@@ -198,9 +198,9 @@
 
             <!-- 游客 -->
             <template v-if="!userAuthStore.isAuthenticated">
-              <div class="j8-xcheck-mode">
+              <div class="qz-xcheck-mode">
                 <h3>{{ t('checkout.modeTitle') }}</h3>
-                <div class="j8-xcheck-mode-tabs" role="tablist">
+                <div class="qz-xcheck-mode-tabs" role="tablist">
                   <button
                     type="button"
                     role="tab"
@@ -213,7 +213,7 @@
                   <RouterLink
                     to="/auth/login"
                     role="tab"
-                    class="j8-xcheck-mode-link"
+                    class="qz-xcheck-mode-link"
                   >
                     {{ t('checkout.memberPurchase') }}
                   </RouterLink>
@@ -221,34 +221,34 @@
               </div>
 
               <template v-if="checkoutMode === 'guest'">
-                <div class="j8-ic-field">
-                  <label for="j8-xcheck-email">
+                <div class="qz-ic-field">
+                  <label for="qz-xcheck-email">
                     {{ t('qiaozhi.detail.email') }}<b>*</b>
                   </label>
                   <input
-                    id="j8-xcheck-email"
+                    id="qz-xcheck-email"
                     v-model="guestEmail"
                     type="email"
                     autocomplete="email"
                     :placeholder="t('checkout.guestEmailPlaceholder')"
                     :aria-invalid="submitAttempted && !!guestEmail && !guestEmailValid"
-                    :aria-describedby="submitAttempted && !!guestEmail && !guestEmailValid ? 'j8-xcheck-email-err' : undefined"
+                    :aria-describedby="submitAttempted && !!guestEmail && !guestEmailValid ? 'qz-xcheck-email-err' : undefined"
                   />
                   <p
                     v-if="submitAttempted && !!guestEmail && !guestEmailValid"
-                    id="j8-xcheck-email-err"
-                    class="j8-ic-error"
+                    id="qz-xcheck-email-err"
+                    class="qz-ic-error"
                   >
                     {{ t('error.email_invalid') }}
                   </p>
                 </div>
 
-                <div class="j8-ic-field">
-                  <label for="j8-xcheck-password">
+                <div class="qz-ic-field">
+                  <label for="qz-xcheck-password">
                     {{ t('qiaozhi.detail.orderPassword') }}<b>*</b>
                   </label>
                   <input
-                    id="j8-xcheck-password"
+                    id="qz-xcheck-password"
                     v-model="guestPassword"
                     type="password"
                     autocomplete="new-password"
@@ -256,7 +256,7 @@
                   />
                 </div>
 
-                <div v-if="guestCaptchaEnabled" class="j8-ic-field">
+                <div v-if="guestCaptchaEnabled" class="qz-ic-field">
                   <label>{{ t('auth.common.captchaLabel') }}<b>*</b></label>
                   <ImageCaptcha
                     v-if="captchaProvider === 'image'"
@@ -273,7 +273,7 @@
                   />
                 </div>
 
-                <div class="j8-xcheck-notice">
+                <div class="qz-xcheck-notice">
                   <b>{{ t('checkout.guestInstructions.title') }}</b>
                   <ul>
                     <li>{{ t('checkout.guestInstructions.email') }}</li>
@@ -282,13 +282,13 @@
                 </div>
               </template>
             </template>
-            <p v-else class="j8-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
+            <p v-else class="qz-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
 
             <!-- 优惠码 -->
-            <div v-if="!isResellerTenant" class="j8-ic-field j8-ic-with-action">
-              <label for="j8-xcheck-coupon">{{ t('checkout.couponTitle') }}</label>
+            <div v-if="!isResellerTenant" class="qz-ic-field qz-ic-with-action">
+              <label for="qz-xcheck-coupon">{{ t('checkout.couponTitle') }}</label>
               <input
-                id="j8-xcheck-coupon"
+                id="qz-xcheck-coupon"
                 v-model="couponCode"
                 type="text"
                 autocomplete="off"
@@ -300,68 +300,68 @@
       </div>
 
       <!-- 右：合计 + 支付 -->
-      <aside class="j8-xcheck-aside j8-reveal is-pending" :data-reveal="1">
-        <div class="j8-xcheck-summary">
-          <header class="j8-xcheck-card-head">
-            <span class="j8-eyebrow">{{ t('qiaozhi.checkout.sectionSummary') }}</span>
+      <aside class="qz-xcheck-aside qz-reveal is-pending" :data-reveal="1">
+        <div class="qz-xcheck-summary">
+          <header class="qz-xcheck-card-head">
+            <span class="qz-eyebrow">{{ t('qiaozhi.checkout.sectionSummary') }}</span>
             <h2>{{ t('checkout.submitTitle') }}</h2>
           </header>
 
-          <p class="j8-ic-hint">{{ t('checkout.submitHint') }}</p>
+          <p class="qz-ic-hint">{{ t('checkout.submitHint') }}</p>
 
-          <dl class="j8-xcheck-rows">
-            <div class="j8-xcheck-row">
+          <dl class="qz-xcheck-rows">
+            <div class="qz-xcheck-row">
               <dt>{{ t('cart.itemsCount') }}</dt>
               <dd>{{ totalItems }}</dd>
             </div>
-            <div class="j8-xcheck-row">
+            <div class="qz-xcheck-row">
               <dt>{{ t('checkout.previewOriginal') }}</dt>
               <dd>{{ formatPrice(previewOriginal, previewCurrency) }}</dd>
             </div>
             <template v-if="!isResellerTenant">
-              <div class="j8-xcheck-row">
+              <div class="qz-xcheck-row">
                 <dt>{{ t('checkout.previewCoupon') }}</dt>
                 <dd :class="{ 'is-discount': hasPositiveAmount(previewCoupon) }">
                   {{ formatDiscountPrice(previewCoupon, previewCurrency) }}
                 </dd>
               </div>
-              <div class="j8-xcheck-row">
+              <div class="qz-xcheck-row">
                 <dt>{{ t('checkout.previewPromotion') }}</dt>
                 <dd :class="{ 'is-discount': hasPositiveAmount(previewPromotion) }">
                   {{ formatDiscountPrice(previewPromotion, previewCurrency) }}
                 </dd>
               </div>
-              <div class="j8-xcheck-row">
+              <div class="qz-xcheck-row">
                 <dt>{{ t('checkout.previewWholesale') }}</dt>
                 <dd :class="{ 'is-saving': hasPositiveAmount(previewWholesale) }">
                   {{ formatDiscountPrice(previewWholesale, previewCurrency) }}
                 </dd>
               </div>
             </template>
-            <div v-if="hasPositiveAmount(previewMemberDiscount)" class="j8-xcheck-row">
+            <div v-if="hasPositiveAmount(previewMemberDiscount)" class="qz-xcheck-row">
               <dt>{{ t('checkout.previewMemberDiscount') }}</dt>
               <dd class="is-saving">-{{ formatPrice(previewMemberDiscount, previewCurrency) }}</dd>
             </div>
           </dl>
 
-          <div class="j8-ic-total">
+          <div class="qz-ic-total">
             <span>{{ t('checkout.previewTotal') }}</span>
             <strong>{{ formatPrice(previewTotal, previewCurrency) }}</strong>
           </div>
 
-          <p v-if="previewLoading || couponRefreshing" class="j8-ic-hint">
+          <p v-if="previewLoading || couponRefreshing" class="qz-ic-hint">
             {{ previewStatusText }}
           </p>
 
           <!-- 支付方式 -->
-          <div class="j8-ic-pay">
+          <div class="qz-ic-pay">
             <h3>
               <Wallet />
               {{ t('checkout.paymentMethod') }}
             </h3>
 
             <!-- 钱包余额 -->
-            <label v-if="showBalanceOption" class="j8-ic-balance" :class="{ 'is-active': useBalance }">
+            <label v-if="showBalanceOption" class="qz-ic-balance" :class="{ 'is-active': useBalance }">
               <Wallet />
               <span>
                 <b>{{ t('payment.walletBalanceLabel') }}</b>
@@ -381,7 +381,7 @@
             <!-- 钱包抵扣摘要 -->
             <ul
               v-if="showBalanceOption && useBalance"
-              class="j8-xcheck-wallet-info"
+              class="qz-xcheck-wallet-info"
             >
               <li>
                 <span>{{ t('payment.walletDeductLabel') }}</span>
@@ -403,13 +403,13 @@
             <template v-if="!walletOnlyPayment">
               <div
                 v-if="requiresOnlineChannel && paymentChannels.length > 0"
-                class="j8-ic-channels"
+                class="qz-ic-channels"
               >
                 <button
                   v-for="channel in paymentChannels"
                   :key="channel.id"
                   type="button"
-                  class="j8-ic-channel"
+                  class="qz-ic-channel"
                   :class="{ 'is-active': selectedChannelId === channel.id && !isChannelDisabledForAmount(channel) }"
                   :disabled="isChannelDisabledForAmount(channel)"
                   :title="isChannelDisabledForAmount(channel) ? channelAmountLimitHint(channel) : ''"
@@ -435,7 +435,7 @@
               </div>
               <p
                 v-else-if="requiresOnlineChannel && paymentChannels.length === 0"
-                class="j8-ic-hint"
+                class="qz-ic-hint"
               >
                 {{ t('checkout.noPaymentChannels') }}
               </p>
@@ -443,7 +443,7 @@
 
             <p
               v-if="!requiresOnlineChannel"
-              class="j8-ic-hint is-ok"
+              class="qz-ic-hint is-ok"
             >
               {{ t('checkout.walletCoversAll') }}
             </p>
@@ -452,7 +452,7 @@
           <!-- 提示 / 错误 -->
           <p
             v-if="checkoutAlert"
-            class="j8-ic-alert"
+            class="qz-ic-alert"
             :class="{ 'is-error': checkoutAlert.level === 'error' }"
             role="alert"
           >
@@ -462,11 +462,11 @@
           <!-- 提交 -->
           <button
             type="button"
-            class="j8-xcheck-btn"
+            class="qz-xcheck-btn"
             :disabled="!canSubmit"
             @click="handleSubmit"
           >
-            <Loader2 v-if="submitting" class="j8-xcheck-spin" />
+            <Loader2 v-if="submitting" class="qz-xcheck-spin" />
             <CreditCard v-else />
             {{ submitting ? t('checkout.submitting') : t('checkout.submitButton') }}
           </button>
@@ -486,7 +486,7 @@ import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useCheckout } from '../../composables/useCheckout'
 import { useLocalized } from '../../composables/useProduct'
 import { setupReveal } from './utils/reveal'
-import J8Select from './components/J8Select.vue'
+import QzSelect from './components/QzSelect.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -612,8 +612,8 @@ const manualItemTitle = (product: { title: any; skuCount: number }) => {
   return `${name} (${t('checkout.manualFormAppliesToSkuCount', { count: product.skuCount })})`
 }
 
-const manualFieldId = (itemKey: string, fieldKey: string) => `j8-mf-${itemKey}-${fieldKey}`
-const manualFieldErrId = (itemKey: string, fieldKey: string) => `j8-mf-err-${itemKey}-${fieldKey}`
+const manualFieldId = (itemKey: string, fieldKey: string) => `qz-mf-${itemKey}-${fieldKey}`
+const manualFieldErrId = (itemKey: string, fieldKey: string) => `qz-mf-err-${itemKey}-${fieldKey}`
 
 const getManualFieldValue = (itemKey: string, fieldKey: string) => {
   const value = manualFormData.value[itemKey]?.[fieldKey]
@@ -654,30 +654,30 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
 </script>
 
 <style scoped>
-/* qiaozhi Checkout 页面独立版式 —— 复用 ji8.css 的 j8-* 原子，仅在此补齐布局 */
-.j8-xcheck-main { padding-top: 24px; padding-bottom: 70px; }
+/* qiaozhi Checkout 页面独立版式 —— 复用 legacy.css 的 qz-* 原子，仅在此补齐布局 */
+.qz-xcheck-main { padding-top: 24px; padding-bottom: 70px; }
 
-.j8-xcheck-grid {
+.qz-xcheck-grid {
   display: grid;
   gap: 22px;
   align-items: start;
   grid-template-columns: minmax(0, 1fr);
 }
 @media (min-width: 960px) {
-  .j8-xcheck-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr); }
+  .qz-xcheck-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr); }
 }
 
-.j8-xcheck-left { display: grid; gap: 18px; min-width: 0; }
+.qz-xcheck-left { display: grid; gap: 18px; min-width: 0; }
 
-:deep(.j8-xcheck-card) {
+:deep(.qz-xcheck-card) {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
   padding: 22px 22px 24px;
 }
 
-.j8-xcheck-card-head { display: grid; gap: 4px; }
-.j8-xcheck-card-head h2 {
+.qz-xcheck-card-head { display: grid; gap: 4px; }
+.qz-xcheck-card-head h2 {
   margin: 0;
   color: var(--text);
   font-size: 20px;
@@ -686,8 +686,8 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
 }
 
 /* 商品列表 */
-.j8-xcheck-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.j8-xcheck-item {
+.qz-xcheck-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.qz-xcheck-item {
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr) auto;
   gap: 14px;
@@ -697,72 +697,72 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   border-radius: 14px;
   background: var(--surface-2);
 }
-.j8-xcheck-item.is-warn {
+.qz-xcheck-item.is-warn {
   border-color: color-mix(in srgb, var(--amber) 55%, var(--line));
   background: var(--amber-soft);
 }
-.j8-xcheck-item-thumb {
+.qz-xcheck-item-thumb {
   width: 72px; height: 72px; border-radius: 12px; overflow: hidden;
   display: grid; place-items: center;
   background: var(--surface); border: 1px solid var(--line);
 }
-.j8-xcheck-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.j8-xcheck-item-thumb .j8-pd-logo { font-size: 22px; }
+.qz-xcheck-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.qz-xcheck-item-thumb .qz-pd-logo { font-size: 22px; }
 
-.j8-xcheck-item-body { min-width: 0; display: grid; gap: 4px; }
-.j8-xcheck-item-title {
+.qz-xcheck-item-body { min-width: 0; display: grid; gap: 4px; }
+.qz-xcheck-item-title {
   display: block; min-width: 0;
   color: var(--text); font-size: 14px; font-weight: 700;
   text-decoration: none;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.j8-xcheck-item-title:hover { color: var(--accent-strong); }
-.j8-xcheck-item-meta {
+.qz-xcheck-item-title:hover { color: var(--accent-strong); }
+.qz-xcheck-item-meta {
   display: flex; flex-wrap: wrap; gap: 4px 12px;
   color: var(--muted); font-size: 12px;
 }
-.j8-xcheck-item-stock { margin: 0; font-size: 12px; color: var(--muted); }
-.j8-xcheck-item-stock.is-warn { color: var(--amber); }
+.qz-xcheck-item-stock { margin: 0; font-size: 12px; color: var(--muted); }
+.qz-xcheck-item-stock.is-warn { color: var(--amber); }
 
-.j8-xcheck-item-price { text-align: right; min-width: 86px; }
-.j8-xcheck-item-price .j8-pd-price {
+.qz-xcheck-item-price { text-align: right; min-width: 86px; }
+.qz-xcheck-item-price .qz-pd-price {
   display: inline-flex; align-items: baseline; gap: 2px;
   color: var(--text); font-variant-numeric: tabular-nums;
 }
-.j8-xcheck-item-price .j8-pd-price strong {
+.qz-xcheck-item-price .qz-pd-price strong {
   font-size: 18px; font-weight: 800; line-height: 1;
 }
-.j8-xcheck-item-price .j8-pd-price small { font-size: 12px; font-weight: 700; }
-.j8-xcheck-item-price .j8-pd-price.is-discount { color: var(--red); }
-.j8-xcheck-item-cur { margin-left: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
-.j8-xcheck-item-old {
+.qz-xcheck-item-price .qz-pd-price small { font-size: 12px; font-weight: 700; }
+.qz-xcheck-item-price .qz-pd-price.is-discount { color: var(--red); }
+.qz-xcheck-item-cur { margin-left: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.qz-xcheck-item-old {
   display: block; margin-top: 2px;
   color: var(--muted); font-size: 11px; text-decoration: line-through;
 }
 
 /* 交付资料分组 */
-.j8-xcheck-manual {
+.qz-xcheck-manual {
   display: grid; gap: 10px;
   padding: 14px; border-radius: 14px;
   background: var(--surface-2); border: 1px solid var(--line);
 }
-.j8-xcheck-manual h3 {
+.qz-xcheck-manual h3 {
   margin: 0; color: var(--text); font-size: 14px; font-weight: 800;
 }
-.j8-xcheck-manual-grid {
+.qz-xcheck-manual-grid {
   display: grid; gap: 12px;
   grid-template-columns: 1fr;
 }
 @media (min-width: 640px) {
-  .j8-xcheck-manual-grid { grid-template-columns: 1fr 1fr; }
+  .qz-xcheck-manual-grid { grid-template-columns: 1fr 1fr; }
 }
 
 /* 游客 / 模式 */
-.j8-xcheck-mode { display: grid; gap: 10px; }
-.j8-xcheck-mode h3 { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; }
-.j8-xcheck-mode-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
-.j8-xcheck-mode-tabs button,
-.j8-xcheck-mode-tabs .j8-xcheck-mode-link {
+.qz-xcheck-mode { display: grid; gap: 10px; }
+.qz-xcheck-mode h3 { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; }
+.qz-xcheck-mode-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.qz-xcheck-mode-tabs button,
+.qz-xcheck-mode-tabs .qz-xcheck-mode-link {
   display: inline-flex; align-items: center;
   height: 40px; padding: 0 16px;
   border: 1px solid var(--line); border-radius: 12px;
@@ -770,16 +770,16 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   font-size: 13px; font-weight: 700; text-decoration: none;
   cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
-.j8-xcheck-mode-tabs button:hover,
-.j8-xcheck-mode-tabs .j8-xcheck-mode-link:hover {
+.qz-xcheck-mode-tabs button:hover,
+.qz-xcheck-mode-tabs .qz-xcheck-mode-link:hover {
   border-color: var(--accent-line); color: var(--accent-strong);
 }
-.j8-xcheck-mode-tabs button.is-active {
+.qz-xcheck-mode-tabs button.is-active {
   border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong);
 }
 
 /* 游客说明 */
-.j8-xcheck-notice {
+.qz-xcheck-notice {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--accent-line);
@@ -788,12 +788,12 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   font-size: 12.5px;
   line-height: 1.6;
 }
-.j8-xcheck-notice b { display: block; margin-bottom: 4px; font-size: 13px; }
-.j8-xcheck-notice ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.qz-xcheck-notice b { display: block; margin-bottom: 4px; font-size: 13px; }
+.qz-xcheck-notice ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
 
 /* 右侧合计 */
-.j8-xcheck-aside { min-width: 0; }
-.j8-xcheck-summary {
+.qz-xcheck-aside { min-width: 0; }
+.qz-xcheck-summary {
   position: sticky;
   top: calc(var(--site-header-height, 72px) + 16px);
   display: grid;
@@ -805,35 +805,35 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   box-shadow: var(--shadow-soft);
 }
 
-.j8-xcheck-rows { display: grid; gap: 8px; margin: 0; }
-.j8-xcheck-row {
+.qz-xcheck-rows { display: grid; gap: 8px; margin: 0; }
+.qz-xcheck-row {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   color: var(--muted); font-size: 13px;
 }
-.j8-xcheck-row dt { margin: 0; }
-.j8-xcheck-row dd {
+.qz-xcheck-row dt { margin: 0; }
+.qz-xcheck-row dd {
   margin: 0; color: var(--text);
   font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
 }
-.j8-xcheck-row dd.is-discount { color: var(--red); }
-.j8-xcheck-row dd.is-saving { color: var(--accent-strong); }
+.qz-xcheck-row dd.is-discount { color: var(--red); }
+.qz-xcheck-row dd.is-saving { color: var(--accent-strong); }
 
 /* 钱包抵扣摘要 */
-.j8-xcheck-wallet-info {
+.qz-xcheck-wallet-info {
   list-style: none; margin: 0; padding: 10px 12px;
   display: grid; gap: 4px;
   border: 1px dashed var(--line);
   border-radius: 10px;
   color: var(--muted); font-size: 12px;
 }
-.j8-xcheck-wallet-info li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.j8-xcheck-wallet-info li b { color: var(--text); font-weight: 700; }
-.j8-xcheck-wallet-info li.is-warn { color: var(--amber); justify-content: flex-start; }
+.qz-xcheck-wallet-info li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.qz-xcheck-wallet-info li b { color: var(--text); font-weight: 700; }
+.qz-xcheck-wallet-info li.is-warn { color: var(--amber); justify-content: flex-start; }
 
-.j8-xcheck-btn { width: 100%; }
+.qz-xcheck-btn { width: 100%; }
 
 /* 窄屏下取消 sticky，避免跟内容打架 */
 @media (max-width: 960px) {
-  .j8-xcheck-summary { position: static; }
+  .qz-xcheck-summary { position: static; }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <button
     ref="buttonEl"
-    class="j8-arc-btn"
+    class="qz-arc-btn"
     :class="[`is-${variant}`, `is-${size}`, { 'is-loading': loading, 'is-inert': inert }]"
     :disabled="disabled || undefined"
     :aria-busy="loading || undefined"
@@ -10,13 +10,13 @@
     @pointerdown="handlePointerDown"
     @click="handleClick"
   >
-    <Transition name="j8-arc-loader">
-      <span v-if="loading" class="j8-arc-loader" aria-hidden="true"><span class="j8-arc-spinner" /></span>
+    <Transition name="qz-arc-loader">
+      <span v-if="loading" class="qz-arc-loader" aria-hidden="true"><span class="qz-arc-spinner" /></span>
     </Transition>
-    <span ref="slotEl" class="j8-arc-slot" :style="slotStyle">
-      <span ref="contentEl" class="j8-arc-content">
+    <span ref="slotEl" class="qz-arc-slot" :style="slotStyle">
+      <span ref="contentEl" class="qz-arc-content">
         <Transition :name="labelTransitionName()" mode="out-in">
-          <span :key="currentKey()" class="j8-arc-label"><slot /></span>
+          <span :key="currentKey()" class="qz-arc-label"><slot /></span>
         </Transition>
       </span>
     </span>
@@ -80,8 +80,8 @@ function currentKey(): string {
 
 const labelIsIcon = () => !/\S/.test(currentKey().replace(/<[^>]*>/g, ''))
 const labelTransitionName = () => {
-  if (reduced.value) return 'j8-arc-label-fade'
-  return labelIsIcon() ? 'j8-arc-label-icon' : 'j8-arc-label-text'
+  if (reduced.value) return 'qz-arc-label-fade'
+  return labelIsIcon() ? 'qz-arc-label-icon' : 'qz-arc-label-text'
 }
 
 /* ---------- 宽度形变：新 label 出现时槽位弹簧到新宽度，其他重排（字体后载）直接跳变 ---------- */
@@ -130,7 +130,7 @@ const handlePointerDown = () => {
   if (!el || inert.value || reduced.value) return
   const width = el.offsetWidth
   const scale = width > 220 ? 0.985 : (width > 0 && width <= 48 ? 0.96 : 0.97)
-  el.style.setProperty('--j8-press', String(scale))
+  el.style.setProperty('--qz-press', String(scale))
 }
 
 /* ---------- loading 时吞掉点击但保留键盘焦点（aria-disabled 而非 disabled） ---------- */
@@ -148,7 +148,7 @@ watch(() => props.loading, (value) => {
 </script>
 
 <style>
-.j8-arc-btn {
+.qz-arc-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -163,88 +163,88 @@ watch(() => props.loading, (value) => {
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
-.j8-arc-btn:active:not(:disabled):not(.is-inert) {
-  transform: scale(var(--j8-press, 0.97));
+.qz-arc-btn:active:not(:disabled):not(.is-inert) {
+  transform: scale(var(--qz-press, 0.97));
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
-.j8-arc-btn[aria-busy="true"] { cursor: progress; }
+.qz-arc-btn[aria-busy="true"] { cursor: progress; }
 
-.j8-arc-btn.is-sm { height: 34px; padding: 0px 13px; font-size: 12.5px; }
-.j8-arc-btn.is-md { height: 44px; padding: 0px 22px; font-size: 14px; }
-.j8-arc-btn.is-lg { height: 50px; padding: 0px 28px; font-size: 15px; }
-.j8-arc-btn.is-sm .j8-arc-content { gap: 6px; }
-.j8-arc-btn.is-md .j8-arc-content { gap: 8px; }
-.j8-arc-btn.is-lg .j8-arc-content { gap: 8px; }
-.j8-arc-btn.is-sm .j8-arc-content svg { width: 14px; height: 14px; }
-.j8-arc-btn.is-md .j8-arc-content svg { width: 16px; height: 16px; }
-.j8-arc-btn.is-lg .j8-arc-content svg { width: 18px; height: 18px; }
+.qz-arc-btn.is-sm { height: 34px; padding: 0px 13px; font-size: 12.5px; }
+.qz-arc-btn.is-md { height: 44px; padding: 0px 22px; font-size: 14px; }
+.qz-arc-btn.is-lg { height: 50px; padding: 0px 28px; font-size: 15px; }
+.qz-arc-btn.is-sm .qz-arc-content { gap: 6px; }
+.qz-arc-btn.is-md .qz-arc-content { gap: 8px; }
+.qz-arc-btn.is-lg .qz-arc-content { gap: 8px; }
+.qz-arc-btn.is-sm .qz-arc-content svg { width: 14px; height: 14px; }
+.qz-arc-btn.is-md .qz-arc-content svg { width: 16px; height: 16px; }
+.qz-arc-btn.is-lg .qz-arc-content svg { width: 18px; height: 18px; }
 
-.j8-arc-btn.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.j8-arc-btn.is-secondary { background: var(--surface); border-color: var(--line-strong); color: var(--text); }
-.j8-arc-btn.is-ghost { background: transparent; border-color: transparent; color: var(--text); }
-.j8-arc-btn.is-danger { background: var(--surface); border-color: var(--line-strong); color: var(--red); }
+.qz-arc-btn.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.qz-arc-btn.is-secondary { background: var(--surface); border-color: var(--line-strong); color: var(--text); }
+.qz-arc-btn.is-ghost { background: transparent; border-color: transparent; color: var(--text); }
+.qz-arc-btn.is-danger { background: var(--surface); border-color: var(--line-strong); color: var(--red); }
 
 @media (hover: hover) and (pointer: fine) {
-  .j8-arc-btn.is-primary:hover:not(:disabled):not(.is-inert) { background: var(--accent-strong); border-color: var(--accent-strong); }
-  .j8-arc-btn.is-secondary:hover:not(:disabled):not(.is-inert) { background: var(--surface-2); border-color: var(--accent-line); }
-  .j8-arc-btn.is-ghost:hover:not(:disabled):not(.is-inert) { background: var(--accent-soft); }
-  .j8-arc-btn.is-danger:hover:not(:disabled):not(.is-inert) { background: var(--red-soft); border-color: var(--red); }
+  .qz-arc-btn.is-primary:hover:not(:disabled):not(.is-inert) { background: var(--accent-strong); border-color: var(--accent-strong); }
+  .qz-arc-btn.is-secondary:hover:not(:disabled):not(.is-inert) { background: var(--surface-2); border-color: var(--accent-line); }
+  .qz-arc-btn.is-ghost:hover:not(:disabled):not(.is-inert) { background: var(--accent-soft); }
+  .qz-arc-btn.is-danger:hover:not(:disabled):not(.is-inert) { background: var(--red-soft); border-color: var(--red); }
 }
 
 /* 禁用：主按钮整体褪色；次/危险保留描边变灰底；ghost 变灰字——不可用仍读得出是按钮 */
-.j8-arc-btn:disabled { cursor: not-allowed; }
-.j8-arc-btn.is-primary:disabled { opacity: 0.4; }
-.j8-arc-btn.is-secondary:disabled,
-.j8-arc-btn.is-danger:disabled { background: var(--surface-2); color: var(--muted); }
-.j8-arc-btn.is-ghost:disabled { color: var(--muted); }
+.qz-arc-btn:disabled { cursor: not-allowed; }
+.qz-arc-btn.is-primary:disabled { opacity: 0.4; }
+.qz-arc-btn.is-secondary:disabled,
+.qz-arc-btn.is-danger:disabled { background: var(--surface-2); color: var(--muted); }
+.qz-arc-btn.is-ghost:disabled { color: var(--muted); }
 
-.j8-arc-btn.j8-arc-block { width: 100%; }
+.qz-arc-btn.qz-arc-block { width: 100%; }
 
 /* label 槽：宽度由脚本测出并弹簧形变；内容永远按自然宽度渲染，不换行 */
-.j8-arc-slot { display: inline-grid; place-items: center; }
-.j8-arc-content { display: inline-flex; align-items: center; white-space: nowrap; }
-.j8-arc-label { display: inline-flex; align-items: center; gap: inherit; }
+.qz-arc-slot { display: inline-grid; place-items: center; }
+.qz-arc-content { display: inline-flex; align-items: center; white-space: nowrap; }
+.qz-arc-label { display: inline-flex; align-items: center; gap: inherit; }
 
 /* 文案切换：新字从下方轻微上浮（带模糊）进场，旧字加速上移退场 */
-.j8-arc-label-text-enter-active { transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease; }
-.j8-arc-label-text-leave-active { transition: opacity 0.13s ease, transform 0.13s ease, filter 0.13s ease; }
-.j8-arc-label-text-enter-from { opacity: 0; transform: translateY(4px); filter: blur(4px); }
-.j8-arc-label-text-leave-to { opacity: 0; transform: translateY(-3px); filter: blur(4px); }
+.qz-arc-label-text-enter-active { transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease; }
+.qz-arc-label-text-leave-active { transition: opacity 0.13s ease, transform 0.13s ease, filter 0.13s ease; }
+.qz-arc-label-text-enter-from { opacity: 0; transform: translateY(4px); filter: blur(4px); }
+.qz-arc-label-text-leave-to { opacity: 0; transform: translateY(-3px); filter: blur(4px); }
 
 /* 图标切换：缩放弹入 */
-.j8-arc-label-icon-enter-active { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.34, 1.45, 0.64, 1), filter 0.2s ease; }
-.j8-arc-label-icon-leave-active { transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease; }
-.j8-arc-label-icon-enter-from,
-.j8-arc-label-icon-leave-to { opacity: 0; transform: scale(0.6); filter: blur(2px); }
+.qz-arc-label-icon-enter-active { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.34, 1.45, 0.64, 1), filter 0.2s ease; }
+.qz-arc-label-icon-leave-active { transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease; }
+.qz-arc-label-icon-enter-from,
+.qz-arc-label-icon-leave-to { opacity: 0; transform: scale(0.6); filter: blur(2px); }
 
 /* 低动态：纯淡入淡出 */
-.j8-arc-label-fade-enter-active,
-.j8-arc-label-fade-leave-active { transition: opacity 0.15s ease; }
-.j8-arc-label-fade-enter-from,
-.j8-arc-label-fade-leave-to { opacity: 0; }
+.qz-arc-label-fade-enter-active,
+.qz-arc-label-fade-leave-active { transition: opacity 0.15s ease; }
+.qz-arc-label-fade-enter-from,
+.qz-arc-label-fade-leave-to { opacity: 0; }
 
 /* loading 转圈 */
-.j8-arc-loader { display: inline-grid; place-items: center; margin-right: 8px; }
-.j8-arc-spinner {
+.qz-arc-loader { display: inline-grid; place-items: center; margin-right: 8px; }
+.qz-arc-spinner {
   width: 15px;
   height: 15px;
   border-radius: 50%;
   border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
   border-top-color: currentColor;
-  animation: j8-arc-spin 0.7s linear infinite;
+  animation: qz-arc-spin 0.7s linear infinite;
 }
-@keyframes j8-arc-spin { to { transform: rotate(360deg); } }
-.j8-arc-loader-enter-active { transition: opacity 0.18s ease, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1); }
-.j8-arc-loader-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
-.j8-arc-loader-enter-from,
-.j8-arc-loader-leave-to { opacity: 0; transform: scale(0.6); }
+@keyframes qz-arc-spin { to { transform: rotate(360deg); } }
+.qz-arc-loader-enter-active { transition: opacity 0.18s ease, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1); }
+.qz-arc-loader-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.qz-arc-loader-enter-from,
+.qz-arc-loader-leave-to { opacity: 0; transform: scale(0.6); }
 
 @media (prefers-reduced-motion: reduce) {
-  .j8-arc-btn,
-  .j8-arc-btn:active:not(:disabled):not(.is-inert) { transform: none; transition-duration: 0.001ms; }
-  .j8-arc-label-text-enter-from,
-  .j8-arc-label-text-leave-to,
-  .j8-arc-label-icon-enter-from,
-  .j8-arc-label-icon-leave-to { transform: none; filter: none; }
+  .qz-arc-btn,
+  .qz-arc-btn:active:not(:disabled):not(.is-inert) { transform: none; transition-duration: 0.001ms; }
+  .qz-arc-label-text-enter-from,
+  .qz-arc-label-text-leave-to,
+  .qz-arc-label-icon-enter-from,
+  .qz-arc-label-icon-leave-to { transform: none; filter: none; }
 }
 </style>

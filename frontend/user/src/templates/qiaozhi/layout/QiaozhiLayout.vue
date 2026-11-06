@@ -1,19 +1,19 @@
 <template>
   <div class="qiaozhi-scope" :class="{ 'is-product': isProductPage }">
     <!-- 顶栏 -->
-    <header class="j8-header">
-      <RouterLink class="j8-brand" to="/" :title="brandName">
-        <span class="j8-brand-mark">
+    <header class="qz-header">
+      <RouterLink class="qz-brand" to="/" :title="brandName">
+        <span class="qz-brand-mark">
           <img v-if="brandLogo" :src="brandLogo" :alt="brandName" />
           <b v-else>{{ brandInitial }}</b>
         </span>
-        <span class="j8-brand-text">
+        <span class="qz-brand-text">
           <strong>{{ brandName }}</strong>
           <small>{{ brandDomain }}</small>
         </span>
       </RouterLink>
 
-      <nav class="j8-nav" :aria-label="t('qiaozhi.nav.primaryAria')">
+      <nav class="qz-nav" :aria-label="t('qiaozhi.nav.primaryAria')">
         <RouterLink to="/" :class="{ 'is-active': route.path === '/' }">
           <ShoppingBag />{{ t('qiaozhi.nav.shop') }}
         </RouterLink>
@@ -40,33 +40,33 @@
         </RouterLink>
       </nav>
 
-      <div class="j8-actions">
-        <RouterLink v-if="noticeEnabled" to="/notice" class="j8-icon-btn j8-only-mobile" :aria-label="t('qiaozhi.nav.notice')">
+      <div class="qz-actions">
+        <RouterLink v-if="noticeEnabled" to="/notice" class="qz-icon-btn qz-only-mobile" :aria-label="t('qiaozhi.nav.notice')">
           <Megaphone />
         </RouterLink>
-        <RouterLink to="/2fa" class="j8-icon-btn j8-only-mobile" :aria-label="t('qiaozhi.nav.tfa')" :title="t('qiaozhi.nav.tfa')">
+        <RouterLink to="/2fa" class="qz-icon-btn qz-only-mobile" :aria-label="t('qiaozhi.nav.tfa')" :title="t('qiaozhi.nav.tfa')">
           <KeyRound />
         </RouterLink>
-        <div class="j8-lang" ref="langEl">
-          <button type="button" class="j8-icon-btn" :aria-label="t('navbar.selectLanguage')" @click="langOpen = !langOpen">
+        <div class="qz-lang" ref="langEl">
+          <button type="button" class="qz-icon-btn" :aria-label="t('navbar.selectLanguage')" @click="langOpen = !langOpen">
             <Languages />
           </button>
-          <div v-if="langOpen" class="j8-popover">
+          <div v-if="langOpen" class="qz-popover">
             <button v-for="lang in languages" :key="lang.code" type="button" :class="{ 'is-active': appStore.locale === lang.code }" @click="changeLanguage(lang.code)">
               {{ lang.name }}
               <span v-if="appStore.locale === lang.code" class="lang-dot"></span>
             </button>
           </div>
         </div>
-        <button type="button" class="j8-icon-btn" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
+        <button type="button" class="qz-icon-btn" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
           <Sun v-if="theme === 'dark'" />
           <Moon v-else />
         </button>
-        <RouterLink to="/cart" class="j8-icon-btn" :aria-label="t('navbar.cart')">
+        <RouterLink to="/cart" class="qz-icon-btn" :aria-label="t('navbar.cart')">
           <ShoppingCart />
-          <span v-if="cartCount > 0" class="j8-cart-count">{{ cartCount }}</span>
+          <span v-if="cartCount > 0" class="qz-cart-count">{{ cartCount }}</span>
         </RouterLink>
-        <RouterLink :to="accountPath" class="j8-account-btn j8-only-desktop">
+        <RouterLink :to="accountPath" class="qz-account-btn qz-only-desktop">
           <User />
           <span>{{ userAuthStore.isAuthenticated ? t('navbar.personalCenter') : t('navbar.login') }}</span>
         </RouterLink>
@@ -74,14 +74,14 @@
     </header>
 
     <!-- 页面内容 -->
-    <main class="j8-main">
+    <main class="qz-main">
       <slot />
     </main>
 
     <!-- 页脚 -->
-    <footer class="j8-footer">
+    <footer class="qz-footer">
       <div>
-        <span class="j8-brand-mark small">
+        <span class="qz-brand-mark small">
           <img v-if="brandLogo" :src="brandLogo" :alt="brandName" />
           <b v-else>{{ brandInitial }}</b>
         </span>
@@ -106,7 +106,7 @@
     <button
       v-if="contacts.length"
       type="button"
-      class="j8-support j8-support--contact"
+      class="qz-support qz-support--contact"
       :aria-expanded="contactOpen"
       :aria-label="t('qiaozhi.contact.title')"
       @click="contactOpen = !contactOpen"
@@ -114,21 +114,21 @@
       <Headset />
       <span>{{ t('qiaozhi.contact.short') }}</span>
     </button>
-    <a v-else-if="supportHref" class="j8-support" :href="supportHref" target="_blank" rel="noopener noreferrer" :aria-label="t('qiaozhi.contact.title')">
+    <a v-else-if="supportHref" class="qz-support" :href="supportHref" target="_blank" rel="noopener noreferrer" :aria-label="t('qiaozhi.contact.title')">
       <Headset />
       <span>{{ t('qiaozhi.contact.short') }}</span>
     </a>
 
-    <div v-if="contactOpen" class="j8-contact-panel">
+    <div v-if="contactOpen" class="qz-contact-panel">
       <header>
-        <span class="j8-contact-badge"><Headset /></span>
+        <span class="qz-contact-badge"><Headset /></span>
         <strong>{{ t('qiaozhi.contact.title') }}</strong>
-        <button type="button" class="j8-contact-close" :aria-label="t('common.cancel')" @click="contactOpen = false"><X /></button>
+        <button type="button" class="qz-contact-close" :aria-label="t('common.cancel')" @click="contactOpen = false"><X /></button>
       </header>
-      <ul class="j8-contact-list">
+      <ul class="qz-contact-list">
         <li v-for="c in contacts" :key="c.key">
-          <span class="j8-contact-icon" :class="`is-${c.key}`" v-html="c.icon"></span>
-          <span class="j8-contact-text">
+          <span class="qz-contact-icon" :class="`is-${c.key}`" v-html="c.icon"></span>
+          <span class="qz-contact-text">
             <span>{{ c.label }}</span>
             <code>{{ c.value }}</code>
           </span>
@@ -139,10 +139,10 @@
     </div>
 
     <!-- 移动端底部导航 -->
-    <nav class="j8-bottom-nav" style="grid-template-columns: repeat(5, 1fr)">
+    <nav class="qz-bottom-nav" style="grid-template-columns: repeat(5, 1fr)">
       <RouterLink to="/" :class="{ 'is-active': route.path === '/' }"><ShoppingBag /><span>{{ t('qiaozhi.nav.shop') }}</span></RouterLink>
       <RouterLink :to="ordersPath" :class="{ 'is-active': route.path.includes('/orders') && !route.path.includes('/guest/orders') }"><ClipboardList /><span>{{ t('qiaozhi.nav.orders') }}</span></RouterLink>
-      <RouterLink to="/cart"><ShoppingCart /><span>{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="j8-cart-count">{{ cartCount }}</span></RouterLink>
+      <RouterLink to="/cart"><ShoppingCart /><span>{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="qz-cart-count">{{ cartCount }}</span></RouterLink>
       <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }"><Megaphone /><span>{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
       <RouterLink v-else to="/2fa" :class="{ 'is-active': route.path === '/2fa' }"><ShieldCheck /><span>{{ t('qiaozhi.nav.tfa') }}</span></RouterLink>
       <RouterLink :to="accountPath" :class="{ 'is-active': isAccountNav }"><User /><span>{{ t('qiaozhi.nav.account') }}</span></RouterLink>
@@ -150,7 +150,7 @@
 
     <!-- 回到顶部 -->
     <Transition name="page-fade">
-      <button v-if="showBackTop" type="button" class="back-to-top back-to-top--j8" @click="scrollTop">
+      <button v-if="showBackTop" type="button" class="back-to-top back-to-top--qz" @click="scrollTop">
         <ArrowUp />
       </button>
     </Transition>
@@ -172,7 +172,7 @@ import { useNavConfig } from '../../../composables/useNavConfig'
 import { useTheme } from '../../../utils/theme'
 import { getImageUrl } from '../../../utils/image'
 import '@fontsource-variable/inter'
-import '../styles/ji8.css'
+import '../styles/legacy.css'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -279,29 +279,29 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.j8-header :deep(svg),
-.j8-nav :deep(svg),
-.j8-actions :deep(svg) {
+.qz-header :deep(svg),
+.qz-nav :deep(svg),
+.qz-actions :deep(svg) {
   width: 16px;
   height: 16px;
 }
 
-.j8-actions :deep(svg) {
+.qz-actions :deep(svg) {
   width: 18px;
   height: 18px;
 }
 
-.j8-support :deep(svg) {
+.qz-support :deep(svg) {
   width: 22px;
   height: 22px;
 }
 
-.j8-bottom-nav :deep(svg) {
+.qz-bottom-nav :deep(svg) {
   width: 18px;
   height: 18px;
 }
 
-.j8-contact-icon :deep(svg) {
+.qz-contact-icon :deep(svg) {
   width: 22px;
   height: 22px;
   fill: currentColor;
@@ -314,7 +314,7 @@ onUnmounted(() => {
   background: var(--accent);
 }
 
-.back-to-top--j8 {
+.back-to-top--qz {
   position: fixed;
   right: 18px;
   bottom: 158px;
@@ -332,17 +332,17 @@ onUnmounted(() => {
   transition: border-color 0.15s;
 }
 
-.back-to-top--j8:hover {
+.back-to-top--qz:hover {
   border-color: var(--accent-line);
 }
 
-.back-to-top--j8 :deep(svg) {
+.back-to-top--qz :deep(svg) {
   width: 20px;
   height: 20px;
 }
 
 @media (max-width: 760px) {
-  .back-to-top--j8 {
+  .back-to-top--qz {
     right: 10px;
     bottom: calc(148px + env(safe-area-inset-bottom));
     width: 46px;

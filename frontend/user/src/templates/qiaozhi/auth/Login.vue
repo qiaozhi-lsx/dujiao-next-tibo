@@ -1,36 +1,36 @@
 <template>
-  <div ref="rootEl" class="j8-container j8-auth">
+  <div ref="rootEl" class="qz-container qz-auth">
     <!-- 返回首页 -->
-    <RouterLink to="/" class="j8-pd-back j8-reveal is-pending" :data-reveal="1">
+    <RouterLink to="/" class="qz-pd-back qz-reveal is-pending" :data-reveal="1">
       <ChevronLeft />
       {{ t('auth.login.backHome') }}
     </RouterLink>
 
     <!-- 卡片：单列登录 -->
-    <section class="j8-auth-card j8-reveal is-pending" :data-reveal="1">
-      <header class="j8-auth-hero">
-        <span class="j8-eyebrow">{{ t('qiaozhi.login.eyebrow') }}</span>
+    <section class="qz-auth-card qz-reveal is-pending" :data-reveal="1">
+      <header class="qz-auth-hero">
+        <span class="qz-eyebrow">{{ t('qiaozhi.login.eyebrow') }}</span>
         <h1>
           {{ step === 'totp' ? t('auth.login.totp.title') : t('auth.login.title') }}
         </h1>
         <p>
           {{ step === 'totp' ? t('auth.login.totp.subtitle') : t('qiaozhi.login.subtitle') }}
         </p>
-        <small class="j8-auth-brand">{{ brandSiteName }}</small>
+        <small class="qz-auth-brand">{{ brandSiteName }}</small>
       </header>
 
       <!-- 2FA 分步 -->
       <form
         v-if="step === 'totp'"
-        class="j8-ic"
+        class="qz-ic"
         novalidate
         @submit.prevent="handleVerify2FA"
       >
-        <p class="j8-ic-alert" role="status">
+        <p class="qz-ic-alert" role="status">
           {{ t('auth.login.totp.countdown', { seconds: challengeRemainingSeconds }) }}
         </p>
 
-        <div v-if="totpMode === 'code'" class="j8-ic-field">
+        <div v-if="totpMode === 'code'" class="qz-ic-field">
           <label for="qz-totp-code">{{ t('auth.login.totp.codeLabel') }}<b>*</b></label>
           <input
             id="qz-totp-code"
@@ -39,11 +39,11 @@
             autocomplete="one-time-code"
             maxlength="6"
             :placeholder="t('auth.login.totp.codePlaceholder')"
-            class="j8-auth-input-code"
+            class="qz-auth-input-code"
           />
         </div>
 
-        <div v-else class="j8-ic-field">
+        <div v-else class="qz-ic-field">
           <label for="qz-totp-recovery">{{ t('auth.login.totp.recoveryLabel') }}<b>*</b></label>
           <input
             id="qz-totp-recovery"
@@ -53,7 +53,7 @@
           />
         </div>
 
-        <p class="j8-ic-hint is-right">
+        <p class="qz-ic-hint is-right">
           <a
             href="#"
             @click.prevent="totpMode = totpMode === 'code' ? 'recovery' : 'code'"
@@ -62,19 +62,19 @@
           </a>
         </p>
 
-        <p v-if="error" class="j8-ic-alert is-error" role="alert">{{ error }}</p>
+        <p v-if="error" class="qz-ic-alert is-error" role="alert">{{ error }}</p>
 
         <button
           type="submit"
-          class="j8-xcheck-btn j8-auth-submit"
+          class="qz-xcheck-btn qz-auth-submit"
           :disabled="userAuthStore.loading"
         >
-          <Loader2 v-if="userAuthStore.loading" class="j8-ic-spin" />
+          <Loader2 v-if="userAuthStore.loading" class="qz-ic-spin" />
           <ShieldCheck v-else />
           {{ userAuthStore.loading ? t('auth.login.totp.verifying') : t('auth.login.totp.submit') }}
         </button>
 
-        <p class="j8-ic-hint is-right">
+        <p class="qz-ic-hint is-right">
           <a href="#" @click.prevent="cancel2FA">{{ t('auth.login.totp.cancel') }}</a>
         </p>
       </form>
@@ -82,11 +82,11 @@
       <!-- 密码登录 -->
       <form
         v-else
-        class="j8-ic"
+        class="qz-ic"
         novalidate
         @submit.prevent="handleLogin"
       >
-        <div class="j8-ic-field">
+        <div class="qz-ic-field">
           <label for="qz-login-email">{{ t('auth.login.emailLabel') }}<b>*</b></label>
           <input
             id="qz-login-email"
@@ -99,14 +99,14 @@
             :aria-describedby="formValidation.hasError('email') ? 'qz-login-email-err' : undefined"
             @blur="formValidation.touchField('email', email)"
           />
-          <p v-if="formValidation.getError('email')" id="qz-login-email-err" class="j8-ic-error">
+          <p v-if="formValidation.getError('email')" id="qz-login-email-err" class="qz-ic-error">
             {{ formValidation.getError('email') }}
           </p>
         </div>
 
-        <div class="j8-ic-field">
+        <div class="qz-ic-field">
           <label for="qz-login-password">{{ t('auth.login.passwordLabel') }}<b>*</b></label>
-          <div class="j8-auth-password">
+          <div class="qz-auth-password">
             <input
               id="qz-login-password"
               v-model="password"
@@ -120,7 +120,7 @@
             />
             <button
               type="button"
-              class="j8-auth-pass-toggle"
+              class="qz-auth-pass-toggle"
               :aria-label="showPassword ? t('auth.common.hidePassword') : t('auth.common.showPassword')"
               @click="showPassword = !showPassword"
             >
@@ -128,12 +128,12 @@
               <Eye v-else />
             </button>
           </div>
-          <p v-if="formValidation.getError('password')" id="qz-login-password-err" class="j8-ic-error">
+          <p v-if="formValidation.getError('password')" id="qz-login-password-err" class="qz-ic-error">
             {{ formValidation.getError('password') }}
           </p>
         </div>
 
-        <div v-if="loginCaptchaEnabled" class="j8-ic-field">
+        <div v-if="loginCaptchaEnabled" class="qz-ic-field">
           <label>{{ t('auth.common.captchaLabel') }}<b>*</b></label>
           <ImageCaptcha
             v-if="captchaProvider === 'image'"
@@ -150,61 +150,61 @@
           />
         </div>
 
-        <div class="j8-auth-row">
-          <label class="j8-auth-check">
+        <div class="qz-auth-row">
+          <label class="qz-auth-check">
             <input v-model="rememberMe" type="checkbox" />
             <span>{{ t('auth.login.rememberMe') }}</span>
           </label>
           <RouterLink
             v-if="emailVerificationEnabled"
             to="/auth/forgot"
-            class="j8-auth-link"
+            class="qz-auth-link"
           >
             {{ t('auth.login.forgot') }}
           </RouterLink>
         </div>
 
-        <p v-if="info" class="j8-ic-alert j8-auth-info" role="status">{{ info }}</p>
-        <p v-if="error" class="j8-ic-alert is-error" role="alert">{{ error }}</p>
+        <p v-if="info" class="qz-ic-alert qz-auth-info" role="status">{{ info }}</p>
+        <p v-if="error" class="qz-ic-alert is-error" role="alert">{{ error }}</p>
 
         <button
           type="submit"
-          class="j8-xcheck-btn j8-auth-submit"
+          class="qz-xcheck-btn qz-auth-submit"
           :disabled="userAuthStore.loading"
         >
-          <Loader2 v-if="userAuthStore.loading" class="j8-ic-spin" />
+          <Loader2 v-if="userAuthStore.loading" class="qz-ic-spin" />
           <LogIn v-else />
           {{ userAuthStore.loading ? t('auth.login.submitting') : t('auth.login.submit') }}
         </button>
 
         <!-- 第三方登录 -->
         <template v-if="showThirdPartyLogin">
-          <div class="j8-auth-divider">
+          <div class="qz-auth-divider">
             <span></span>
             <em>{{ t('auth.login.socialOr') }}</em>
             <span></span>
           </div>
-          <div class="j8-auth-oauth">
-            <div v-if="showTelegramWidget" class="j8-auth-oauth-item">
-              <div ref="telegramWidgetRef" class="j8-auth-oauth-center"></div>
+          <div class="qz-auth-oauth">
+            <div v-if="showTelegramWidget" class="qz-auth-oauth-item">
+              <div ref="telegramWidgetRef" class="qz-auth-oauth-center"></div>
               <small>{{ t('auth.login.telegramHint') }}</small>
             </div>
-            <div v-else-if="showTelegramOidc" class="j8-auth-oauth-item">
+            <div v-else-if="showTelegramOidc" class="qz-auth-oauth-item">
               <button
                 type="button"
-                class="j8-auth-oauth-btn"
+                class="qz-auth-oauth-btn"
                 @click="startTelegramOidc"
               >
                 {{ t('auth.login.telegramOidcButton') }}
               </button>
               <small>{{ t('auth.login.telegramOidcHint') }}</small>
             </div>
-            <div v-else-if="showMiniAppLoginHint" class="j8-auth-oauth-item">
+            <div v-else-if="showMiniAppLoginHint" class="qz-auth-oauth-item">
               <small>
                 {{ attemptingMiniAppLogin ? t('auth.login.telegramMiniAppLoggingIn') : t('auth.login.telegramMiniAppHint') }}
               </small>
             </div>
-            <div v-if="showGoogleLogin" class="j8-auth-oauth-item">
+            <div v-if="showGoogleLogin" class="qz-auth-oauth-item">
               <GoogleIdentityButton
                 :client-id="googleClientID"
                 :locale="googleButtonLocale"
@@ -221,10 +221,10 @@
           </div>
         </template>
 
-        <div v-if="showTelegramMiniAppEntry" class="j8-auth-oauth-item">
+        <div v-if="showTelegramMiniAppEntry" class="qz-auth-oauth-item">
           <button
             type="button"
-            class="j8-auth-oauth-btn"
+            class="qz-auth-oauth-btn"
             @click="openTelegramMiniAppEntry"
           >
             {{ t('auth.login.telegramMiniAppEntryAction') }}
@@ -233,7 +233,7 @@
         </div>
       </form>
 
-      <footer v-if="registrationEnabled && step !== 'totp'" class="j8-auth-foot">
+      <footer v-if="registrationEnabled && step !== 'totp'" class="qz-auth-foot">
         <span>{{ t('qiaozhi.login.noAccountPrefix') }}</span>
         <RouterLink to="/auth/register">{{ t('qiaozhi.login.goRegister') }}</RouterLink>
       </footer>
@@ -299,13 +299,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.j8-auth {
+.qz-auth {
   display: flex;
   flex-direction: column;
   gap: 18px;
   max-width: 460px;
 }
-.j8-auth-card {
+.qz-auth-card {
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -315,26 +315,26 @@ onUnmounted(() => {
   border-radius: var(--r-card);
   box-shadow: var(--shadow-soft);
 }
-.j8-auth-hero {
+.qz-auth-hero {
   display: flex;
   flex-direction: column;
   gap: 8px;
   text-align: center;
 }
-.j8-auth-hero h1 {
+.qz-auth-hero h1 {
   margin: 2px 0 0;
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text);
 }
-.j8-auth-hero p {
+.qz-auth-hero p {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
   line-height: 1.6;
 }
-.j8-auth-brand {
+.qz-auth-brand {
   margin-top: 6px;
   font-size: 11px;
   font-weight: 700;
@@ -342,13 +342,13 @@ onUnmounted(() => {
   text-transform: uppercase;
   color: var(--muted);
 }
-.j8-auth-password {
+.qz-auth-password {
   position: relative;
 }
-.j8-auth-password input {
+.qz-auth-password input {
   padding-right: 42px !important;
 }
-.j8-auth-pass-toggle {
+.qz-auth-pass-toggle {
   position: absolute;
   top: 50%;
   right: 10px;
@@ -366,20 +366,20 @@ onUnmounted(() => {
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
-.j8-auth-pass-toggle:hover {
+.qz-auth-pass-toggle:hover {
   color: var(--text);
   background: var(--surface-2);
 }
-.j8-auth-pass-toggle svg {
+.qz-auth-pass-toggle svg {
   width: 16px;
   height: 16px;
 }
-.j8-auth-input-code {
+.qz-auth-input-code {
   text-align: center;
   letter-spacing: 0.4em;
   font-weight: 700;
 }
-.j8-auth-row {
+.qz-auth-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -389,33 +389,33 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--muted);
 }
-.j8-auth-check {
+.qz-auth-check {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
 }
-.j8-auth-check input {
+.qz-auth-check input {
   width: 15px;
   height: 15px;
   accent-color: var(--accent);
 }
-.j8-auth-link {
+.qz-auth-link {
   color: var(--muted);
   font-weight: 600;
   text-decoration: none;
 }
-.j8-auth-link:hover {
+.qz-auth-link:hover {
   color: var(--accent-strong);
 }
-.j8-auth-submit {
+.qz-auth-submit {
   width: 100%;
 }
-.j8-auth-info {
+.qz-auth-info {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
-.j8-auth-divider {
+.qz-auth-divider {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -425,36 +425,36 @@ onUnmounted(() => {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-.j8-auth-divider span {
+.qz-auth-divider span {
   flex: 1 1 auto;
   height: 1px;
   background: var(--line);
 }
-.j8-auth-divider em {
+.qz-auth-divider em {
   font-style: normal;
   font-weight: 700;
 }
-.j8-auth-oauth {
+.qz-auth-oauth {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.j8-auth-oauth-item {
+.qz-auth-oauth-item {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.j8-auth-oauth-item small {
+.qz-auth-oauth-item small {
   text-align: center;
   font-size: 11px;
   color: var(--muted);
   line-height: 1.5;
 }
-.j8-auth-oauth-center {
+.qz-auth-oauth-center {
   display: flex;
   justify-content: center;
 }
-.j8-auth-oauth-btn {
+.qz-auth-oauth-btn {
   width: 100%;
   min-height: 46px;
   display: inline-flex;
@@ -471,11 +471,11 @@ onUnmounted(() => {
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
-.j8-auth-oauth-btn:hover {
+.qz-auth-oauth-btn:hover {
   border-color: var(--accent-line);
   background: var(--surface-2);
 }
-.j8-auth-foot {
+.qz-auth-foot {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -486,19 +486,19 @@ onUnmounted(() => {
   font-size: 13px;
   color: var(--muted);
 }
-.j8-auth-foot a {
+.qz-auth-foot a {
   color: var(--accent-strong);
   font-weight: 700;
   text-decoration: none;
 }
-.j8-auth-foot a:hover {
+.qz-auth-foot a:hover {
   text-decoration: underline;
 }
 @media (max-width: 540px) {
-  .j8-auth-card {
+  .qz-auth-card {
     padding: 26px 20px;
   }
-  .j8-auth-hero h1 {
+  .qz-auth-hero h1 {
     font-size: 22px;
   }
 }

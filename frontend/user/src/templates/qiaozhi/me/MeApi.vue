@@ -1,13 +1,13 @@
 <template>
-  <div class="j8-me-panel">
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+  <div class="qz-me-panel">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.apiPanel.title') }}</h2>
           <small>{{ t('personalCenter.apiPanel.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">
             <Key aria-hidden="true" />
             {{ t('personalCenter.tabs.api') }}
           </span>
@@ -16,7 +16,7 @@
 
       <p
         v-if="panelAlert"
-        class="j8-me-alert"
+        class="qz-me-alert"
         :class="alertToneClass(panelAlert.level)"
         :role="panelAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -24,118 +24,118 @@
       </p>
 
       <!-- Loading -->
-      <div v-if="loading" class="j8-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="j8-me-sk"></div>
+      <div v-if="loading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
       </div>
 
       <!-- 无凭证 -->
-      <div v-else-if="!credential" class="j8-me-cta">
-        <p class="j8-me-hint">{{ t('personalCenter.apiPanel.noCredential') }}</p>
-        <J8Button :loading="submitting" @click="handleApply">
+      <div v-else-if="!credential" class="qz-me-cta">
+        <p class="qz-me-hint">{{ t('personalCenter.apiPanel.noCredential') }}</p>
+        <QzButton :loading="submitting" @click="handleApply">
           {{ submitting ? t('personalCenter.apiPanel.applying') : t('personalCenter.apiPanel.apply') }}
-        </J8Button>
+        </QzButton>
       </div>
 
       <!-- 审核中 -->
-      <div v-else-if="credential.status === 'pending_review'" class="j8-me-rows">
-        <div class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else-if="credential.status === 'pending_review'" class="qz-me-rows">
+        <div class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ t('personalCenter.apiPanel.pendingTitle') }}</b>
             <small>{{ t('personalCenter.apiPanel.pendingDesc') }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill is-warn" aria-hidden="true"><AlertTriangle /></span>
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill is-warn" aria-hidden="true"><AlertTriangle /></span>
           </div>
         </div>
       </div>
 
       <!-- 已拒绝 -->
-      <div v-else-if="credential.status === 'rejected'" class="j8-me-rows">
-        <div class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else-if="credential.status === 'rejected'" class="qz-me-rows">
+        <div class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ t('personalCenter.apiPanel.rejectedTitle') }}</b>
             <small v-if="credential.reject_reason">
               {{ t('personalCenter.apiPanel.rejectReason', { reason: credential.reject_reason }) }}
             </small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill is-danger" aria-hidden="true"><XCircle /></span>
-            <J8Button size="sm" :loading="submitting" @click="handleApply">
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill is-danger" aria-hidden="true"><XCircle /></span>
+            <QzButton size="sm" :loading="submitting" @click="handleApply">
               {{ submitting ? t('personalCenter.apiPanel.applying') : t('personalCenter.apiPanel.reapply') }}
-            </J8Button>
+            </QzButton>
           </div>
         </div>
       </div>
 
       <!-- 已通过 / 使用中 -->
-      <div v-else class="j8-me-rows">
+      <div v-else class="qz-me-rows">
         <!-- 首次生成提示（Secret 从未查看过） -->
-        <div v-if="!hasViewedSecret && !newSecret" class="j8-me-row">
-          <div class="j8-me-row-main">
+        <div v-if="!hasViewedSecret && !newSecret" class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ t('personalCenter.apiPanel.approvedNoticeTitle') }}</b>
             <small>{{ t('personalCenter.apiPanel.approvedNoticeDesc') }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <J8Button size="sm" :loading="submitting" @click="handleFirstGenerate">
+          <div class="qz-me-row-side">
+            <QzButton size="sm" :loading="submitting" @click="handleFirstGenerate">
               {{ submitting ? t('personalCenter.apiPanel.regenerating') : t('personalCenter.apiPanel.generateSecret') }}
-            </J8Button>
+            </QzButton>
           </div>
         </div>
 
         <!-- API Key -->
-        <div class="j8-me-row">
-          <div class="j8-me-row-main">
+        <div class="qz-me-row">
+          <div class="qz-me-row-main">
             <small>API Key</small>
             <b><code>{{ credential.api_key || '-' }}</code></b>
           </div>
-          <div class="j8-me-row-side">
-            <button type="button" class="j8-me-act" @click="copyToClipboard(credential.api_key || '')">
+          <div class="qz-me-row-side">
+            <button type="button" class="qz-me-act" @click="copyToClipboard(credential.api_key || '')">
               {{ t('personalCenter.apiPanel.copy') }}
             </button>
           </div>
         </div>
 
         <!-- API Secret -->
-        <div class="j8-me-row">
-          <div class="j8-me-row-main">
+        <div class="qz-me-row">
+          <div class="qz-me-row-main">
             <small>API Secret</small>
             <b><code>{{ maskedSecret }}</code></b>
             <small>{{ t('personalCenter.apiPanel.secretHint') }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <button type="button" class="j8-me-act" :disabled="submitting" @click="handleRegenerate">
+          <div class="qz-me-row-side">
+            <button type="button" class="qz-me-act" :disabled="submitting" @click="handleRegenerate">
               {{ t('personalCenter.apiPanel.regenerate') }}
             </button>
           </div>
         </div>
 
         <!-- 新生成的 Secret（仅显示一次） -->
-        <div v-if="newSecret" class="j8-me-row j8-me-fresh">
-          <div class="j8-me-row-main">
+        <div v-if="newSecret" class="qz-me-row qz-me-fresh">
+          <div class="qz-me-row-main">
             <b><code>{{ newSecret }}</code></b>
             <small>{{ t('personalCenter.apiPanel.newSecretWarning') }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill is-ok">
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill is-ok">
               <Check aria-hidden="true" />
               {{ t('personalCenter.apiPanel.newSecretTitle') }}
             </span>
-            <button type="button" class="j8-me-act is-primary" @click="copyToClipboard(newSecret)">
+            <button type="button" class="qz-me-act is-primary" @click="copyToClipboard(newSecret)">
               {{ t('personalCenter.apiPanel.copySecret') }}
             </button>
           </div>
         </div>
 
         <!-- 启用 / 禁用 -->
-        <div class="j8-me-row">
-          <div class="j8-me-row-main">
+        <div class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ t('personalCenter.apiPanel.statusLabel') }}</b>
             <small>{{ credential.is_active ? t('personalCenter.apiPanel.statusEnabled') : t('personalCenter.apiPanel.statusDisabled') }}</small>
           </div>
-          <div class="j8-me-row-side">
+          <div class="qz-me-row-side">
             <button
               type="button"
-              class="j8-me-switch"
+              class="qz-me-switch"
               :class="{ 'is-on': credential.is_active }"
               role="switch"
               :aria-checked="credential.is_active"
@@ -153,22 +153,22 @@
       <Teleport to="body">
         <div
           v-if="showConfirm"
-          class="j8-me-modal-mask"
+          class="qz-me-modal-mask"
           role="dialog"
           aria-modal="true"
           :aria-label="t('personalCenter.apiPanel.regenerateTitle')"
           @click.self="showConfirm = false"
         >
-          <div ref="confirmEl" class="j8-me-modal" tabindex="-1" @keydown.esc="showConfirm = false">
+          <div ref="confirmEl" class="qz-me-modal" tabindex="-1" @keydown.esc="showConfirm = false">
             <h3>{{ t('personalCenter.apiPanel.regenerateTitle') }}</h3>
             <p>{{ t('personalCenter.apiPanel.regenerateDesc') }}</p>
-            <div class="j8-me-modal-acts">
-              <button type="button" class="j8-me-act" @click="showConfirm = false">
+            <div class="qz-me-modal-acts">
+              <button type="button" class="qz-me-act" @click="showConfirm = false">
                 {{ t('personalCenter.apiPanel.cancel') }}
               </button>
-              <J8Button variant="danger" :loading="submitting" @click="confirmRegenerate">
+              <QzButton variant="danger" :loading="submitting" @click="confirmRegenerate">
                 {{ submitting ? t('personalCenter.apiPanel.regenerating') : t('personalCenter.apiPanel.regenerateConfirm') }}
-              </J8Button>
+              </QzButton>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ import { useI18n } from 'vue-i18n'
 import { AlertTriangle, Check, Key, XCircle } from 'lucide-vue-next'
 import { apiCredentialAPI } from '../../../api'
 import type { PageAlert } from '../../../utils/alerts'
-import J8Button from '../components/J8Button.vue'
+import QzButton from '../components/QzButton.vue'
 
 const { t } = useI18n()
 
@@ -382,37 +382,37 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.j8-me-cta {
+.qz-me-cta {
   display: grid;
   gap: 12px;
   justify-items: start;
 }
 
-.j8-me-card .j8-me-alert {
+.qz-me-card .qz-me-alert {
   margin-bottom: 12px;
 }
 
-.j8-me-alert.is-ok {
+.qz-me-alert.is-ok {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
 
-.j8-me-alert.is-warn {
+.qz-me-alert.is-warn {
   background: var(--amber-soft);
   color: var(--amber);
 }
 
-.j8-me-row-main code {
+.qz-me-row-main code {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-size: 12.5px;
 }
 
 /* 新 Secret 一次性展示的入场 */
-.j8-me-fresh {
-  animation: j8-me-fresh-in 0.45s ease both;
+.qz-me-fresh {
+  animation: qz-me-fresh-in 0.45s ease both;
 }
 
-@keyframes j8-me-fresh-in {
+@keyframes qz-me-fresh-in {
   from {
     opacity: 0;
     transform: translateY(8px) scale(0.99);
@@ -424,7 +424,7 @@ onMounted(() => {
 }
 
 /* 启用 / 禁用开关 */
-.j8-me-switch {
+.qz-me-switch {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -437,7 +437,7 @@ onMounted(() => {
   transition: background 0.2s ease;
 }
 
-.j8-me-switch > span {
+.qz-me-switch > span {
   display: inline-block;
   width: 22px;
   height: 22px;
@@ -448,20 +448,20 @@ onMounted(() => {
   transition: transform 0.2s ease;
 }
 
-.j8-me-switch.is-on {
+.qz-me-switch.is-on {
   background: var(--accent);
 }
 
-.j8-me-switch.is-on > span {
+.qz-me-switch.is-on > span {
   transform: translateX(20px);
 }
 
-.j8-me-switch:disabled {
+.qz-me-switch:disabled {
   opacity: 0.6;
 }
 
 /* 重新生成确认弹窗 */
-.j8-me-modal-mask {
+.qz-me-modal-mask {
   position: fixed;
   inset: 0;
   z-index: 1200;
@@ -470,16 +470,16 @@ onMounted(() => {
   justify-content: center;
   background: rgba(10, 10, 10, 0.5);
   backdrop-filter: blur(4px);
-  animation: j8-me-mask-in 0.2s ease;
+  animation: qz-me-mask-in 0.2s ease;
 }
 
-@keyframes j8-me-mask-in {
+@keyframes qz-me-mask-in {
   from {
     opacity: 0;
   }
 }
 
-.j8-me-modal {
+.qz-me-modal {
   width: min(380px, calc(100vw - 32px));
   padding: 20px;
   border-radius: 20px;
@@ -487,30 +487,30 @@ onMounted(() => {
   color: var(--text, #0a0a0a);
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--line, rgba(10, 10, 10, 0.08));
   outline: none;
-  animation: j8-me-modal-rise 0.3s cubic-bezier(0.34, 1.45, 0.64, 1);
+  animation: qz-me-modal-rise 0.3s cubic-bezier(0.34, 1.45, 0.64, 1);
 }
 
-@keyframes j8-me-modal-rise {
+@keyframes qz-me-modal-rise {
   from {
     transform: translateY(16px) scale(0.98);
     opacity: 0;
   }
 }
 
-.j8-me-modal h3 {
+.qz-me-modal h3 {
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-.j8-me-modal p {
+.qz-me-modal p {
   margin-top: 8px;
   font-size: 12.5px;
   line-height: 1.65;
   color: var(--muted, #71717a);
 }
 
-.j8-me-modal-acts {
+.qz-me-modal-acts {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -518,9 +518,9 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .j8-me-fresh,
-  .j8-me-modal-mask,
-  .j8-me-modal {
+  .qz-me-fresh,
+  .qz-me-modal-mask,
+  .qz-me-modal {
     animation-duration: 0.001ms;
   }
 }

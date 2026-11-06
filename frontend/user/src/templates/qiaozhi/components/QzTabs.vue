@@ -1,28 +1,28 @@
 <template>
   <div
-    class="j8-tabs"
+    class="qz-tabs"
     :data-orientation="orientation"
     :data-overflow="edges.overflow ? '' : undefined"
   >
     <button
       v-if="isHorizontal && edges.overflow"
       type="button"
-      class="j8-tabs-arrow is-left"
+      class="qz-tabs-arrow is-left"
       :disabled="!edges.left"
       :aria-label="scrollLeftLabel"
       @click="scrollByPage(-1)"
     >
       <ChevronLeft aria-hidden="true" />
     </button>
-    <div ref="viewportEl" class="j8-tabs-viewport" @scroll.passive="updateEdges">
-      <div ref="listEl" class="j8-tabs-list" role="tablist" :aria-orientation="orientation" :aria-label="ariaLabel">
+    <div ref="viewportEl" class="qz-tabs-viewport" @scroll.passive="updateEdges">
+      <div ref="listEl" class="qz-tabs-list" role="tablist" :aria-orientation="orientation" :aria-label="ariaLabel">
         <button
           v-for="item in items"
           :key="item.key"
           :ref="(el) => setTabRef(item.key, el as HTMLButtonElement | null)"
           type="button"
           role="tab"
-          class="j8-tabs-tab"
+          class="qz-tabs-tab"
           :class="{ 'is-active': item.key === modelValue }"
           :aria-selected="item.key === modelValue"
           :tabindex="item.key === modelValue ? 0 : -1"
@@ -30,15 +30,15 @@
           @keydown="onKeydown($event, item.key)"
         >
           <component :is="item.icon" v-if="item.icon" aria-hidden="true" />
-          <span class="j8-tabs-label">{{ item.label }}</span>
+          <span class="qz-tabs-label">{{ item.label }}</span>
         </button>
-        <span ref="glowEl" class="j8-tabs-glow" :class="{ 'is-instant': !glowReady }" aria-hidden="true" />
+        <span ref="glowEl" class="qz-tabs-glow" :class="{ 'is-instant': !glowReady }" aria-hidden="true" />
       </div>
     </div>
     <button
       v-if="isHorizontal && edges.overflow"
       type="button"
-      class="j8-tabs-arrow is-right"
+      class="qz-tabs-arrow is-right"
       :disabled="!edges.right"
       :aria-label="scrollRightLabel"
       @click="scrollByPage(1)"
@@ -52,14 +52,14 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
-export interface J8TabItem {
+export interface QzTabItem {
   key: string
   label: string
   icon?: Component
 }
 
 const props = withDefaults(defineProps<{
-  items: J8TabItem[]
+  items: QzTabItem[]
   modelValue: string
   orientation?: 'vertical' | 'horizontal'
   ariaLabel?: string

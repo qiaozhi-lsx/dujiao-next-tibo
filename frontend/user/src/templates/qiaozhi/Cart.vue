@@ -1,70 +1,70 @@
 <template>
-  <div ref="rootEl" class="j8-container j8-pd">
+  <div ref="rootEl" class="qz-container qz-pd">
     <!-- 返回条 -->
-    <button type="button" class="j8-pd-back" @click="goBack">
+    <button type="button" class="qz-pd-back" @click="goBack">
       <ChevronLeft />
       {{ t('qiaozhi.cart.back') }}
     </button>
 
     <!-- 小标题区 -->
-    <section class="j8-section-heading">
+    <section class="qz-section-heading">
       <div>
-        <span class="j8-eyebrow">{{ t('qiaozhi.cart.eyebrow') }}</span>
+        <span class="qz-eyebrow">{{ t('qiaozhi.cart.eyebrow') }}</span>
         <h2>{{ t('cart.title') }}</h2>
-        <p class="j8-cart-subtitle">{{ t('cart.subtitle') }}</p>
+        <p class="qz-cart-subtitle">{{ t('cart.subtitle') }}</p>
       </div>
       <span v-if="cartItems.length">{{ totalItems }} {{ t('qiaozhi.catalog.unit') }}</span>
     </section>
 
     <!-- 骨架 -->
-    <div v-if="loading" class="j8-pd-skeleton" aria-hidden="true">
-      <div class="j8-pd-sk-line is-lg"></div>
-      <div class="j8-pd-sk-line"></div>
-      <div class="j8-pd-sk-line is-sm"></div>
+    <div v-if="loading" class="qz-pd-skeleton" aria-hidden="true">
+      <div class="qz-pd-sk-line is-lg"></div>
+      <div class="qz-pd-sk-line"></div>
+      <div class="qz-pd-sk-line is-sm"></div>
     </div>
 
     <!-- 空态 -->
-    <div v-else-if="!cartItems.length" class="j8-empty">
+    <div v-else-if="!cartItems.length" class="qz-empty">
       <ShoppingCart />
       <b>{{ t('cart.empty') }}</b>
       <span>{{ t('qiaozhi.cart.emptyHint') }}</span>
-      <RouterLink to="/products" class="j8-btn-primary">
+      <RouterLink to="/products" class="qz-btn-primary">
         {{ t('cart.emptyAction') }}
       </RouterLink>
     </div>
 
     <!-- 购物车项列表 -->
     <template v-else>
-      <div class="j8-cart-layout">
-        <div class="j8-cart-items">
+      <div class="qz-cart-layout">
+        <div class="qz-cart-items">
           <article
             v-for="item in cartItems"
             :key="cartItemKey(item)"
-            class="j8-pd-card j8-cart-card j8-reveal is-pending"
+            class="qz-pd-card qz-cart-card qz-reveal is-pending"
             :data-reveal="1"
           >
             <!-- 左：图 -->
-            <div class="j8-pd-media">
-              <div class="j8-pd-stage">
+            <div class="qz-pd-media">
+              <div class="qz-pd-stage">
                 <img
                   v-if="cartItemImage(item)"
                   :src="cartItemImage(item)"
                   :alt="itemTitle(item)"
                   loading="lazy"
                 />
-                <span v-else class="j8-pd-logo j8-brand-icon">
+                <span v-else class="qz-pd-logo qz-brand-icon">
                   <b>{{ itemTitle(item).slice(0, 1) || '·' }}</b>
                 </span>
               </div>
             </div>
 
             <!-- 右：信息 -->
-            <div class="j8-pd-info">
-              <div class="j8-cart-head">
-                <RouterLink :to="`/products/${item.slug}`" class="j8-cart-title">
+            <div class="qz-pd-info">
+              <div class="qz-cart-head">
+                <RouterLink :to="`/products/${item.slug}`" class="qz-cart-title">
                   <h1>{{ itemTitle(item) }}</h1>
                 </RouterLink>
-                <J8HoldConfirm
+                <QzHoldConfirm
                   :label="t('cart.remove')"
                   :confirmed-label="t('cart.removedShort')"
                   :hint="t('cart.holdRemoveHint', { seconds: '1.2' })"
@@ -72,7 +72,7 @@
                 />
               </div>
 
-              <div class="j8-pd-chips">
+              <div class="qz-pd-chips">
                 <span class="is-accent">
                   {{ item.purchaseType === 'guest' ? t('productPurchase.guest') : t('productPurchase.member') }}
                 </span>
@@ -84,27 +84,27 @@
                 <span v-if="itemSkuDisplay(item)">{{ itemSkuDisplay(item) }}</span>
               </div>
 
-              <div class="j8-pd-price-row">
-                <div class="j8-pd-price">
-                  <span class="j8-pd-price-sym">{{ unitPriceParts(item).symbol }}</span>
+              <div class="qz-pd-price-row">
+                <div class="qz-pd-price">
+                  <span class="qz-pd-price-sym">{{ unitPriceParts(item).symbol }}</span>
                   <strong>{{ unitPriceParts(item).major }}{{ unitPriceParts(item).minor }}</strong>
                 </div>
-                <div class="j8-cart-subtotal">
+                <div class="qz-cart-subtotal">
                   <small>{{ t('checkout.totalPriceLabel') }}</small>
                   <b>{{ itemSubtotal(item) }}</b>
                 </div>
               </div>
 
-              <div class="j8-pd-field">
+              <div class="qz-pd-field">
                 <label>{{ t('productDetail.quantity') }}</label>
-                <J8QtyStepper
+                <QzQtyStepper
                   :model-value="item.quantity"
                   :min="itemPurchaseMin(item)"
                   :max="itemMaxQuantity(item)"
                   @update:model-value="(q) => updateQty(item, q)"
                 />
-                <p v-if="itemStockHint(item)" class="j8-pd-hint">{{ itemStockHint(item) }}</p>
-                <p v-if="quantityWarning(item)" class="j8-pd-alert is-warm" role="alert">
+                <p v-if="itemStockHint(item)" class="qz-pd-hint">{{ itemStockHint(item) }}</p>
+                <p v-if="quantityWarning(item)" class="qz-pd-alert is-warm" role="alert">
                   {{ quantityWarning(item) }}
                 </p>
               </div>
@@ -113,26 +113,26 @@
         </div>
 
         <!-- 右侧：竖排结算卡（桌面 sticky 跟随） -->
-        <aside class="j8-cart-summary j8-reveal is-pending" :data-reveal="1">
+        <aside class="qz-cart-summary qz-reveal is-pending" :data-reveal="1">
           <h2>{{ t('cart.summaryTitle') }}</h2>
-          <div class="j8-pd-note is-accent">
+          <div class="qz-pd-note is-accent">
             <b>{{ t('cart.itemsCount') }}</b>
             <em>{{ totalItems }}</em>
           </div>
-          <p class="j8-pd-desc">{{ t('cart.disclaimer') }}</p>
-          <div class="j8-cart-divider" aria-hidden="true"></div>
-          <div class="j8-pd-price-row">
-            <span class="j8-cart-total-label">{{ t('cart.totalLabel') }}</span>
-            <div class="j8-pd-price">
-              <span class="j8-pd-price-sym">{{ totalParts.symbol }}</span>
+          <p class="qz-pd-desc">{{ t('cart.disclaimer') }}</p>
+          <div class="qz-cart-divider" aria-hidden="true"></div>
+          <div class="qz-pd-price-row">
+            <span class="qz-cart-total-label">{{ t('cart.totalLabel') }}</span>
+            <div class="qz-pd-price">
+              <span class="qz-pd-price-sym">{{ totalParts.symbol }}</span>
               <strong>{{ totalParts.major }}{{ totalParts.minor }}</strong>
             </div>
           </div>
-          <RouterLink to="/checkout" class="j8-pd-buy">
+          <RouterLink to="/checkout" class="qz-pd-buy">
             <ShoppingBag />
             {{ t('cart.checkout') }}
           </RouterLink>
-          <RouterLink to="/products" class="j8-pd-back-link">
+          <RouterLink to="/products" class="qz-pd-back-link">
             {{ t('cart.emptyAction') }}
           </RouterLink>
         </aside>
@@ -150,8 +150,8 @@ import { useCart } from '../../composables/useCart'
 import type { CartItem } from '../../stores/cart'
 import { useQiaozhiPrice } from './utils/price'
 import { setupReveal } from './utils/reveal'
-import J8HoldConfirm from './components/J8HoldConfirm.vue'
-import J8QtyStepper from './components/J8QtyStepper.vue'
+import QzHoldConfirm from './components/QzHoldConfirm.vue'
+import QzQtyStepper from './components/QzQtyStepper.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -222,41 +222,41 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.j8-cart-subtitle {
+.qz-cart-subtitle {
   margin-top: 6px;
   font-size: 13px;
   color: var(--muted);
 }
 
-.j8-cart-card {
+.qz-cart-card {
   position: relative;
 }
 
-.j8-cart-head {
+.qz-cart-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
-.j8-cart-title {
+.qz-cart-title {
   min-width: 0;
   flex: 1;
   color: inherit;
   text-decoration: none;
 }
 
-.j8-cart-title h1 {
+.qz-cart-title h1 {
   margin: 0;
   overflow-wrap: anywhere;
   transition: color 0.15s;
 }
 
-.j8-cart-title:hover h1 {
+.qz-cart-title:hover h1 {
   color: var(--accent-strong);
 }
 
-.j8-cart-subtotal {
+.qz-cart-subtotal {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -264,14 +264,14 @@ onUnmounted(() => {
   text-align: right;
 }
 
-.j8-cart-subtotal small {
+.qz-cart-subtotal small {
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.j8-cart-subtotal b {
+.qz-cart-subtotal b {
   font-size: 15px;
   font-weight: 800;
   color: var(--text);
@@ -279,14 +279,14 @@ onUnmounted(() => {
 }
 
 /* 桌面双栏：左商品卡列表 + 右竖排结算卡 */
-.j8-cart-layout {
+.qz-cart-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 16px;
   align-items: start;
 }
 
-.j8-cart-items {
+.qz-cart-items {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -294,7 +294,7 @@ onUnmounted(() => {
 }
 
 /* 结算卡：独立竖排卡片；桌面 sticky 跟随滚动（列表短于一屏时页面不滚，天然不浮动） */
-.j8-cart-summary {
+.qz-cart-summary {
   position: sticky;
   top: calc(var(--site-header-height) + 16px);
   display: flex;
@@ -307,32 +307,32 @@ onUnmounted(() => {
   box-shadow: var(--shadow-soft);
 }
 
-.j8-cart-summary h2 {
+.qz-cart-summary h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
 }
 
-.j8-cart-summary .j8-pd-note em {
+.qz-cart-summary .qz-pd-note em {
   margin-left: auto;
   font-style: normal;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
-.j8-cart-divider {
+.qz-cart-divider {
   height: 1px;
   background: var(--line);
 }
 
-.j8-cart-total-label {
+.qz-cart-total-label {
   font-size: 13px;
   font-weight: 700;
   color: var(--muted);
 }
 
-.j8-pd-back-link {
+.qz-pd-back-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -347,26 +347,26 @@ onUnmounted(() => {
   text-decoration: none;
 }
 
-.j8-pd-back-link:hover {
+.qz-pd-back-link:hover {
   color: var(--accent-strong);
   border-color: var(--accent-line);
 }
 
 @media (max-width: 1023px) {
-  .j8-cart-layout {
+  .qz-cart-layout {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
-  .j8-cart-items {
+  .qz-cart-items {
     gap: 12px;
   }
 
-  .j8-cart-summary {
+  .qz-cart-summary {
     position: static;
   }
 
-  .j8-cart-head {
+  .qz-cart-head {
     flex-direction: column;
     align-items: stretch;
   }

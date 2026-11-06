@@ -1,8 +1,8 @@
 <template>
-  <div class="j8-es">
+  <div class="qz-es">
     <div
       ref="shellEl"
-      class="j8-es-shell"
+      class="qz-es-shell"
       :data-expanded="expanded ? '' : undefined"
       :style="{ width: `${shellWidth}px` }"
     >
@@ -10,16 +10,16 @@
         v-if="!expanded"
         ref="triggerEl"
         type="button"
-        class="j8-es-trigger"
+        class="qz-es-trigger"
         :aria-label="label"
         @click="expand"
       >
         <Search aria-hidden="true" />
-        <span v-if="triggerLabel" class="j8-es-trigger-label" aria-hidden="true">{{ triggerLabel }}</span>
+        <span v-if="triggerLabel" class="qz-es-trigger-label" aria-hidden="true">{{ triggerLabel }}</span>
       </button>
       <input
         ref="inputEl"
-        class="j8-es-input"
+        class="qz-es-input"
         type="text"
         role="combobox"
         :inert="!expanded || undefined"
@@ -39,12 +39,12 @@
         @blur="onBlur"
         @keydown="onKeydown"
       />
-      <Transition name="j8-es-clear">
+      <Transition name="qz-es-clear">
         <button
           v-if="expanded && query"
           type="button"
           tabindex="-1"
-          class="j8-es-clear"
+          class="qz-es-clear"
           :aria-label="clearLabel"
           @mousedown.prevent
           @click="clearQuery"
@@ -54,21 +54,21 @@
       </Transition>
     </div>
 
-    <Transition name="j8-es-panel">
+    <Transition name="qz-es-panel">
       <div
         v-if="panelOpen"
         ref="panelEl"
-        class="j8-es-panel"
+        class="qz-es-panel"
         :style="{ width: `${shellWidth}px` }"
         @mousedown.prevent
       >
-        <div ref="panelBodyEl" class="j8-es-panel-body">
-          <div v-if="mode === 'empty'" class="j8-es-empty">
-            <p class="j8-es-empty-title">{{ emptyTitle(trimmedQuery) }}</p>
-            <p v-if="emptyHint" class="j8-es-empty-hint">{{ emptyHint }}</p>
+        <div ref="panelBodyEl" class="qz-es-panel-body">
+          <div v-if="mode === 'empty'" class="qz-es-empty">
+            <p class="qz-es-empty-title">{{ emptyTitle(trimmedQuery) }}</p>
+            <p v-if="emptyHint" class="qz-es-empty-hint">{{ emptyHint }}</p>
           </div>
           <template v-else>
-            <div v-if="groupLabel" class="j8-es-group" role="presentation">{{ groupLabel }}</div>
+            <div v-if="groupLabel" class="qz-es-group" role="presentation">{{ groupLabel }}</div>
             <div :id="listboxId" role="listbox" :aria-label="label">
               <div
                 v-for="row in rows"
@@ -76,16 +76,16 @@
                 :key="row.item.id"
                 role="option"
                 :aria-selected="row.index === activeIndex"
-                class="j8-es-option"
+                class="qz-es-option"
                 :class="{ 'is-active': row.index === activeIndex }"
                 @pointermove="onHover(row.index)"
                 @mousedown.prevent
                 @click="choose(row.item)"
               >
-                <span class="j8-es-option-title">
-                  <span>{{ row.parts.pre }}</span><mark v-if="row.parts.hit" class="j8-es-mark">{{ row.parts.hit }}</mark><span>{{ row.parts.post }}</span>
+                <span class="qz-es-option-title">
+                  <span>{{ row.parts.pre }}</span><mark v-if="row.parts.hit" class="qz-es-mark">{{ row.parts.hit }}</mark><span>{{ row.parts.post }}</span>
                 </span>
-                <span v-if="row.item.meta" class="j8-es-option-meta">{{ row.item.meta }}</span>
+                <span v-if="row.item.meta" class="qz-es-option-meta">{{ row.item.meta }}</span>
               </div>
             </div>
           </template>
@@ -93,7 +93,7 @@
       </div>
     </Transition>
 
-    <span class="j8-sr-only" role="status" aria-live="polite">{{ announcement }}</span>
+    <span class="qz-sr-only" role="status" aria-live="polite">{{ announcement }}</span>
   </div>
 </template>
 
@@ -136,7 +136,7 @@ const emit = defineEmits<{
 }>()
 
 let uid = 0
-const instanceId = `j8es-${(++uid).toString(36)}${Math.random().toString(36).slice(2, 7)}`
+const instanceId = `qzes-${(++uid).toString(36)}${Math.random().toString(36).slice(2, 7)}`
 const listboxId = `${instanceId}-listbox`
 const optionId = (item: SearchableItem) => `${instanceId}-opt-${String(item.id)}`
 
@@ -361,8 +361,8 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
 </script>
 
 <style>
-.j8-es { position: relative; }
-.j8-es-shell {
+.qz-es { position: relative; }
+.qz-es-shell {
   position: relative;
   display: flex;
   align-items: center;
@@ -374,10 +374,10 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   box-shadow: var(--shadow-soft);
   transition: border-color 0.15s;
 }
-.j8-es-shell:hover { border-color: var(--accent-line); }
-.j8-es-shell:focus-within { border-color: var(--accent); }
-.j8-es-shell:not([data-expanded]) { justify-content: center; }
-.j8-es-trigger {
+.qz-es-shell:hover { border-color: var(--accent-line); }
+.qz-es-shell:focus-within { border-color: var(--accent); }
+.qz-es-shell:not([data-expanded]) { justify-content: center; }
+.qz-es-trigger {
   flex: 0 0 auto;
   align-self: stretch;
   display: inline-flex;
@@ -393,10 +393,10 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   white-space: nowrap;
   transition: background-color 0.15s;
 }
-.j8-es-trigger:hover { background: var(--surface-2); }
-.j8-es-trigger svg { flex: 0 0 auto; width: 18px; height: 18px; }
-.j8-es-trigger-label { font-size: 12.5px; font-weight: 800; line-height: 1; }
-.j8-es-input {
+.qz-es-trigger:hover { background: var(--surface-2); }
+.qz-es-trigger svg { flex: 0 0 auto; width: 18px; height: 18px; }
+.qz-es-trigger-label { font-size: 12.5px; font-weight: 800; line-height: 1; }
+.qz-es-input {
   flex: 1 1 0%;
   min-width: 0;
   height: 100%;
@@ -409,17 +409,17 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   opacity: 0;
   transition: opacity 0.08s ease;
 }
-.j8-es-shell:not([data-expanded]) .j8-es-input {
+.qz-es-shell:not([data-expanded]) .qz-es-input {
   flex: 0 0 0%;
   width: 0;
   padding: 0;
 }
-.j8-es-shell[data-expanded] .j8-es-input {
+.qz-es-shell[data-expanded] .qz-es-input {
   opacity: 1;
   transition: opacity 0.2s ease 0.08s;
 }
-.j8-es-input::placeholder { color: var(--muted); }
-.j8-es-clear {
+.qz-es-input::placeholder { color: var(--muted); }
+.qz-es-clear {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -433,14 +433,14 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   color: var(--muted);
   cursor: pointer;
 }
-.j8-es-clear:hover { background: var(--surface-3); color: var(--text); }
-.j8-es-clear svg { width: 15px; height: 15px; }
-.j8-es-clear-enter-active { transition: opacity 0.18s ease, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1); }
-.j8-es-clear-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }
-.j8-es-clear-enter-from,
-.j8-es-clear-leave-to { opacity: 0; transform: scale(0.6); }
+.qz-es-clear:hover { background: var(--surface-3); color: var(--text); }
+.qz-es-clear svg { width: 15px; height: 15px; }
+.qz-es-clear-enter-active { transition: opacity 0.18s ease, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1); }
+.qz-es-clear-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }
+.qz-es-clear-enter-from,
+.qz-es-clear-leave-to { opacity: 0; transform: scale(0.6); }
 
-.j8-es-panel {
+.qz-es-panel {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -451,12 +451,12 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   background: var(--surface);
   box-shadow: var(--shadow);
 }
-.j8-es-panel-body { max-height: 320px; overflow-y: auto; padding: 8px; }
-.j8-es-panel-enter-active { transition: opacity 0.16s ease; }
-.j8-es-panel-leave-active { transition: opacity 0.1s ease; }
-.j8-es-panel-enter-from,
-.j8-es-panel-leave-to { opacity: 0; }
-.j8-es-group {
+.qz-es-panel-body { max-height: 320px; overflow-y: auto; padding: 8px; }
+.qz-es-panel-enter-active { transition: opacity 0.16s ease; }
+.qz-es-panel-leave-active { transition: opacity 0.1s ease; }
+.qz-es-panel-enter-from,
+.qz-es-panel-leave-to { opacity: 0; }
+.qz-es-group {
   padding: 6px 10px 4px;
   color: var(--muted);
   font-size: 11px;
@@ -464,7 +464,7 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.j8-es-option {
+.qz-es-option {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -476,16 +476,16 @@ defineExpose({ expand, collapse, focus: () => inputEl.value?.focus() })
   cursor: pointer;
   transition: background-color 0.12s;
 }
-.j8-es-option.is-active { background: var(--accent-soft); }
-.j8-es-option-title { min-width: 0; overflow-wrap: anywhere; }
-.j8-es-mark { background: transparent; color: var(--accent-strong); font-weight: 800; }
-.j8-es-option-meta { flex: 0 0 auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.j8-es-empty { padding: 14px 12px 10px; }
-.j8-es-empty-title { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--text); }
-.j8-es-empty-hint { margin: 0; font-size: 12px; color: var(--muted); }
+.qz-es-option.is-active { background: var(--accent-soft); }
+.qz-es-option-title { min-width: 0; overflow-wrap: anywhere; }
+.qz-es-mark { background: transparent; color: var(--accent-strong); font-weight: 800; }
+.qz-es-option-meta { flex: 0 0 auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.qz-es-empty { padding: 14px 12px 10px; }
+.qz-es-empty-title { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--text); }
+.qz-es-empty-hint { margin: 0; font-size: 12px; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
-  .j8-es-input,
-  .j8-es-shell[data-expanded] .j8-es-input { transition-duration: 0.001ms; transition-delay: 0s; }
+  .qz-es-input,
+  .qz-es-shell[data-expanded] .qz-es-input { transition-duration: 0.001ms; transition-delay: 0s; }
 }
 </style>

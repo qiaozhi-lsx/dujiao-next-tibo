@@ -1,16 +1,16 @@
 <template>
-  <div ref="rootEl" class="j8-container">
+  <div ref="rootEl" class="qz-container">
     <!-- 商品引导区 -->
-    <section class="j8-hero">
-      <div class="j8-hero-copy">
-        <span class="j8-eyebrow">{{ t('qiaozhi.products.hero.eyebrow') }}</span>
-        <h1 class="j8-hero-title">
+    <section class="qz-hero">
+      <div class="qz-hero-copy">
+        <span class="qz-eyebrow">{{ t('qiaozhi.products.hero.eyebrow') }}</span>
+        <h1 class="qz-hero-title">
           <span>{{ t('qiaozhi.products.hero.title') }}</span>
         </h1>
         <p>{{ t('qiaozhi.products.hero.subtitle') }}</p>
       </div>
-      <div class="j8-hero-actions">
-        <label class="j8-search" role="search">
+      <div class="qz-hero-actions">
+        <label class="qz-search" role="search">
           <Search />
           <input
             v-model="searchQuery"
@@ -21,7 +21,7 @@
           <button
             v-if="searchQuery"
             type="button"
-            class="j8-search-clear"
+            class="qz-search-clear"
             :aria-label="t('products.clearFilters')"
             @click="searchQuery = ''"
           >
@@ -32,41 +32,41 @@
     </section>
 
     <!-- 全部商品目录 -->
-    <section class="j8-catalog">
-      <J8CategoryPanel
+    <section class="qz-catalog">
+      <QzCategoryPanel
         :categories="panelCategories"
         :selected-category="selectedCategory"
         :total-count="allProducts.length"
         @select="onSelectCategory"
       />
       <div>
-        <div class="j8-section-heading">
+        <div class="qz-section-heading">
           <div>
-            <span class="j8-eyebrow">{{ t('qiaozhi.products.catalog.eyebrow') }}</span>
+            <span class="qz-eyebrow">{{ t('qiaozhi.products.catalog.eyebrow') }}</span>
             <h2>{{ activeCategoryName }}</h2>
           </div>
           <span>{{ filteredProducts.length }} {{ t('qiaozhi.products.catalog.unit') }}</span>
         </div>
 
-        <div v-if="loading" class="j8-grid">
-          <div v-for="i in 8" :key="i" class="j8-skeleton-card" aria-hidden="true">
-            <span class="j8-skeleton-art"><span></span></span>
-            <span class="j8-skeleton-title"></span>
-            <span class="j8-skeleton-spec"></span>
-            <div class="j8-skeleton-bottom">
-              <span class="j8-skeleton-price"></span>
-              <span class="j8-skeleton-action"></span>
+        <div v-if="loading" class="qz-grid">
+          <div v-for="i in 8" :key="i" class="qz-skeleton-card" aria-hidden="true">
+            <span class="qz-skeleton-art"><span></span></span>
+            <span class="qz-skeleton-title"></span>
+            <span class="qz-skeleton-spec"></span>
+            <div class="qz-skeleton-bottom">
+              <span class="qz-skeleton-price"></span>
+              <span class="qz-skeleton-action"></span>
             </div>
           </div>
         </div>
-        <div v-else-if="filteredProducts.length" class="j8-grid">
-          <J8ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
+        <div v-else-if="filteredProducts.length" class="qz-grid">
+          <QzProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
         </div>
-        <div v-else class="j8-empty">
+        <div v-else class="qz-empty">
           <PackageOpen />
           <b>{{ searchQuery || selectedCategory !== null ? t('products.emptyFiltered') : t('products.empty') }}</b>
           <span v-if="searchQuery || selectedCategory !== null">
-            <button type="button" class="j8-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
+            <button type="button" class="qz-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
           </span>
         </div>
       </div>
@@ -84,8 +84,8 @@ import { useLocalized } from '../../composables/useProduct'
 import { usePageSeo } from '../../composables/usePageSeo'
 import { buildCategoryGroups } from '../../utils/category'
 import { getImageUrl } from '../../utils/image'
-import J8ProductCard from './components/J8ProductCard.vue'
-import J8CategoryPanel, { type PanelCategory } from './components/J8CategoryPanel.vue'
+import QzProductCard from './components/QzProductCard.vue'
+import QzCategoryPanel, { type PanelCategory } from './components/QzCategoryPanel.vue'
 import { setupReveal } from './utils/reveal'
 
 const { t } = useI18n()

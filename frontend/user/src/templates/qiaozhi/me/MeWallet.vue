@@ -1,52 +1,52 @@
 <template>
-  <div class="j8-me-panel">
+  <div class="qz-me-panel">
     <!-- 余额概览 -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.wallet.title') }}</h2>
           <small>{{ t('personalCenter.wallet.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">{{ t('personalCenter.tabs.wallet') }}</span>
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">{{ t('personalCenter.tabs.wallet') }}</span>
         </div>
       </div>
 
-      <p v-if="walletAlert" class="j8-ic-alert wallet-alert" :class="walletAlertClass" role="alert">
+      <p v-if="walletAlert" class="qz-ic-alert wallet-alert" :class="walletAlertClass" role="alert">
         {{ walletAlert.message }}
       </p>
 
-      <div class="j8-me-stats is-3col">
-        <div class="j8-me-stat">
-          <b><span class="j8-me-stat-text">{{ balanceDisplay }}</span></b>
+      <div class="qz-me-stats is-3col">
+        <div class="qz-me-stat">
+          <b><span class="qz-me-stat-text">{{ balanceDisplay }}</span></b>
           <span>{{ t('personalCenter.wallet.balanceLabel') }}</span>
         </div>
-        <div class="j8-me-stat">
+        <div class="qz-me-stat">
           <b>{{ pagination.total }}</b>
           <span>{{ t('personalCenter.wallet.transactionsLabel') }}</span>
         </div>
-        <div class="j8-me-stat">
-          <b><span class="j8-me-stat-text">{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</span></b>
+        <div class="qz-me-stat">
+          <b><span class="qz-me-stat-text">{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</span></b>
           <span>{{ t('personalCenter.wallet.currentPageLabel') }}</span>
         </div>
       </div>
     </div>
 
     <!-- 充值 -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.wallet.rechargeTitle') }}</h2>
           <small>{{ t('personalCenter.wallet.rechargeSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="j8-ic" novalidate @submit.prevent="handleRecharge">
-        <div class="j8-ic-row">
-          <div class="j8-ic-field">
-            <label for="j8-wallet-amount">{{ t('personalCenter.wallet.amountLabel') }}</label>
+      <form class="qz-ic" novalidate @submit.prevent="handleRecharge">
+        <div class="qz-ic-row">
+          <div class="qz-ic-field">
+            <label for="qz-wallet-amount">{{ t('personalCenter.wallet.amountLabel') }}</label>
             <input
-              id="j8-wallet-amount"
+              id="qz-wallet-amount"
               v-model.trim="rechargeForm.amount"
               type="text"
               inputmode="decimal"
@@ -54,10 +54,10 @@
               :placeholder="t('personalCenter.wallet.amountPlaceholder')"
             />
           </div>
-          <div class="j8-ic-field">
-            <label for="j8-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
-            <J8Select
-              id="j8-wallet-channel"
+          <div class="qz-ic-field">
+            <label for="qz-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
+            <QzSelect
+              id="qz-wallet-channel"
               :model-value="rechargeForm.channelId"
               :items="[{ value: 0, label: t('personalCenter.wallet.channelPlaceholder') }, ...channels.map((channel: any) => ({ value: Number(channel.id), label: String(channel.name) }))]"
               :disabled="!hasChannels || channelLoading || recharging"
@@ -66,10 +66,10 @@
           </div>
         </div>
 
-        <div class="j8-ic-field">
-          <label for="j8-wallet-remark">{{ t('personalCenter.wallet.remarkLabel') }}</label>
+        <div class="qz-ic-field">
+          <label for="qz-wallet-remark">{{ t('personalCenter.wallet.remarkLabel') }}</label>
           <input
-            id="j8-wallet-remark"
+            id="qz-wallet-remark"
             v-model.trim="rechargeForm.remark"
             type="text"
             autocomplete="off"
@@ -77,56 +77,56 @@
           />
         </div>
 
-        <p v-if="selectedChannelAmountHint" class="j8-ic-error" role="alert">{{ selectedChannelAmountHint }}</p>
+        <p v-if="selectedChannelAmountHint" class="qz-ic-error" role="alert">{{ selectedChannelAmountHint }}</p>
 
         <!-- 手续费（通道向用户收取时展示） -->
-        <div v-if="selectedChannel?.fee_policy === 'customer_surcharge'" class="j8-ic-pay">
-          <div class="j8-me-kv">
-            <div class="j8-me-kv-row"><span>{{ t('payment.feeRateLabel') }}</span><b>{{ selectedChannelFeeRateDisplay }}</b></div>
-            <div class="j8-me-kv-row"><span>{{ t('payment.fixedFeeLabel') }}</span><b>{{ selectedChannelFixedFeeDisplay }}</b></div>
-            <div class="j8-me-kv-row"><span>{{ t('payment.feeAmountLabel') }}</span><b>{{ selectedChannelFeeAmountDisplay }}</b></div>
+        <div v-if="selectedChannel?.fee_policy === 'customer_surcharge'" class="qz-ic-pay">
+          <div class="qz-me-kv">
+            <div class="qz-me-kv-row"><span>{{ t('payment.feeRateLabel') }}</span><b>{{ selectedChannelFeeRateDisplay }}</b></div>
+            <div class="qz-me-kv-row"><span>{{ t('payment.fixedFeeLabel') }}</span><b>{{ selectedChannelFixedFeeDisplay }}</b></div>
+            <div class="qz-me-kv-row"><span>{{ t('payment.feeAmountLabel') }}</span><b>{{ selectedChannelFeeAmountDisplay }}</b></div>
           </div>
         </div>
 
-        <p v-if="channelLoading" class="j8-ic-hint">{{ t('common.loading') }}</p>
-        <p v-else-if="!hasChannels" class="j8-ic-hint wallet-warn">{{ t('payment.channelEmpty') }}</p>
+        <p v-if="channelLoading" class="qz-ic-hint">{{ t('common.loading') }}</p>
+        <p v-else-if="!hasChannels" class="qz-ic-hint wallet-warn">{{ t('payment.channelEmpty') }}</p>
 
-        <J8Button
+        <QzButton
           type="submit"
           size="lg"
-          class="j8-arc-block"
+          class="qz-arc-block"
           :loading="recharging"
           :disabled="channelLoading || !hasChannels"
         >
           <CreditCard v-if="!recharging" />
           <span>{{ recharging ? t('personalCenter.wallet.recharging') : t('personalCenter.wallet.rechargeSubmit') }}</span>
-        </J8Button>
+        </QzButton>
       </form>
     </div>
 
     <!-- 交易明细 -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.wallet.detailTitle') }}</h2>
         </div>
-        <div class="j8-me-card-acts">
-          <button type="button" class="j8-me-act" :disabled="loading" @click="refreshCurrentPage">
+        <div class="qz-me-card-acts">
+          <button type="button" class="qz-me-act" :disabled="loading" @click="refreshCurrentPage">
             <RefreshCw />
             {{ t('orders.filters.refresh') }}
           </button>
         </div>
       </div>
 
-      <div v-if="loading" class="j8-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="j8-me-sk"></div>
+      <div v-if="loading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
       </div>
-      <p v-else-if="transactions.length === 0" class="j8-me-hint">
+      <p v-else-if="transactions.length === 0" class="qz-me-hint">
         {{ t('personalCenter.wallet.empty') }}
       </p>
-      <div v-else class="j8-me-rows">
-        <div v-for="item in transactions" :key="item.id" class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else class="qz-me-rows">
+        <div v-for="item in transactions" :key="item.id" class="qz-me-row">
+          <div class="qz-me-row-main">
             <b
               class="tx-amount"
               :class="item.direction === 'in' ? 'is-in' : item.direction === 'out' ? 'is-out' : ''"
@@ -135,15 +135,15 @@
             <small v-if="item.remark">{{ item.remark }}</small>
             <small>{{ t('personalCenter.wallet.table.balanceAfter') }}：{{ formatMoney(item.balance_after, item.currency) }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill" :class="`is-${directionTone(item.direction)}`">
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill" :class="`is-${directionTone(item.direction)}`">
               {{ directionLabel(item.direction) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="pagination.total_page > 1" class="j8-me-pager wallet-pager">
+      <div v-if="pagination.total_page > 1" class="qz-me-pager wallet-pager">
         <button
           type="button"
           :disabled="pagination.page <= 1 || loading"
@@ -181,8 +181,8 @@ import {
   centsToAmount,
   rateToBasisPoints,
 } from '../../../utils/money'
-import J8Button from '../components/J8Button.vue'
-import J8Select from '../components/J8Select.vue'
+import QzButton from '../components/QzButton.vue'
+import QzSelect from '../components/QzSelect.vue'
 import { formatDate, formatMoney, type MePillTone } from './support'
 
 const { t } = useI18n()
@@ -588,38 +588,38 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.j8-me-panel .wallet-alert {
+.qz-me-panel .wallet-alert {
   margin: 0 0 12px;
 }
 
-.j8-me-panel .wallet-alert.is-ok {
+.qz-me-panel .wallet-alert.is-ok {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
 
-.j8-me-panel .j8-me-stats.is-3col {
+.qz-me-panel .qz-me-stats.is-3col {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (max-width: 760px) {
-  .j8-me-panel .j8-me-stats.is-3col {
+  .qz-me-panel .qz-me-stats.is-3col {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.j8-me-panel .wallet-warn {
+.qz-me-panel .wallet-warn {
   color: var(--amber);
 }
 
-.j8-me-panel .tx-amount.is-in {
+.qz-me-panel .tx-amount.is-in {
   color: var(--accent-strong);
 }
 
-.j8-me-panel .tx-amount.is-out {
+.qz-me-panel .tx-amount.is-out {
   color: var(--red);
 }
 
-.j8-me-panel .wallet-pager {
+.qz-me-panel .wallet-pager {
   margin-top: 12px;
 }
 </style>

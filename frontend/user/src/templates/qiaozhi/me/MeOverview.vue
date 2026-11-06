@@ -1,67 +1,67 @@
 <template>
-  <div class="j8-me-panel">
+  <div class="qz-me-panel">
     <!-- 数据一览 -->
-    <div class="j8-me-stats">
-      <div class="j8-me-stat">
+    <div class="qz-me-stats">
+      <div class="qz-me-stat">
         <b>{{ userProfileStore.loadingOrders ? '—' : userProfileStore.ordersTotal }}</b>
         <span>{{ t('personalCenter.tabs.orders') }}</span>
       </div>
-      <div class="j8-me-stat">
-        <b><span class="j8-me-stat-text">{{ currentLevelName }}</span></b>
+      <div class="qz-me-stat">
+        <b><span class="qz-me-stat-text">{{ currentLevelName }}</span></b>
         <span>{{ t('personalCenter.memberLevel.currentLevel') }}</span>
       </div>
-      <div class="j8-me-stat">
-        <b><span class="j8-me-stat-text">{{ discountText }}</span></b>
+      <div class="qz-me-stat">
+        <b><span class="qz-me-stat-text">{{ discountText }}</span></b>
         <span>{{ t('personalCenter.memberLevel.discountRate') }}</span>
       </div>
-      <div class="j8-me-stat">
-        <b><span class="j8-me-stat-text">{{ emailVerifiedLabel }}</span></b>
+      <div class="qz-me-stat">
+        <b><span class="qz-me-stat-text">{{ emailVerifiedLabel }}</span></b>
         <span>{{ t('personalCenter.overview.accountLabel') }}</span>
       </div>
     </div>
 
     <!-- 会员等级卡 -->
-    <div v-if="userProfileStore.memberLevels.length > 0" class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div v-if="userProfileStore.memberLevels.length > 0" class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.memberLevel.currentLevel') }}</h2>
           <small>{{ currentLevelName }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">
             {{ t('personalCenter.memberLevel.discountRate') }}
             {{ discountOffText }}
           </span>
-          <span v-if="!userProfileStore.nextLevel" class="j8-me-pill is-info">
+          <span v-if="!userProfileStore.nextLevel" class="qz-me-pill is-info">
             {{ t('personalCenter.memberLevel.highestLevel') }}
           </span>
         </div>
       </div>
 
       <!-- 升级进度 -->
-      <div v-if="userProfileStore.nextLevel" class="j8-me-level-when">
-        <p class="j8-me-hint">
+      <div v-if="userProfileStore.nextLevel" class="qz-me-level-when">
+        <p class="qz-me-hint">
           {{ t('personalCenter.memberLevel.nextLevel') }} ·
           <b>{{ nextLevelName }}</b>
           <template v-if="nextLevelDiscount !== ''">（{{ nextLevelDiscount }}）</template>
         </p>
-        <div v-if="userProfileStore.upgradeProgress" class="j8-me-progress-list">
-          <div v-if="userProfileStore.upgradeProgress.rechargePercent !== null" class="j8-me-progress">
-            <div class="j8-me-progress-head">
+        <div v-if="userProfileStore.upgradeProgress" class="qz-me-progress-list">
+          <div v-if="userProfileStore.upgradeProgress.rechargePercent !== null" class="qz-me-progress">
+            <div class="qz-me-progress-head">
               <span>{{ t('personalCenter.memberLevel.rechargeProgress') }}</span>
               <b>{{ userProfileStore.upgradeProgress.recharged.toFixed(2) }} / {{ userProfileStore.upgradeProgress.rechargeThreshold.toFixed(2) }}</b>
             </div>
-            <div class="j8-me-progress-track">
-              <div class="j8-me-progress-fill" :style="{ width: userProfileStore.upgradeProgress.rechargePercent + '%' }"></div>
+            <div class="qz-me-progress-track">
+              <div class="qz-me-progress-fill" :style="{ width: userProfileStore.upgradeProgress.rechargePercent + '%' }"></div>
             </div>
           </div>
-          <div v-if="userProfileStore.upgradeProgress.spendPercent !== null" class="j8-me-progress">
-            <div class="j8-me-progress-head">
+          <div v-if="userProfileStore.upgradeProgress.spendPercent !== null" class="qz-me-progress">
+            <div class="qz-me-progress-head">
               <span>{{ t('personalCenter.memberLevel.spendProgress') }}</span>
               <b>{{ userProfileStore.upgradeProgress.spent.toFixed(2) }} / {{ userProfileStore.upgradeProgress.spendThreshold.toFixed(2) }}</b>
             </div>
-            <div class="j8-me-progress-track">
-              <div class="j8-me-progress-fill" :style="{ width: userProfileStore.upgradeProgress.spendPercent + '%' }"></div>
+            <div class="qz-me-progress-track">
+              <div class="qz-me-progress-fill" :style="{ width: userProfileStore.upgradeProgress.spendPercent + '%' }"></div>
             </div>
           </div>
         </div>
@@ -69,33 +69,33 @@
     </div>
 
     <!-- 最近订单 -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div><h2>{{ t('personalCenter.overview.recentOrdersTitle') }}</h2></div>
-        <div class="j8-me-card-acts">
-          <RouterLink class="j8-me-act" to="/me/orders">{{ t('personalCenter.overview.viewAllOrders') }}</RouterLink>
+        <div class="qz-me-card-acts">
+          <RouterLink class="qz-me-act" to="/me/orders">{{ t('personalCenter.overview.viewAllOrders') }}</RouterLink>
         </div>
       </div>
 
-      <div v-if="userProfileStore.loadingOrders" class="j8-me-rows">
-        <div v-for="i in 3" :key="i" class="j8-me-sk" aria-hidden="true"></div>
+      <div v-if="userProfileStore.loadingOrders" class="qz-me-rows">
+        <div v-for="i in 3" :key="i" class="qz-me-sk" aria-hidden="true"></div>
       </div>
-      <p v-else-if="userProfileStore.recentOrders.length === 0" class="j8-me-hint">
+      <p v-else-if="userProfileStore.recentOrders.length === 0" class="qz-me-hint">
         {{ t('personalCenter.overview.emptyOrders') }}
       </p>
-      <div v-else class="j8-me-rows">
-        <div v-for="order in userProfileStore.recentOrders" :key="order.order_no" class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else class="qz-me-rows">
+        <div v-for="order in userProfileStore.recentOrders" :key="order.order_no" class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ formatMoney(order.total_amount, order.currency) }}</b>
             <small>{{ t('orders.orderNo') }}：{{ order.order_no }}</small>
             <small>{{ formatDate(order.created_at) }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill" :class="`is-${statusPillTone(order.status)}`">
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill" :class="`is-${statusPillTone(order.status)}`">
               {{ statusLabel(t, order.status) }}
             </span>
-            <RouterLink class="j8-me-act" :to="`/orders/${order.order_no}`">{{ t('orders.viewDetails') }}</RouterLink>
-            <RouterLink v-if="order.status === 'pending_payment'" class="j8-me-act is-primary" :to="`/pay?order_no=${order.order_no}`">
+            <RouterLink class="qz-me-act" :to="`/orders/${order.order_no}`">{{ t('orders.viewDetails') }}</RouterLink>
+            <RouterLink v-if="order.status === 'pending_payment'" class="qz-me-act is-primary" :to="`/pay?order_no=${order.order_no}`">
               {{ t('orders.payNow') }}
             </RouterLink>
           </div>
@@ -138,7 +138,7 @@ const nextLevelDiscount = computed(() => {
 </script>
 
 <style scoped>
-.j8-me-progress-list {
+.qz-me-progress-list {
   display: flex;
   flex-direction: column;
   gap: 10px;

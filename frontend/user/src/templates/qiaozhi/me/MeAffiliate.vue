@@ -1,14 +1,14 @@
 <template>
-  <div class="j8-me-panel">
+  <div class="qz-me-panel">
     <!-- 开通 / 数据总览 -->
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.affiliate.title') }}</h2>
           <small>{{ t('personalCenter.affiliate.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
+        <div class="qz-me-card-acts">
+          <span class="qz-me-pill is-ok">
             <Megaphone aria-hidden="true" />
             {{ t('personalCenter.tabs.affiliate') }}
           </span>
@@ -17,88 +17,88 @@
 
       <p
         v-if="panelAlert"
-        class="j8-me-alert"
+        class="qz-me-alert"
         :class="alertToneClass(panelAlert.level)"
         :role="panelAlert.level === 'error' ? 'alert' : 'status'"
       >
         {{ panelAlert.message }}
       </p>
 
-      <div v-if="loading" class="j8-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="j8-me-sk"></div>
+      <div v-if="loading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
       </div>
 
-      <div v-else-if="dashboard?.opened" class="j8-me-opened">
-        <div class="j8-me-rows">
-          <div class="j8-me-row">
-            <div class="j8-me-row-main">
+      <div v-else-if="dashboard?.opened" class="qz-me-opened">
+        <div class="qz-me-rows">
+          <div class="qz-me-row">
+            <div class="qz-me-row-main">
               <small>{{ t('personalCenter.affiliate.affiliateCode') }}</small>
               <b><code>{{ dashboard?.affiliate_code || '-' }}</code></b>
             </div>
-            <div class="j8-me-row-side">
-              <button type="button" class="j8-me-act" @click="copyPromotionUrl">
+            <div class="qz-me-row-side">
+              <button type="button" class="qz-me-act" @click="copyPromotionUrl">
                 {{ t('personalCenter.affiliate.copyPromotionUrl') }}
               </button>
             </div>
           </div>
         </div>
-        <p class="j8-me-hint j8-me-url">{{ promotionUrl }}</p>
+        <p class="qz-me-hint qz-me-url">{{ promotionUrl }}</p>
 
-        <div class="j8-me-stats">
-          <div class="j8-me-stat">
+        <div class="qz-me-stats">
+          <div class="qz-me-stat">
             <b>{{ conversionRateText }}</b>
             <span>{{ t('personalCenter.affiliate.conversionRate') }}</span>
             <small>{{ t('personalCenter.affiliate.conversionDetail', { clicks: dashboard?.click_count || 0, orders: dashboard?.valid_order_count || 0 }) }}</small>
           </div>
-          <div class="j8-me-stat">
+          <div class="qz-me-stat">
             <b>{{ dashboard?.pending_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.pendingCommission') }}</span>
           </div>
-          <div class="j8-me-stat">
+          <div class="qz-me-stat">
             <b>{{ dashboard?.available_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.availableCommission') }}</span>
           </div>
-          <div class="j8-me-stat">
+          <div class="qz-me-stat">
             <b>{{ dashboard?.withdrawn_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.withdrawnCommission') }}</span>
           </div>
         </div>
       </div>
 
-      <div v-else class="j8-me-cta">
-        <p class="j8-me-hint">{{ t('personalCenter.affiliate.notOpened') }}</p>
-        <J8Button :loading="opening" @click="openAffiliate">
+      <div v-else class="qz-me-cta">
+        <p class="qz-me-hint">{{ t('personalCenter.affiliate.notOpened') }}</p>
+        <QzButton :loading="opening" @click="openAffiliate">
           {{ opening ? t('personalCenter.affiliate.opening') : t('personalCenter.affiliate.openButton') }}
-        </J8Button>
+        </QzButton>
       </div>
     </div>
 
     <!-- 申请提现 -->
-    <div v-if="dashboard?.opened" class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div v-if="dashboard?.opened" class="qz-me-card">
+      <div class="qz-me-card-head">
         <div>
           <h2>{{ t('personalCenter.affiliate.withdrawTitle') }}</h2>
           <small>{{ t('personalCenter.affiliate.withdrawSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="j8-ic" novalidate @submit.prevent="handleApplyWithdraw">
-        <div class="j8-ic-field">
-          <label for="j8-aff-amount">{{ t('personalCenter.affiliate.withdrawAmountLabel') }}</label>
+      <form class="qz-ic" novalidate @submit.prevent="handleApplyWithdraw">
+        <div class="qz-ic-field">
+          <label for="qz-aff-amount">{{ t('personalCenter.affiliate.withdrawAmountLabel') }}</label>
           <input
-            id="j8-aff-amount"
+            id="qz-aff-amount"
             v-model="withdrawForm.amount"
             type="text"
             inputmode="decimal"
             :placeholder="t('personalCenter.affiliate.withdrawAmountPlaceholder')"
           />
         </div>
-        <div class="j8-ic-row">
-          <div class="j8-ic-field">
-            <label for="j8-aff-channel">{{ t('personalCenter.affiliate.withdrawChannelLabel') }}</label>
-            <J8Select
+        <div class="qz-ic-row">
+          <div class="qz-ic-field">
+            <label for="qz-aff-channel">{{ t('personalCenter.affiliate.withdrawChannelLabel') }}</label>
+            <QzSelect
               v-if="channelOptions.length > 0"
-              id="j8-aff-channel"
+              id="qz-aff-channel"
               :model-value="withdrawForm.channel"
               :items="channelOptions.map((channel: string) => ({ value: channel, label: channel }))"
               :placeholder="t('personalCenter.affiliate.withdrawChannelPlaceholder')"
@@ -106,36 +106,36 @@
             />
             <input
               v-else
-              id="j8-aff-channel"
+              id="qz-aff-channel"
               v-model="withdrawForm.channel"
               type="text"
               :placeholder="t('personalCenter.affiliate.withdrawChannelPlaceholder')"
             />
           </div>
-          <div class="j8-ic-field">
-            <label for="j8-aff-account">{{ t('personalCenter.affiliate.withdrawAccountLabel') }}</label>
+          <div class="qz-ic-field">
+            <label for="qz-aff-account">{{ t('personalCenter.affiliate.withdrawAccountLabel') }}</label>
             <input
-              id="j8-aff-account"
+              id="qz-aff-account"
               v-model="withdrawForm.account"
               type="text"
               :placeholder="t('personalCenter.affiliate.withdrawAccountPlaceholder')"
             />
           </div>
         </div>
-        <J8Button type="submit" class="j8-arc-block" :loading="submittingWithdraw" :disabled="submittingWithdraw">
+        <QzButton type="submit" class="qz-arc-block" :loading="submittingWithdraw" :disabled="submittingWithdraw">
           {{ submittingWithdraw ? t('personalCenter.affiliate.withdrawing') : t('personalCenter.affiliate.withdrawSubmit') }}
-        </J8Button>
+        </QzButton>
       </form>
     </div>
 
     <!-- 佣金记录 -->
-    <div v-if="dashboard?.opened" class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div v-if="dashboard?.opened" class="qz-me-card">
+      <div class="qz-me-card-head">
         <div><h2>{{ t('personalCenter.affiliate.commissionTitle') }}</h2></div>
-        <div class="j8-me-card-acts">
+        <div class="qz-me-card-acts">
           <button
             type="button"
-            class="j8-me-act"
+            class="qz-me-act"
             :disabled="commissionsLoading"
             @click="loadCommissions(commissionsPagination.page)"
           >
@@ -144,27 +144,27 @@
         </div>
       </div>
 
-      <div v-if="commissionsLoading" class="j8-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="j8-me-sk"></div>
+      <div v-if="commissionsLoading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
       </div>
-      <p v-else-if="commissions.length === 0" class="j8-me-hint">
+      <p v-else-if="commissions.length === 0" class="qz-me-hint">
         {{ t('personalCenter.affiliate.commissionEmpty') }}
       </p>
-      <div v-else class="j8-me-rows">
-        <div v-for="item in commissions" :key="item.id" class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else class="qz-me-rows">
+        <div v-for="item in commissions" :key="item.id" class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ item.commission_amount }}</b>
             <small>{{ formatDate(item.created_at) }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill" :class="`is-${commissionTone(item.status)}`">
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill" :class="`is-${commissionTone(item.status)}`">
               {{ commissionStatusLabel(item.status) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="commissionsPagination.total_page > 1" class="j8-me-pager">
+      <div v-if="commissionsPagination.total_page > 1" class="qz-me-pager">
         <button
           type="button"
           :disabled="commissionsPagination.page <= 1 || commissionsLoading"
@@ -186,13 +186,13 @@
     </div>
 
     <!-- 提现记录 -->
-    <div v-if="dashboard?.opened" class="j8-me-card">
-      <div class="j8-me-card-head">
+    <div v-if="dashboard?.opened" class="qz-me-card">
+      <div class="qz-me-card-head">
         <div><h2>{{ t('personalCenter.affiliate.withdrawRecordTitle') }}</h2></div>
-        <div class="j8-me-card-acts">
+        <div class="qz-me-card-acts">
           <button
             type="button"
-            class="j8-me-act"
+            class="qz-me-act"
             :disabled="withdrawsLoading"
             @click="loadWithdraws(withdrawsPagination.page)"
           >
@@ -201,28 +201,28 @@
         </div>
       </div>
 
-      <div v-if="withdrawsLoading" class="j8-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="j8-me-sk"></div>
+      <div v-if="withdrawsLoading" class="qz-me-rows" aria-hidden="true">
+        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
       </div>
-      <p v-else-if="withdraws.length === 0" class="j8-me-hint">
+      <p v-else-if="withdraws.length === 0" class="qz-me-hint">
         {{ t('personalCenter.affiliate.withdrawEmpty') }}
       </p>
-      <div v-else class="j8-me-rows">
-        <div v-for="item in withdraws" :key="item.id" class="j8-me-row">
-          <div class="j8-me-row-main">
+      <div v-else class="qz-me-rows">
+        <div v-for="item in withdraws" :key="item.id" class="qz-me-row">
+          <div class="qz-me-row-main">
             <b>{{ item.amount }}</b>
             <small>{{ item.channel }}</small>
             <small>{{ formatDate(item.created_at) }}</small>
           </div>
-          <div class="j8-me-row-side">
-            <span class="j8-me-pill" :class="`is-${withdrawTone(item.status)}`">
+          <div class="qz-me-row-side">
+            <span class="qz-me-pill" :class="`is-${withdrawTone(item.status)}`">
               {{ withdrawStatusLabel(item.status) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="withdrawsPagination.total_page > 1" class="j8-me-pager">
+      <div v-if="withdrawsPagination.total_page > 1" class="qz-me-pager">
         <button
           type="button"
           :disabled="withdrawsPagination.page <= 1 || withdrawsLoading"
@@ -261,8 +261,8 @@ import {
 } from '../../../constants/affiliate'
 import { useAppStore } from '../../../stores/app'
 import type { PageAlert } from '../../../utils/alerts'
-import J8Button from '../components/J8Button.vue'
-import J8Select from '../components/J8Select.vue'
+import QzButton from '../components/QzButton.vue'
+import QzSelect from '../components/QzSelect.vue'
 import { formatDate, type MePillTone } from './support'
 
 const { t } = useI18n()
@@ -501,48 +501,48 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.j8-me-opened {
+.qz-me-opened {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.j8-me-cta {
+.qz-me-cta {
   display: grid;
   gap: 12px;
   justify-items: start;
 }
 
-.j8-me-card .j8-me-alert {
+.qz-me-card .qz-me-alert {
   margin-bottom: 12px;
 }
 
-.j8-me-alert.is-ok {
+.qz-me-alert.is-ok {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
 
-.j8-me-alert.is-warn {
+.qz-me-alert.is-warn {
   background: var(--amber-soft);
   color: var(--amber);
 }
 
-.j8-me-url {
+.qz-me-url {
   overflow-wrap: anywhere;
 }
 
-.j8-me-stat small {
+.qz-me-stat small {
   font-size: 11px;
   font-weight: 600;
   color: var(--muted);
 }
 
-.j8-me-row-main code {
+.qz-me-row-main code {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-size: 12.5px;
 }
 
-.j8-me-card .j8-me-pager {
+.qz-me-card .qz-me-pager {
   margin-top: 10px;
 }
 </style>
