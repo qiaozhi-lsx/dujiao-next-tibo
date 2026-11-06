@@ -1899,7 +1899,8 @@
         "amountLabel": "Total",
         "timeLabel": "Time",
         "notQrCapable": "Payment info is not available yet. Please retry or contact support.",
-        "closeAria": "Close payment modal"
+        "closeAria": "Close payment modal",
+        "qrAlt": "Payment QR code"
       }
     },
     "orderDetail": {

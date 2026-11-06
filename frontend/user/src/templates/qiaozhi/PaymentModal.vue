@@ -15,6 +15,15 @@
         tabindex="-1"
         @keydown="handleKeydown"
       >
+        <button
+          type="button"
+          class="pay-modal__close"
+          :aria-label="t('qiaozhi.payment.modal.closeAria')"
+          @click="handleClose"
+        >
+          <X aria-hidden="true" />
+        </button>
+
         <!-- 金额卡 -->
         <div class="pay-modal__amount-card">
           <button
@@ -66,13 +75,13 @@
             <b>{{ payCardTitle }}</b>
           </div>
 
-          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
             {{ countdownText }}
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
             <div class="pay-modal__qr">
-              <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR" />
+              <img v-if="qrImageUrl" :src="qrImageUrl" :alt="t('qiaozhi.payment.modal.qrAlt')" />
               <div v-else class="pay-modal__qr-placeholder">
                 <Loader2 class="pay-modal__spin" />
               </div>
@@ -188,7 +197,7 @@
           <span :class="{ on: stepIdx >= 2 }">{{ t('qiaozhi.payment.modal.stepPaid') }}</span>
         </div>
 
-        <div class="pay-modal__stage">
+        <div class="pay-modal__stage" aria-live="polite">
           <div class="pay-modal__go" :class="goClass">
             <span v-if="stage === 'waiting'">
               <Loader2 v-if="!orderPastExpire" class="pay-modal__spin" aria-hidden="true" />
@@ -250,7 +259,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2, X } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { useAppStore } from '../../stores/app'
@@ -466,7 +475,8 @@ const chainDotClass = computed(() => {
 const amountBigText = computed(() => {
   const o = props.order
   if (!o) return '-'
-  if (o.chainAmount) return `${o.chainAmount} ${cryptoTokenLabel.value || 'USDT'}`
+  // 链上数量后跟 tokenId 解析出的币种；网关没给 tokenId 时只显示数量，不臆测币种。
+  if (o.chainAmount) return cryptoTokenLabel.value ? `${o.chainAmount} ${cryptoTokenLabel.value}` : o.chainAmount
   // 实付金额 = 含手续费金额；后端未下发时回退订单金额。
   const payable = (o.payableAmount || '').trim()
   return payable ? formatCurrency(payable, resolvePayableCurrency(o)) : formatCurrency(o.amount, o.currency)
@@ -917,7 +927,8 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
   display: flex; flex-direction: column;
-  padding: 20px;
+  /* 顶部多留 30px 给右上角关闭按钮，避免压到金额卡右上角的复制按钮。 */
+  padding: 50px 20px 20px;
   color: var(--text, #0a0a0a);
   font: 14px/1.5 -apple-system, "Segoe UI", "PingFang SC", sans-serif;
   animation: pay-modal-rise .3s var(--ux-spring);
@@ -925,6 +936,20 @@ onBeforeUnmount(() => {
 }
 
 @keyframes pay-modal-rise { from { transform: translateY(20px) scale(.98); opacity: 0; } }
+
+/* 右上角关闭按钮：沿用操作区胶囊按钮的底色 / 描边 / hover，圆形 30px。 */
+.pay-modal__close {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px;
+  border: 0; border-radius: 999px;
+  background: var(--ux-surface); color: var(--ux-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.pay-modal__close:hover { color: #000; background: var(--ux-surface-2); }
+.pay-modal__close svg { width: 16px; height: 16px; }
 
 .pay-modal::-webkit-scrollbar { width: 6px; height: 6px; }
 .pay-modal::-webkit-scrollbar-track { background: transparent; }

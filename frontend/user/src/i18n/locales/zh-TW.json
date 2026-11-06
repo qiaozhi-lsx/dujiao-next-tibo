@@ -1899,7 +1899,8 @@
         "amountLabel": "合計",
         "timeLabel": "時間",
         "notQrCapable": "暫未獲取到付款資訊，請稍後重試或聯絡客服",
-        "closeAria": "關閉付款彈窗"
+        "closeAria": "關閉付款彈窗",
+        "qrAlt": "支付二維碼"
       }
     },
     "orderDetail": {

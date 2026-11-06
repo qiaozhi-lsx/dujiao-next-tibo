@@ -1899,7 +1899,8 @@
         "amountLabel": "合计",
         "timeLabel": "时间",
         "notQrCapable": "暂未获取到支付信息,请稍后重试或联系客服",
-        "closeAria": "关闭支付弹窗"
+        "closeAria": "关闭支付弹窗",
+        "qrAlt": "支付二维码"
       }
     },
     "orderDetail": {
