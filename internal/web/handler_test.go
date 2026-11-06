@@ -449,6 +449,64 @@ func TestRegisterUser_NilSiteResolverOmitsTenant(t *testing.T) {
 	}
 }
 
+// TestIsSafeTenantHost 内联 tenant.host 只允许 Host 字面量字符集；
+// 其它字符（尤其 < > " 空格）一律视为不安全。
+func TestIsSafeTenantHost(t *testing.T) {
+	cases := []struct {
+		host string
+		want bool
+	}{
+		{"shop.example.test", true},
+		{"127.0.0.1:8080", true},
+		{"[::1]:8080", true},
+		{"", true},
+		{"</script ><img src=x>", false},
+		{"a b.example", false},
+		{`exa"mple`, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.host, func(t *testing.T) {
+			if got := isSafeTenantHost(tc.host); got != tc.want {
+				t.Fatalf("isSafeTenantHost(%q) = %v, want %v", tc.host, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestRegisterUser_DropsUnsafeHostFromTenant tenant.host 是首个进入内联 <script> 的请求侧
+// 数据（trusted_forwarded_host 开启时来自 X-Forwarded-Host），不能让它关闭脚本元素。
+// 不安全的 host 置空，mode 仍为 main、注入照常。
+func TestRegisterUser_DropsUnsafeHostFromTenant(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	settings := staticConfigSource{"brand": map[string]interface{}{"site_name": "Main Shop"}}
+	site := func(*http.Request) (bool, string) { return true, "</script ><img src=x onerror=alert(1)>" }
+	if err := RegisterUser(r, newInjectableUserFS(), settings, site); err != nil {
+		t.Fatalf("RegisterUser: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d", w.Code)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, `"tenant":{"host":"","mode":"main"}`) {
+		t.Fatalf("unsafe host must be dropped to empty string, got: %s", body)
+	}
+	start := strings.Index(body, "window.__PUBLIC_CONFIG__=")
+	end := strings.LastIndex(body, ";</script>")
+	if start < 0 || end < 0 || end < start {
+		t.Fatalf("inline config script not found in body: %s", body)
+	}
+	inline := body[start:end]
+	if strings.Contains(inline, "</script") || strings.Contains(inline, "<img") {
+		t.Fatalf("inline config leaked request-side markup: %s", inline)
+	}
+}
+
 // SPA 入口被长期缓存会让升级后的浏览器继续加载上一版 chunk，与新后端形成契约错配，
 // 因此入口必须回源校验；只有 assets/ 下带内容 hash 的产物才允许强缓存。
 func TestCacheControlHeaders(t *testing.T) {

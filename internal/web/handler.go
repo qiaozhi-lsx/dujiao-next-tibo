@@ -27,6 +27,20 @@ type InitialConfigSource interface {
 // host 为归一化后的请求 Host，会原样写进 tenant 字段。
 type SiteResolver func(req *http.Request) (isMain bool, host string)
 
+// safeTenantHost 是允许写进内联 tenant.host 的字符集：小写字母、数字、'.'、'-'、':'（端口）
+// 与 IPv6 字面量的 '[' ']'。空串也算安全。
+var safeTenantHost = regexp.MustCompile(`^[a-z0-9.\-:\[\]]*$`)
+
+// isSafeTenantHost 报告 host 是否只含 Host 字面量字符。
+//
+// tenant.host 是第一个进入内联 <script> 的请求侧数据：Go 服务器会拒绝含 '<' '>' '"' 空白的
+// req.Host，但 reseller.trusted_forwarded_host 开启时它来自 X-Forwarded-Host，而 NormalizeHost
+// 只做小写 / 去端口。renderInitialConfigScript 关闭了 json 的 HTML 转义且只精确替换 "</script>"，
+// "</script >" 之类变体会把脚本元素提前关闭，所以这里按白名单兜底，不依赖序列化层的转义策略。
+func isSafeTenantHost(host string) bool {
+	return safeTenantHost.MatchString(host)
+}
+
 // initialConfigFieldWhitelist 决定哪些字段会被嵌入到首屏 HTML。
 // 只放首屏模板选择 + 品牌/SEO/多语言这些让骨架期不白屏的最小集，
 // payment_channels、server_time 之类让完整 /public/config 响应补齐。
@@ -259,7 +273,11 @@ func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource, site 
 		}
 		// tenant 是按请求变化的字段，独立于站点配置本体之后再写入。
 		// 目前 payload 是每次请求新建的 map，可以直接改；若日后给 payload 加缓存，写 tenant 前必须先复制。
+		// host 含 Host 字面量之外的字符时置空：mode 仍是 main、注入照常，只是不把可疑值带进 <script>。
 		if site != nil {
+			if !isSafeTenantHost(host) {
+				host = ""
+			}
 			payload["tenant"] = map[string]interface{}{"mode": "main", "host": host}
 		}
 		injected, err := injectInitialConfigIntoHTML(string(indexCached), payload)
