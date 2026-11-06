@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,26 @@ import (
 // 实际由 settings.Service.GetConfig 实现，这里收一层最小接口避免 import 环。
 type InitialConfigSource interface {
 	GetConfig(defaults map[string]interface{}) (map[string]interface{}, error)
+}
+
+// SiteResolver 判断一次入口请求落在主站还是分销白标站。
+// 只用标准库类型，由调用方把分销模块的域名解析器适配进来，避免 web 包依赖业务模块。
+// isMain 为 false 时入口不注入任何内联配置（分销站的品牌/脚本由 /public/config 的 overlay 决定）；
+// host 为归一化后的请求 Host，会原样写进 tenant 字段。
+type SiteResolver func(req *http.Request) (isMain bool, host string)
+
+// safeTenantHost 是允许写进内联 tenant.host 的字符集：小写字母、数字、'.'、'-'、':'（端口）
+// 与 IPv6 字面量的 '[' ']'。空串也算安全。
+var safeTenantHost = regexp.MustCompile(`^[a-z0-9.\-:\[\]]*$`)
+
+// isSafeTenantHost 报告 host 是否只含 Host 字面量字符。
+//
+// tenant.host 是第一个进入内联 <script> 的请求侧数据：Go 服务器会拒绝含 '<' '>' '"' 空白的
+// req.Host，但 reseller.trusted_forwarded_host 开启时它来自 X-Forwarded-Host，而 NormalizeHost
+// 只做小写 / 去端口，不过滤字符。这里按 Host 字面量白名单兜底，不依赖序列化层的转义策略
+// （无论 encoding/json 是否转义 HTML、是否替换 "</script>"），是纵深防御。
+func isSafeTenantHost(host string) bool {
+	return safeTenantHost.MatchString(host)
 }
 
 // initialConfigFieldWhitelist 决定哪些字段会被嵌入到首屏 HTML。
@@ -212,7 +233,13 @@ func RegisterAdmin(r *gin.Engine, prefix string, fsys fs.FS) error {
 // <script>window.__PUBLIC_CONFIG__=...;</script>，让 Vue 启动即拿到基础配置，
 // 省掉冷启动首帧 /api/v1/public/config 这次 RTT。注入失败（settings 调用出错、
 // HTML 没 </head>）时降级返回原始 index.html，不影响渲染。
-func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error {
+// 站点配置本体走进程内 5s 缓存（initialConfigCache），后台改动的设置最多 5s 后在首帧生效。
+//
+// site 不为 nil 时，每次入口请求先判断租户：分销白标站直接返回原始 index.html
+// （settings 里的 brand/seo/nav/scripts 都是主站的，注进去会让分销站首帧闪主站品牌）；
+// 主站则在 payload 里补 tenant 字段，与 /api/v1/public/config 同形。
+// site 为 nil 时视为主站注入，但不编造 tenant 字段。
+func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource, site SiteResolver) error {
 	if r == nil {
 		return errors.New("nil gin engine")
 	}
@@ -227,17 +254,45 @@ func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error
 
 	fileServer := http.FileServer(http.FS(fsys))
 
-	// serveIndexWithInitialConfig 每次请求都重新读 settings 以反映运行时改动；
+	// 内联 payload 在 5s 内复用，不每次请求都读 settings：后台改动的设置最多 5s 后在首帧生效
+	// （与 /api/v1/public/* 响应的 10s 缓存同量级，且完整配置仍由那次请求补齐）。
+	initialConfig := newInitialConfigCache(5*time.Second, time.Now)
+
+	// serveIndexWithInitialConfig 注入站点基础配置后返回入口 HTML；
 	// 若没有 settings 依赖（例如测试用的旧调用方），直接返回原始 index。
 	serveIndexWithInitialConfig := func(c *gin.Context) {
 		if settings == nil {
 			serveIndex(c, indexCached)
 			return
 		}
-		payload := buildInitialConfigPayload(c.Request.Context(), settings)
-		if len(payload) == 0 {
+		isMain, host := true, ""
+		if site != nil {
+			isMain, host = site(c.Request)
+		}
+		if !isMain {
 			serveIndex(c, indexCached)
 			return
+		}
+		ctx := c.Request.Context()
+		base := initialConfig.get(func() map[string]interface{} {
+			return buildInitialConfigPayload(ctx, settings)
+		})
+		if len(base) == 0 {
+			serveIndex(c, indexCached)
+			return
+		}
+		// base 是缓存里跨请求共享的 map，只读不改；tenant 是按请求变化的字段，
+		// 必须先浅复制出本次请求自己的 map 再写，否则并发请求会同时写同一个 map。
+		payload := make(map[string]interface{}, len(base)+1)
+		for k, v := range base {
+			payload[k] = v
+		}
+		// host 含 Host 字面量之外的字符时置空：mode 仍是 main、注入照常，只是不把可疑值带进 <script>。
+		if site != nil {
+			if !isSafeTenantHost(host) {
+				host = ""
+			}
+			payload["tenant"] = map[string]interface{}{"mode": "main", "host": host}
 		}
 		injected, err := injectInitialConfigIntoHTML(string(indexCached), payload)
 		if err != nil {

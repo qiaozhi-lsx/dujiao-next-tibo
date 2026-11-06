@@ -8,6 +8,9 @@ import (
 
 const (
 	responseMsgSuccess = "success"
+	// cacheControlNoStore 写给所有错误响应:业务错误是 HTTP 200 + status_code != 0,
+	// 对 CDN/浏览器而言与成功响应无异,不强制 no-store 会被公开接口的缓存头带着缓存并重放。
+	cacheControlNoStore = "no-store"
 )
 
 // Response 统一响应结构
@@ -83,8 +86,9 @@ func SuccessWithPage(c *gin.Context, data interface{}, pagination Pagination) {
 	})
 }
 
-// Error 错误响应
+// Error 错误响应,一律 Cache-Control: no-store。
 func Error(c *gin.Context, statusCode int, msg string) {
+	c.Header("Cache-Control", cacheControlNoStore)
 	c.JSON(http.StatusOK, Response{
 		StatusCode: statusCode,
 		Msg:        msg,
@@ -94,7 +98,9 @@ func Error(c *gin.Context, statusCode int, msg string) {
 
 // ErrorWithHTTPStatus 返回真实 HTTP 状态码(非 200),body 仍使用统一 Response 结构。
 // 仅基础设施层(recovery、auth 中间件等异常路径)应使用;业务层继续用 Error。
+// 同样一律 Cache-Control: no-store。
 func ErrorWithHTTPStatus(c *gin.Context, httpStatus, statusCode int, msg string) {
+	c.Header("Cache-Control", cacheControlNoStore)
 	c.AbortWithStatusJSON(httpStatus, Response{
 		StatusCode: statusCode,
 		Msg:        msg,

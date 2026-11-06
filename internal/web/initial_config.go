@@ -4,7 +4,51 @@ import (
 	"bytes"
 	"encoding/json"
 	"strings"
+	"sync"
+	"time"
 )
+
+// initialConfigCache 是 SPA 壳内联配置 payload 的进程内 TTL 缓存。
+//
+// 入口 HTML 是每次刷新 / 深链接 / 404 兜底都会命中的请求，每次都去 settings 读库会在
+// SQLite（MaxOpenConns=1）上和业务请求抢同一条连接。缓存只保存站点配置本体；
+// 调用方拿到的 map 在请求间共享，必须视为只读，按请求变化的字段（tenant）要先复制再写。
+type initialConfigCache struct {
+	mu      sync.Mutex
+	ttl     time.Duration
+	now     func() time.Time
+	expires time.Time
+	payload map[string]interface{}
+}
+
+// newInitialConfigCache 构造 ttl 内复用结果的缓存；now 为 nil 时用 time.Now，测试可注入假时钟。
+func newInitialConfigCache(ttl time.Duration, now func() time.Time) *initialConfigCache {
+	if now == nil {
+		now = time.Now
+	}
+	return &initialConfigCache{ttl: ttl, now: now}
+}
+
+// get 未过期时返回缓存的 payload；否则调用 build，结果非空才缓存并把有效期设为 now()+ttl。
+// 空结果（settings 出错 / 为空时的降级值）直接返回不缓存，下一次请求会再试。
+//
+// build 在锁内执行：过期瞬间的并发请求只会有一个真正去读 settings，其余等它写回后直接复用，
+// 不会打成 N 次查库；代价是 build 期间其它入口请求要等，但它们本来也都需要这份新结果。
+func (c *initialConfigCache) get(build func() map[string]interface{}) map[string]interface{} {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	now := c.now()
+	if c.payload != nil && now.Before(c.expires) {
+		return c.payload
+	}
+	payload := build()
+	if len(payload) == 0 {
+		return payload
+	}
+	c.payload = payload
+	c.expires = now.Add(c.ttl)
+	return payload
+}
 
 // renderInitialConfigScript 生成嵌入 HTML head 的 <script>window.__PUBLIC_CONFIG__ = {...};</script>
 // 片段。payload 必须是可 JSON 序列化的 map，含敏感字段的调用方自己清洗。

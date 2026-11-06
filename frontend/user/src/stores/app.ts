@@ -4,6 +4,7 @@ import { configAPI } from '../api'
 import { applyCustomScripts } from '../utils/customScripts'
 import { getImageUrl } from '../utils/image'
 import { getLocalizedText } from '../utils/resellerSiteConfig'
+import { estimateServerNow } from '../utils/serverTime'
 import { detectLocale, setI18nLocale } from '../i18n'
 import { useHead } from '@unhead/vue'
 
@@ -68,6 +69,24 @@ export const useAppStore = defineStore('app', () => {
         // 留空函数以防其他组件出错
     }
 
+    // 根据 /public/config 响应校准服务器与客户端的时间偏移量。
+    // 该接口由 CDN 边缘缓存最多 10s(浏览器不缓存),响应体里的 server_time
+    // 可能已过去 Age 秒,estimateServerNow 会把 Age 头加回去;server_time 缺失时不更新偏移。
+    const syncServerTimeOffset = (
+        response: { data: any; headers?: Headers },
+        requestTime: number,
+        responseTime: number,
+    ) => {
+        const estimatedServerNow = estimateServerNow({
+            serverTime: response.data?.data?.server_time,
+            ageHeader: response.headers?.get('age'),
+            requestTime,
+            responseTime,
+        })
+        if (estimatedServerNow === null) return
+        serverTimeOffset.value = estimatedServerNow - responseTime
+    }
+
     // 加载全局配置
     const loadConfig = async (force = false) => {
         if (config.value && !force) {
@@ -87,13 +106,9 @@ export const useAppStore = defineStore('app', () => {
                 try {
                     const requestTime = Date.now()
                     const response = await configAPI.get()
+                    const responseTime = Date.now()
                     config.value = response.data.data
-                    if (config.value?.server_time) {
-                        const responseTime = Date.now()
-                        const roundTripTime = responseTime - requestTime
-                        const estimatedServerNow = config.value.server_time + roundTripTime / 2
-                        serverTimeOffset.value = estimatedServerNow - responseTime
-                    }
+                    syncServerTimeOffset(response, requestTime, responseTime)
                     applySEO()
                     applyCustomScripts(config.value?.scripts)
                 } catch (error) {
@@ -107,14 +122,9 @@ export const useAppStore = defineStore('app', () => {
         try {
             const requestTime = Date.now()
             const response = await configAPI.get()
+            const responseTime = Date.now()
             config.value = response.data.data
-            // 计算服务器与客户端的时间偏移量
-            if (config.value?.server_time) {
-                const responseTime = Date.now()
-                const roundTripTime = responseTime - requestTime
-                const estimatedServerNow = config.value.server_time + roundTripTime / 2
-                serverTimeOffset.value = estimatedServerNow - responseTime
-            }
+            syncServerTimeOffset(response, requestTime, responseTime)
             applySEO()
             applyCustomScripts(config.value?.scripts)
             // Print version to console

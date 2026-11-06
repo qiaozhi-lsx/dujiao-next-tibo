@@ -46,6 +46,7 @@ import (
 	notificationtransport "github.com/dujiao-next/internal/modules/notification/transport/http"
 	procurementtransport "github.com/dujiao-next/internal/modules/procurement/transport/http"
 	promotiontransport "github.com/dujiao-next/internal/modules/promotion/transport/http"
+	resellercontract "github.com/dujiao-next/internal/modules/reseller/contract"
 	settingstransport "github.com/dujiao-next/internal/modules/settings/transport/http"
 	sitemapbrand "github.com/dujiao-next/internal/modules/sitemap/infrastructure/settingsbrand"
 	sitemaptransport "github.com/dujiao-next/internal/modules/sitemap/transport/http"
@@ -282,12 +283,28 @@ func SetupRouter(cfg *config.Config, c *container.Container) *gin.Engine {
 		if err := web.RegisterAdmin(r, cfg.Web.AdminPath, web.AdminFS()); err != nil {
 			log.Sugar().Fatalf("注册 admin SPA 失败: %v", err)
 		}
-		if err := web.RegisterUser(r, web.UserFS(), c.SettingService); err != nil {
+		// NoRoute 不经过 storefront 路由组的 ResellerTenantMiddleware，入口页要自己判断租户，
+		// 判定口径见 siteResolverFromTenant。
+		siteResolver := web.SiteResolver(func(req *http.Request) (bool, string) {
+			return siteResolverFromTenant(c.ResellerDomainResolver.ResolveRequest(req.Context(), req))
+		})
+		if err := web.RegisterUser(r, web.UserFS(), c.SettingService, siteResolver); err != nil {
 			log.Sugar().Fatalf("注册 user SPA 失败: %v", err)
 		}
 	}
 
 	return r
+}
+
+// siteResolverFromTenant 把域名解析结果折算成 SPA 壳是否注入主站内联配置的决策。
+// 只有识别出的主站（IsMain）才注入：分销功能关闭、空 Host、命中 main_hosts 都算主站；
+// 分销白标站不能注入主站品牌；Unavailable 租户（分销开启但 Host 未识别）同样不注入，
+// 与 API 侧中间件对这类域名返回 404 保持一致；解析出错时宁可不注入，让前端走 /public/config 兜底。
+func siteResolverFromTenant(tenant resellercontract.TenantContext, err error) (bool, string) {
+	if err != nil {
+		return false, ""
+	}
+	return tenant.IsMain, tenant.Host
 }
 
 func configureTrustedProxies(engine *gin.Engine, trustedProxies []string) error {

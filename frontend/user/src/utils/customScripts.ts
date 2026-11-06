@@ -25,7 +25,7 @@ const normalizeScriptEnabled = (raw: unknown): boolean => {
   return false
 }
 
-const normalizeCustomScripts = (raw: unknown): CustomScript[] => {
+export const normalizeCustomScripts = (raw: unknown): CustomScript[] => {
   if (!Array.isArray(raw)) return []
 
   return raw
@@ -90,7 +90,17 @@ function createManagedNodesFromHTML(snippet: string, name: string, group: string
   return nodes
 }
 
+export const computeCustomScriptsFingerprint = (rawScripts: unknown): string => {
+  return JSON.stringify(normalizeCustomScripts(rawScripts))
+}
+
+// 当前已注入 DOM 的脚本集合指纹。stores/app.ts 冷启动时会先用内联的
+// window.__PUBLIC_CONFIG__ 调一次 applyCustomScripts，后台 refetch 完整配置后再调一次；
+// 内容相同就不能再删掉重插（统计双计数、顶层 const 重复声明报错）。
+let appliedFingerprint = ''
+
 export const clearCustomScripts = () => {
+  appliedFingerprint = ''
   if (typeof document === 'undefined') return
   document.querySelectorAll(`script[${managedScriptAttr}="1"], [${managedScriptAttr}="1"]:not(script)`).forEach((node) => {
     node.parentElement?.removeChild(node)
@@ -100,7 +110,11 @@ export const clearCustomScripts = () => {
 export const applyCustomScripts = (rawScripts: unknown) => {
   if (typeof document === 'undefined') return
 
+  const fingerprint = computeCustomScriptsFingerprint(rawScripts)
+  if (fingerprint === appliedFingerprint) return
+
   clearCustomScripts()
+  appliedFingerprint = fingerprint
   const scripts = normalizeCustomScripts(rawScripts)
 
   scripts.forEach((item, index) => {
