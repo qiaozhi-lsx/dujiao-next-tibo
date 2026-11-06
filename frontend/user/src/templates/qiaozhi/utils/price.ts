@@ -2,6 +2,9 @@ import { computed } from 'vue'
 import { useAppStore } from '../../../stores/app'
 import { amountToCents, centsToAmount } from '../../../utils/money'
 
+// 起价（最低启用 SKU 价）是纯函数，放在 startingPrice.ts 以便 node:test 直接覆盖；这里统一导出。
+export { startingPrice } from './startingPrice'
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   CNY: '¥',
   USD: '$',

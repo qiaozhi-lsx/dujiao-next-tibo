@@ -13,7 +13,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const TEMPLATE_ROOT = fileURLToPath(new URL('..', import.meta.url))
@@ -223,4 +223,71 @@ test('QzButton.vue has no size/variant css of its own', () => {
 
   const leaked = QZ_BUTTON_STATE_CLASSES.filter((name) => style.includes(name))
   assert.deepEqual(leaked, [], 'QzButton size / variant styling belongs to .qz-btn--* in styles/base.css')
+})
+
+// ---------------------------------------------------------------------------
+// Page / component <style> blocks consume tokens only.
+//
+// Same colour and font-size rules as base.css, applied to every <style> block of the
+// .vue files under templates/qiaozhi: no #hex / rgb() / rgba() / hsl() / oklch() literals
+// (color-mix() of tokens is fine) and every font-size is a --qz-text-* step. Heights are
+// not checked here: pages size art, icons and media freely. styles/legacy.css is exempt
+// until it is deleted.
+//
+// PAGE_STYLE_PENDING lists the files that still carry their pre-token styles and are
+// migrated by later tasks (product detail / cart / auth lanes, then PR-2 for Payment,
+// PaymentModal, me/* and the remaining Qz* widgets). Remove a file from the list in the
+// same change that migrates it; PR-2 drops the list and the guard becomes full-coverage.
+// ---------------------------------------------------------------------------
+const PAGE_STYLE_PENDING = new Set([
+  'Cart.vue',
+  'Checkout.vue',
+  'Payment.vue',
+  'PaymentModal.vue',
+  'TwoFA.vue',
+  'auth/Login.vue',
+  'auth/Register.vue',
+  'components/QzHoldConfirm.vue',
+  'me/MeAffiliate.vue',
+  'me/MeApi.vue',
+  'me/MeSecurity.vue',
+])
+
+function vueFiles(dir: string): string[] {
+  const out: string[] = []
+  for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const full = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (entry.name !== '__tests__') out.push(...vueFiles(full))
+    } else if (entry.name.endsWith('.vue')) {
+      out.push(full)
+    }
+  }
+  return out
+}
+
+test('page styles consume tokens only', () => {
+  const offenders: string[] = []
+  let checked = 0
+  for (const file of vueFiles(TEMPLATE_ROOT)) {
+    const name = relative(TEMPLATE_ROOT, file).split(sep).join('/')
+    if (PAGE_STYLE_PENDING.has(name)) continue
+    const sfc = readFileSync(file, 'utf8')
+    for (const block of sfc.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
+      checked += 1
+      const body = (block[1] ?? '').replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '))
+      const blockLine = lineOf(sfc, block.index) // line of the <style> tag; body starts on the same line
+      const at = (index: number) => `${name}:${blockLine + lineOf(body, index) - 1}`
+
+      for (const match of body.matchAll(/#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|oklch)\(/gi)) {
+        offenders.push(`${at(match.index)} colour literal ${match[0]} — use a --qz-* token`)
+      }
+      for (const match of body.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
+        const value = (match[1] ?? '').trim()
+        if (!value.startsWith('var(--qz-text-')) offenders.push(`${at(match.index)} font-size: ${value} — use a --qz-text-* token`)
+      }
+    }
+  }
+  assert.ok(checked > 0, 'expected at least one <style> block under templates/qiaozhi')
+  assert.deepEqual(offenders, [], `${offenders.length} page-style declaration(s) bypass the qz tokens:\n${offenders.join('\n')}`)
 })

@@ -24,7 +24,7 @@
           :clear-label="t('qiaozhi.search.clear')"
           @select="onSearchSelect"
         />
-        <button type="button" class="qz-share" @click="shareSite">
+        <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" @click="shareSite">
           <Share2 />
           {{ shared ? t('qiaozhi.hero.shared') : t('qiaozhi.hero.share') }}
         </button>
@@ -33,9 +33,9 @@
 
     <!-- 为你精选 -->
     <section v-if="featuredProducts.length" class="qz-featured">
-      <div class="qz-section-heading">
+      <div class="qz-section-head">
         <div>
-          <span class="qz-eyebrow">FEATURED</span>
+          <span class="qz-eyebrow">{{ t('qiaozhi.home.featuredEyebrow') }}</span>
           <h2>{{ t('qiaozhi.featured.title') }}</h2>
         </div>
         <span>{{ featuredProducts.length + (toolsCard ? 1 : 0) }} {{ t('qiaozhi.featured.unit') }}</span>
@@ -55,9 +55,9 @@
         @select="selectedCategory = $event"
       />
       <div>
-        <div class="qz-section-heading">
+        <div class="qz-section-head">
           <div>
-            <span class="qz-eyebrow">STORE</span>
+            <span class="qz-eyebrow">{{ t('qiaozhi.home.storeEyebrow') }}</span>
             <h2>{{ activeCategoryName }}</h2>
           </div>
           <span>{{ filteredProducts.length }} {{ t('qiaozhi.catalog.unit') }}</span>
@@ -81,7 +81,7 @@
           <PackageOpen />
           <b>{{ searchQuery ? t('products.emptyFiltered') : t('products.empty') }}</b>
           <span v-if="searchQuery || selectedCategory">
-            <button type="button" class="qz-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
+            <button type="button" class="qz-btn qz-btn--primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
           </span>
         </div>
       </div>
@@ -305,3 +305,132 @@ onUnmounted(() => {
   if (shareTimer) clearTimeout(shareTimer)
 })
 </script>
+
+<style scoped>
+/* 首页专属版式：hero、精选区与商品网格。卡片 / 面板 / 搜索 / 分类面板各自在组件内取样式；
+   `.qz-catalog`（侧栏 + 列表两栏）与骨架屏仍在 legacy.css。关键帧 qz-text-in 来自 legacy.css。 */
+
+/* ---------- Hero ---------- */
+.qz-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--qz-space-8);
+  margin-bottom: var(--qz-space-5);
+}
+.qz-hero-copy { min-width: 0; }
+.qz-hero-copy p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+}
+.qz-hero-title {
+  margin: var(--qz-space-1) 0 var(--qz-space-2);
+  color: var(--qz-text);
+  font-size: var(--qz-text-3xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+}
+.qz-hero-title > span { display: inline-block; }
+/* 入场：eyebrow / 标题 / 说明 / 操作区依次淡入 */
+.qz-hero .qz-eyebrow,
+.qz-hero-title > span,
+.qz-shortlink,
+.qz-hero-copy p,
+.qz-hero-actions {
+  animation: qz-text-in var(--qz-duration-considered) var(--qz-ease-enter) backwards;
+}
+.qz-hero-copy p { animation-delay: var(--qz-duration-instant); }
+.qz-hero-actions { animation-delay: var(--qz-duration-fast); }
+
+/* 手机端用「本站短链」替代标题文案 */
+.qz-shortlink {
+  display: none;
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-body);
+  letter-spacing: var(--qz-tracking-display);
+  white-space: nowrap;
+}
+.qz-shortlink em { color: var(--qz-accent-strong); font-style: italic; }
+
+/* 搜索（QzSearch，sm 高）与分享（.qz-btn--secondary.qz-btn--sm）同排同高 */
+.qz-hero-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--qz-space-2);
+}
+
+/* ---------- 为你精选 ---------- */
+.qz-featured { margin: var(--qz-space-1) 0 var(--qz-space-8); }
+.qz-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+/* 1 / 2 / 4 张精选卡时两列更整齐（data-count 在网格元素上） */
+.qz-featured-grid:is([data-count="1"], [data-count="2"], [data-count="4"]) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.qz-featured-grid > .is-wide-full { grid-column: 1 / -1; }
+
+/* ---------- 商品网格 ---------- */
+.qz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+
+@media (max-width: 1023.98px) {
+  .qz-featured-grid,
+  .qz-featured-grid:is([data-count="1"], [data-count="2"], [data-count="4"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .qz-hero {
+    display: grid;
+    gap: var(--qz-space-4);
+    margin-bottom: var(--qz-space-4);
+  }
+  .qz-hero-copy { display: none; }
+  .qz-shortlink { display: block; }
+  .qz-hero-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--qz-space-2);
+  }
+
+  /* 精选卡横向滑动，吸附到每张卡 */
+  .qz-featured { margin: 0 calc(-1 * var(--qz-space-3)) var(--qz-space-5); }
+  .qz-featured .qz-section-head { padding: 0 var(--qz-space-3); }
+  .qz-featured-grid,
+  .qz-featured-grid:is([data-count="1"], [data-count="2"], [data-count="4"]) {
+    display: flex;
+    gap: var(--qz-space-3);
+    overflow-x: auto;
+    padding: var(--qz-space-1) var(--qz-space-3) var(--qz-space-4);
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--qz-space-3);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .qz-featured-grid::-webkit-scrollbar { display: none; }
+  .qz-featured-grid > .qz-fcard {
+    flex: 0 0 84%;
+    scroll-snap-align: start;
+  }
+
+  .qz-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--qz-space-2);
+  }
+}
+</style>

@@ -1759,6 +1759,10 @@
       "share": "Share",
       "shared": "Copied"
     },
+    "home": {
+      "featuredEyebrow": "FEATURED",
+      "storeEyebrow": "STORE"
+    },
     "search": {
       "label": "Search products",
       "trigger": "Search",
@@ -1772,11 +1776,15 @@
       "title": "Picked for you",
       "unit": "items",
       "months": "months",
-      "days": "days"
+      "days": "days",
+      "membershipEyebrow": "MEMBERSHIP"
     },
     "catalog": {
       "title": "Categories",
       "unit": "items"
+    },
+    "categories": {
+      "eyebrow": "CATEGORIES"
     },
     "products": {
       "hero": {
@@ -1860,6 +1868,7 @@
     },
     "payment": {
       "eyebrow": "PAYMENT",
+      "pageEyebrow": "PAYMENT",
       "summaryTitle": "Order summary",
       "scanEyebrow": "SCAN TO PAY",
       "modal": {

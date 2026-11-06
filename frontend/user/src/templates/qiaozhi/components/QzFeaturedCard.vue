@@ -1,7 +1,7 @@
 <template>
   <RouterLink
     :to="`/products/${product.slug}`"
-    class="qz-fcard qz-reveal is-pending"
+    class="qz-panel qz-fcard qz-reveal is-pending"
     :class="[`is-${variant}`, wideClass]"
     :data-reveal="1"
   >
@@ -10,7 +10,7 @@
         <h3>{{ title }}<em v-if="em">{{ em }}</em></h3>
         <p>{{ desc }}</p>
       </div>
-      <span v-if="tag" class="qz-fcard-tag">{{ tag }}</span>
+      <span v-if="tag" class="qz-chip qz-fcard-tag">{{ tag }}</span>
     </div>
 
     <!-- ========== 艺术区 ========== -->
@@ -55,7 +55,7 @@
             <b>Premium</b>
           </div>
           <div class="fa-x-meta">
-            <small>MEMBERSHIP</small>
+            <small>{{ t('qiaozhi.featured.membershipEyebrow') }}</small>
             <em>{{ xDuration }}</em>
           </div>
           <i class="fa-x-sheen"></i>
@@ -127,7 +127,7 @@
         <strong>{{ priceParts.symbol }}{{ priceParts.major }}</strong>
         <small>{{ priceParts.minor }} {{ t('qiaozhi.card.priceFrom') }}</small>
       </div>
-      <span class="qz-fcard-cta">
+      <span class="qz-btn qz-btn--primary qz-btn--sm qz-fcard-cta">
         {{ ctaText }}
         <ChevronRight />
       </span>
@@ -141,7 +141,7 @@ import { useI18n } from 'vue-i18n'
 import { Bird, ChevronRight, Heart, Package, Smile, Sparkles, Star, Sun } from 'lucide-vue-next'
 import { useLocalized } from '../../../composables/useProduct'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
-import { useQiaozhiPrice } from '../utils/price'
+import { startingPrice, useQiaozhiPrice } from '../utils/price'
 
 const props = defineProps<{
   product: any
@@ -180,7 +180,8 @@ const em = computed(() => {
   return ''
 })
 
-const priceParts = computed(() => splitPrice(props.product?.price_amount))
+// 「起」价 = 启用 SKU 的最低价；无 SKU 回退商品价（C10：以前直接读 price_amount，多 SKU 时显示的不是最低档）
+const priceParts = computed(() => splitPrice(startingPrice(props.product)))
 
 // 变体判定：工具行优先，其余按 slug 关键词映射艺术区
 const variant = computed(() => {
@@ -225,35 +226,223 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 </script>
 
 <style scoped>
+/* 精选卡：表面 / 边框 / 圆角 / 内边距来自 .qz-panel，标签来自 .qz-chip，CTA 来自 .qz-btn--primary.qz-btn--sm。
+   这里放卡内布局、艺术区容器（.qz-fart）的尺寸与 hover / 按压联动。
+   艺术层本身（.fa-* 与 .qz-fart.is-<variant> 的品牌渐变）仍在 legacy.css：品牌色要等 --qz-brand-* token
+   （Task 10），本块不含颜色字面量。关键帧 fa-* 同样来自 legacy.css。 */
+.qz-fcard {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--qz-duration-considered) var(--qz-ease-standard),
+    border-color var(--qz-duration-standard) var(--qz-ease-standard),
+    box-shadow var(--qz-duration-standard) var(--qz-ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .qz-fcard:hover {
+    transform: translateY(-5px);
+    border-color: var(--qz-border-strong);
+    box-shadow: var(--qz-shadow-raised);
+  }
+}
+.qz-fcard:active {
+  transform: translateY(-1px) scale(0.985);
+  transition-duration: var(--qz-duration-instant);
+}
+
+/* ---------- 头部：标题 / 说明 / 标签 ---------- */
+.qz-fcard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+}
+.qz-fcard-head > div { min-width: 0; }
+.qz-fcard h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.32em;
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+}
+/* 标题里拆出的副题（如「3 / 6 个月」） */
+.qz-fcard h3 em {
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-base);
+  font-style: normal;
+  font-weight: 600;
+}
+.qz-fcard-head p {
+  margin: var(--qz-space-2) 0 0;
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+.qz-fcard-tag { flex: none; margin-top: var(--qz-space-1); }
+
+/* ---------- 艺术区容器（内容由 legacy.css 的 .fa-* 绘制） ---------- */
+.qz-fart {
+  position: relative;
+  flex: 1 1 0%;
+  min-height: 170px;
+  margin: var(--qz-space-3) calc(-1 * var(--qz-space-2));
+  overflow: hidden;
+  border-radius: var(--qz-radius-control);
+  transition: transform var(--qz-duration-considered) var(--qz-ease-standard);
+}
+.qz-fart > div { position: absolute; inset: 0; }
+.qz-fcard:hover .qz-fart,
+.qz-fcard:focus-visible .qz-fart { transform: scale(1.04); }
+.qz-fcard:active .qz-fart {
+  transform: scale(0.985);
+  transition-duration: var(--qz-duration-instant);
+}
+@media (hover: none) {
+  .qz-fcard:active .qz-fart { transform: scale(1.02); }
+}
+
+/* ---------- 底部：起价 + CTA ---------- */
+.qz-fcard-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  margin-top: auto;
+}
+.qz-fcard-price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--qz-space-1);
+  min-width: 0;
+}
+.qz-fcard-price strong {
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  letter-spacing: var(--qz-tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+.qz-fcard-price small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+}
+.qz-fcard-cta { flex: none; }
+.qz-fcard-cta svg { transition: transform var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-fcard:hover .qz-fcard-cta svg { transform: translateX(3px); }
+
+/* ---------- 艺术区 hover 联动（元素由 legacy.css 的 .fa-* 定位） ---------- */
+.qz-fcard:hover .fa-gpt-card.c1 { transform: translate(-70px, 18px) rotate(-11deg); }
+.qz-fcard:hover .fa-gpt-card.c2 { transform: translateY(-10px) rotate(0deg); }
+.qz-fcard:hover .fa-gpt-card.c3 { transform: translate(72px, -10px) rotate(12deg); }
+.qz-fcard.is-in .fa-count { animation: fa-count 1.6s var(--qz-ease-enter) 0.35s 1 backwards; }
+.qz-fcard:hover .fa-tool img { transform: translateY(-4px) scale(1.06); }
+/* 悬停时暂停浮动 / 摆动，松手恢复 */
+.qz-fcard.is-x:hover .fa-x-card,
+.qz-fcard.is-gemini:hover .fa-gem-star,
+.qz-fcard.is-duo:hover .fa-icon,
+.qz-fcard.is-muse:hover .fa-icon { animation-play-state: paused; }
+.qz-fcard:hover .fa-x-sheen { animation-duration: 2.4s; }
+.qz-fcard:hover .fa-muse-ring,
+.qz-fcard:hover .fa-gem-orbit { animation-duration: 7s; }
+.qz-fcard:hover .fa-chip { animation-duration: 3s; }
+
+/* ---------- 工具合集通栏卡 ---------- */
+.qz-fcard.is-wide-full {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--qz-space-6);
+  min-height: 0;
+}
+.qz-fcard.is-wide-full .qz-fcard-head {
+  flex: 0 0 270px;
+  flex-direction: column;
+  gap: var(--qz-space-2);
+}
+.qz-fcard.is-wide-full .qz-fcard-tag { margin-top: 0; }
+.qz-fcard.is-wide-full .qz-fart {
+  flex: 1 1 0%;
+  align-self: stretch;
+  min-height: 150px;
+  margin: 0;
+}
+.qz-fcard.is-wide-full .qz-fcard-foot {
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--qz-space-3);
+  margin-top: 0;
+}
+
+/* 组件内自绘的小件 */
 .fa-fallback-icon {
   width: 46px;
   height: 46px;
-  color: var(--accent-strong);
+  color: var(--qz-accent-strong);
 }
-
 .fa-muse-ring :deep(svg) {
   width: 13px;
   height: 13px;
 }
-
 .tool-icon {
   width: 72px;
   height: 72px;
-  border-radius: 18px;
-  background: #fff;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
   object-fit: contain;
-  box-shadow: rgba(18, 35, 63, 0.13) 0 10px 22px;
+  box-shadow: var(--qz-shadow-raised);
 }
-
 .tool-icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-
 .tool-letter {
-  font-size: 26px;
+  color: var(--qz-accent-strong);
+  font-size: var(--qz-text-2xl);
   font-weight: 800;
-  color: var(--accent-strong);
+}
+
+@media (max-width: 1023.98px) {
+  .qz-fcard.is-wide-full .qz-fcard-head { flex-basis: 200px; }
+  .tool-icon { width: 60px; height: 60px; }
+}
+
+@media (max-width: 760px) {
+  /* 带上基类名，靠特指度覆盖 .qz-panel 的 padding */
+  .qz-panel.qz-fcard { padding: var(--qz-space-4); }
+  .qz-fcard:hover { transform: none; }
+  .qz-fart {
+    min-height: 160px;
+    margin: var(--qz-space-3) calc(-1 * var(--qz-space-1));
+  }
+  .qz-fart > div { scale: 0.86; }
+  .qz-fcard.is-wide-full {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    min-height: 300px;
+  }
+  .qz-fcard.is-wide-full .qz-fcard-head { flex: none; flex-direction: row; }
+  .qz-fcard.is-wide-full .qz-fcard-tag { margin-top: var(--qz-space-1); }
+  .qz-fcard.is-wide-full .qz-fart {
+    flex: 1 1 0%;
+    min-height: 160px;
+    margin: var(--qz-space-3) calc(-1 * var(--qz-space-1));
+  }
+  .qz-fcard.is-wide-full .qz-fcard-foot {
+    flex-direction: row;
+    align-items: center;
+    margin-top: auto;
+  }
+  .tool-icon { width: 52px; height: 52px; }
 }
 </style>
