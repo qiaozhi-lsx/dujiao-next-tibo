@@ -14,59 +14,60 @@
       </RouterLink>
 
       <nav class="qz-nav" :aria-label="t('qiaozhi.nav.primaryAria')">
-        <RouterLink to="/" :class="{ 'is-active': route.path === '/' }">
-          <ShoppingBag />{{ t('qiaozhi.nav.shop') }}
+        <RouterLink to="/" class="qz-pill" :class="{ 'is-active': section === 'shop' }">
+          <ShoppingBag /><span>{{ t('qiaozhi.nav.shop') }}</span>
         </RouterLink>
-        <RouterLink :to="ordersPath" :class="{ 'is-active': route.path.startsWith('/guest/orders') || route.path.startsWith('/me/orders') }">
-          <ClipboardList />{{ t('qiaozhi.nav.orders') }}
+        <RouterLink :to="ordersPath" class="qz-pill" :class="{ 'is-active': section === 'orders' }">
+          <ClipboardList /><span>{{ t('qiaozhi.nav.orders') }}</span>
         </RouterLink>
-        <RouterLink v-if="blogEnabled" to="/blog" :class="{ 'is-active': route.path.startsWith('/blog') }">
-          <BookOpen />{{ t('qiaozhi.nav.tutorial') }}
+        <RouterLink v-if="blogEnabled" to="/blog" class="qz-pill" :class="{ 'is-active': section === 'blog' }">
+          <BookOpen /><span>{{ t('qiaozhi.nav.tutorial') }}</span>
         </RouterLink>
-        <RouterLink to="/2fa" :class="{ 'is-active': route.path === '/2fa' }">
-          <ShieldCheck />{{ t('qiaozhi.nav.tfa') }}
+        <!-- 次要项（qz-nav-minor）在 ≤1000px 只留图标，title / aria-label 保留文案 -->
+        <RouterLink to="/2fa" class="qz-pill qz-nav-minor" :class="{ 'is-active': section === 'tfa' }" :title="t('qiaozhi.nav.tfa')" :aria-label="t('qiaozhi.nav.tfa')">
+          <ShieldCheck /><span>{{ t('qiaozhi.nav.tfa') }}</span>
         </RouterLink>
-        <a v-if="supportHref" :href="supportHref" target="_blank" rel="noopener noreferrer">
-          <Ticket />{{ t('qiaozhi.nav.support') }}
+        <a v-if="supportHref" class="qz-pill" :href="supportHref" target="_blank" rel="noopener noreferrer">
+          <Ticket /><span>{{ t('qiaozhi.nav.support') }}</span>
         </a>
-        <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }">
-          <Megaphone />{{ t('qiaozhi.nav.notice') }}
+        <RouterLink v-if="noticeEnabled" to="/notice" class="qz-pill qz-nav-minor" :class="{ 'is-active': section === 'notice' }" :title="t('qiaozhi.nav.notice')" :aria-label="t('qiaozhi.nav.notice')">
+          <Megaphone /><span>{{ t('qiaozhi.nav.notice') }}</span>
         </RouterLink>
-        <RouterLink v-if="aboutEnabled" to="/about" :class="{ 'is-active': route.path === '/about' }">
-          <Info />{{ t('qiaozhi.nav.about') }}
+        <RouterLink v-if="aboutEnabled" to="/about" class="qz-pill qz-nav-minor" :class="{ 'is-active': section === 'about' }" :title="t('qiaozhi.nav.about')" :aria-label="t('qiaozhi.nav.about')">
+          <Info /><span>{{ t('qiaozhi.nav.about') }}</span>
         </RouterLink>
-        <RouterLink :to="accountPath" :class="{ 'is-active': isAccountNav }">
-          <User />{{ t('qiaozhi.nav.account') }}
+        <RouterLink :to="accountPath" class="qz-pill" :class="{ 'is-active': section === 'account' }">
+          <User /><span>{{ t('qiaozhi.nav.account') }}</span>
         </RouterLink>
       </nav>
 
       <div class="qz-actions">
-        <RouterLink v-if="noticeEnabled" to="/notice" class="qz-icon-btn qz-only-mobile" :aria-label="t('qiaozhi.nav.notice')">
+        <RouterLink v-if="noticeEnabled" to="/notice" class="qz-icon-btn qz-icon-btn--sm qz-only-mobile" :aria-label="t('qiaozhi.nav.notice')" :title="t('qiaozhi.nav.notice')">
           <Megaphone />
         </RouterLink>
-        <RouterLink to="/2fa" class="qz-icon-btn qz-only-mobile" :aria-label="t('qiaozhi.nav.tfa')" :title="t('qiaozhi.nav.tfa')">
+        <RouterLink to="/2fa" class="qz-icon-btn qz-icon-btn--sm qz-only-mobile" :aria-label="t('qiaozhi.nav.tfa')" :title="t('qiaozhi.nav.tfa')">
           <KeyRound />
         </RouterLink>
         <div class="qz-lang" ref="langEl">
-          <button type="button" class="qz-icon-btn" :aria-label="t('navbar.selectLanguage')" @click="langOpen = !langOpen">
+          <button type="button" class="qz-icon-btn qz-icon-btn--sm" :aria-label="t('navbar.selectLanguage')" :aria-expanded="langOpen" @click="langOpen = !langOpen">
             <Languages />
           </button>
           <div v-if="langOpen" class="qz-popover">
             <button v-for="lang in languages" :key="lang.code" type="button" :class="{ 'is-active': appStore.locale === lang.code }" @click="changeLanguage(lang.code)">
               {{ lang.name }}
-              <span v-if="appStore.locale === lang.code" class="lang-dot"></span>
+              <span v-if="appStore.locale === lang.code" class="qz-popover-dot"></span>
             </button>
           </div>
         </div>
-        <button type="button" class="qz-icon-btn" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
+        <button type="button" class="qz-icon-btn qz-icon-btn--sm" :aria-label="t('resellerConsole.common.toggleTheme')" @click="toggleTheme">
           <Sun v-if="theme === 'dark'" />
           <Moon v-else />
         </button>
-        <RouterLink to="/cart" class="qz-icon-btn" :aria-label="t('navbar.cart')">
+        <RouterLink to="/cart" class="qz-icon-btn qz-icon-btn--sm" :aria-label="t('navbar.cart')">
           <ShoppingCart />
           <span v-if="cartCount > 0" class="qz-cart-count">{{ cartCount }}</span>
         </RouterLink>
-        <RouterLink :to="accountPath" class="qz-account-btn qz-only-desktop">
+        <RouterLink :to="accountPath" class="qz-btn qz-btn--secondary qz-btn--sm qz-only-desktop">
           <User />
           <span>{{ userAuthStore.isAuthenticated ? t('navbar.personalCenter') : t('navbar.login') }}</span>
         </RouterLink>
@@ -78,10 +79,19 @@
       <slot />
     </main>
 
+    <!-- 手机端页脚链接（≤760px；桌面页脚在手机端隐藏，这些入口否则不可达） -->
+    <nav class="qz-footer-mobile" :aria-label="t('qiaozhi.footer.mobileLinksAria')">
+      <RouterLink v-if="aboutEnabled" to="/about">{{ t('qiaozhi.nav.about') }}</RouterLink>
+      <RouterLink to="/terms">{{ t('footer.terms') }}</RouterLink>
+      <RouterLink to="/privacy">{{ t('footer.privacy') }}</RouterLink>
+      <a v-if="supportHref" :href="supportHref" target="_blank" rel="noopener noreferrer">{{ t('qiaozhi.nav.support') }}</a>
+      <RouterLink v-if="blogEnabled" to="/blog">{{ t('qiaozhi.nav.tutorial') }}</RouterLink>
+    </nav>
+
     <!-- 页脚 -->
     <footer class="qz-footer">
       <div>
-        <span class="qz-brand-mark small">
+        <span class="qz-brand-mark qz-brand-mark--sm">
           <img v-if="brandLogo" :src="brandLogo" :alt="brandName" />
           <b v-else>{{ brandInitial }}</b>
         </span>
@@ -106,7 +116,7 @@
     <button
       v-if="contacts.length"
       type="button"
-      class="qz-support qz-support--contact"
+      class="qz-support"
       :aria-expanded="contactOpen"
       :aria-label="t('qiaozhi.contact.title')"
       @click="contactOpen = !contactOpen"
@@ -123,7 +133,7 @@
       <header>
         <span class="qz-contact-badge"><Headset /></span>
         <strong>{{ t('qiaozhi.contact.title') }}</strong>
-        <button type="button" class="qz-contact-close" :aria-label="t('common.cancel')" @click="contactOpen = false"><X /></button>
+        <button type="button" class="qz-icon-btn qz-icon-btn--sm" :aria-label="t('common.cancel')" @click="contactOpen = false"><X /></button>
       </header>
       <ul class="qz-contact-list">
         <li v-for="c in contacts" :key="c.key">
@@ -132,25 +142,25 @@
             <span>{{ c.label }}</span>
             <code>{{ c.value }}</code>
           </span>
-          <a v-if="c.href" :href="c.href" target="_blank" rel="noopener noreferrer">{{ t('qiaozhi.contact.open') }}</a>
+          <a v-if="c.href" class="qz-btn qz-btn--primary qz-btn--sm" :href="c.href" target="_blank" rel="noopener noreferrer">{{ t('qiaozhi.contact.open') }}</a>
         </li>
       </ul>
       <p>{{ t('qiaozhi.contact.hint') }}</p>
     </div>
 
-    <!-- 移动端底部导航 -->
-    <nav class="qz-bottom-nav" style="grid-template-columns: repeat(5, 1fr)">
-      <RouterLink to="/" :class="{ 'is-active': route.path === '/' }"><ShoppingBag /><span>{{ t('qiaozhi.nav.shop') }}</span></RouterLink>
-      <RouterLink :to="ordersPath" :class="{ 'is-active': route.path.includes('/orders') && !route.path.includes('/guest/orders') }"><ClipboardList /><span>{{ t('qiaozhi.nav.orders') }}</span></RouterLink>
-      <RouterLink to="/cart"><ShoppingCart /><span>{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="qz-cart-count">{{ cartCount }}</span></RouterLink>
-      <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': route.path === '/notice' }"><Megaphone /><span>{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
-      <RouterLink v-else to="/2fa" :class="{ 'is-active': route.path === '/2fa' }"><ShieldCheck /><span>{{ t('qiaozhi.nav.tfa') }}</span></RouterLink>
-      <RouterLink :to="accountPath" :class="{ 'is-active': isAccountNav }"><User /><span>{{ t('qiaozhi.nav.account') }}</span></RouterLink>
+    <!-- 移动端底部导航：五项高亮与顶栏共用 section -->
+    <nav class="qz-bottom-nav" :aria-label="t('qiaozhi.nav.bottomAria')">
+      <RouterLink to="/" :class="{ 'is-active': section === 'shop' }"><ShoppingBag /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.shop') }}</span></RouterLink>
+      <RouterLink :to="ordersPath" :class="{ 'is-active': section === 'orders' }"><ClipboardList /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.orders') }}</span></RouterLink>
+      <RouterLink to="/cart" :class="{ 'is-active': section === 'cart' }"><ShoppingCart /><span class="qz-bottom-nav-label">{{ t('navbar.cart') }}</span><span v-if="cartCount > 0" class="qz-cart-count">{{ cartCount }}</span></RouterLink>
+      <RouterLink v-if="noticeEnabled" to="/notice" :class="{ 'is-active': section === 'notice' }"><Megaphone /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.notice') }}</span></RouterLink>
+      <RouterLink v-else to="/2fa" :class="{ 'is-active': section === 'tfa' }"><ShieldCheck /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.tfa') }}</span></RouterLink>
+      <RouterLink :to="accountPath" :class="{ 'is-active': section === 'account' }"><User /><span class="qz-bottom-nav-label">{{ t('qiaozhi.nav.account') }}</span></RouterLink>
     </nav>
 
     <!-- 回到顶部 -->
     <Transition name="page-fade">
-      <button v-if="showBackTop" type="button" class="back-to-top back-to-top--qz" @click="scrollTop">
+      <button v-if="showBackTop" type="button" class="qz-icon-btn qz-back-top" :aria-label="t('qiaozhi.nav.backTop')" @click="scrollTop">
         <ArrowUp />
       </button>
     </Transition>
@@ -171,8 +181,12 @@ import { useUserAuthStore } from '../../../stores/userAuth'
 import { useNavConfig } from '../../../composables/useNavConfig'
 import { useTheme } from '../../../utils/theme'
 import { getImageUrl } from '../../../utils/image'
+import { navSection } from '../utils/navSection'
 import '@fontsource-variable/inter'
+// 顺序即层叠顺序：token → 基类 → 布局壳 → 尚未迁移的 legacy 页面样式
 import '../styles/tokens.css'
+import '../styles/base.css'
+import '../styles/layout.css'
 import '../styles/legacy.css'
 
 const route = useRoute()
@@ -207,8 +221,8 @@ const brandLogo = computed(() => {
 
 const isProductPage = computed(() => route.name === 'product-detail')
 const ordersPath = computed(() => (userAuthStore.isAuthenticated ? '/me/orders' : '/guest/orders'))
-// 查订单拥有 /me/orders，个人中心拥有其余 /me/* 与 /auth（避免同时高亮两项）
-const isAccountNav = computed(() => (route.path.startsWith('/me') && !route.path.startsWith('/me/orders')) || route.path.startsWith('/auth'))
+// 顶栏胶囊与底部导航共用的高亮分区（/me/orders 归查订单，其余 /me/* 与 /auth 归个人中心）
+const section = computed(() => navSection(route.path))
 const accountPath = computed(() => (userAuthStore.isAuthenticated ? '/me' : '/auth/login'))
 const cartCount = computed(() => cartStore.totalItems)
 
@@ -278,76 +292,3 @@ onUnmounted(() => {
   document.body.classList.remove('qiaozhi-tokens')
 })
 </script>
-
-<style scoped>
-.qz-header :deep(svg),
-.qz-nav :deep(svg),
-.qz-actions :deep(svg) {
-  width: 16px;
-  height: 16px;
-}
-
-.qz-actions :deep(svg) {
-  width: 18px;
-  height: 18px;
-}
-
-.qz-support :deep(svg) {
-  width: 22px;
-  height: 22px;
-}
-
-.qz-bottom-nav :deep(svg) {
-  width: 18px;
-  height: 18px;
-}
-
-.qz-contact-icon :deep(svg) {
-  width: 22px;
-  height: 22px;
-  fill: currentColor;
-}
-
-.lang-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.back-to-top--qz {
-  position: fixed;
-  right: 18px;
-  bottom: 158px;
-  z-index: 46;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--accent-strong);
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-
-.back-to-top--qz:hover {
-  border-color: var(--accent-line);
-}
-
-.back-to-top--qz :deep(svg) {
-  width: 20px;
-  height: 20px;
-}
-
-@media (max-width: 760px) {
-  .back-to-top--qz {
-    right: 10px;
-    bottom: calc(148px + env(safe-area-inset-bottom));
-    width: 46px;
-    height: 46px;
-  }
-}
-</style>

@@ -1742,7 +1742,9 @@
       "about": "关于",
       "account": "个人中心",
       "primaryAria": "主导航",
-      "footerAria": "页脚导航"
+      "footerAria": "页脚导航",
+      "bottomAria": "底部导航",
+      "backTop": "回到顶部"
     },
     "qty": {
       "decrease": "减少数量",
@@ -1800,7 +1802,8 @@
       "hint": "订单问题请带上订单号联系，处理更高效。"
     },
     "footer": {
-      "rights": "保留所有权利"
+      "rights": "保留所有权利",
+      "mobileLinksAria": "页脚链接"
     },
     "login": {
       "eyebrow": "SIGN IN",
