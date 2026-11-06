@@ -4,6 +4,7 @@ import { useUserAuthStore } from '../stores/userAuth'
 import { useI18n } from 'vue-i18n'
 import { debounceAsync } from '../utils/debounce'
 import { useAppStore } from '../stores/app'
+import { optionalFlagOn } from '../utils/configFlags'
 import { useTelegramMiniAppStore } from '../stores/telegramMiniApp'
 import { buildTelegramMiniAppEntryLink, isTelegramUrlEnvironment, openTelegramCompatibleLink } from '../utils/telegramMiniApp'
 import { userAuthAPI } from '../api'
@@ -92,7 +93,7 @@ export function useLogin() {
     : ''
   const googleRedirectAvailable = googleIdentityUXMode === 'popup' || googleRedirectLoginURI !== ''
   const registrationEnabled = computed(() => appStore.config?.registration_enabled !== false)
-  const emailVerificationEnabled = computed(() => appStore.config?.email_verification_enabled !== false)
+  const emailVerificationEnabled = computed(() => optionalFlagOn(appStore.configComplete, appStore.config?.email_verification_enabled))
   const isTelegramUrlEnv = isTelegramUrlEnvironment()
   const isTelegramMiniApp = computed(() => (telegramMiniAppStore.isMiniApp && telegramMiniAppStore.isReady) || isTelegramUrlEnv)
   const miniAppInitData = computed(() => String(telegramMiniAppStore.initData || '').trim())

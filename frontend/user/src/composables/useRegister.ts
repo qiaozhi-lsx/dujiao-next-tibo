@@ -4,6 +4,7 @@ import { useUserAuthStore } from '../stores/userAuth'
 import { useI18n } from 'vue-i18n'
 import { debounceAsync } from '../utils/debounce'
 import { useAppStore } from '../stores/app'
+import { optionalFlagOn } from '../utils/configFlags'
 import type { CaptchaPayload } from '../api'
 import ImageCaptcha from '../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../components/captcha/TurnstileCaptcha.vue'
@@ -47,7 +48,7 @@ export function useRegister() {
   const sendCodeCaptchaEnabled = computed(() => !!captchaConfig.value?.scenes?.register_send_code && captchaProvider.value !== 'none')
   const turnstileSiteKey = computed(() => String(captchaConfig.value?.turnstile?.site_key || ''))
   const registrationEnabled = computed(() => appStore.config?.registration_enabled !== false)
-  const emailVerificationEnabled = computed(() => appStore.config?.email_verification_enabled !== false)
+  const emailVerificationEnabled = computed(() => optionalFlagOn(appStore.configComplete, appStore.config?.email_verification_enabled))
   const emailDomainAllowlistEnabled = computed(() => appStore.config?.email_domain_allowlist_enabled === true)
   const allowedEmailDomains = computed(() => {
     const raw = appStore.config?.allowed_email_domains

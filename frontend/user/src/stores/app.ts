@@ -13,6 +13,12 @@ export const useAppStore = defineStore('app', () => {
     // UI 语言（vue-i18n）与商品多语言取值（appStore.locale）不一致
     const locale = ref(detectLocale())
     const config = ref<any>(null)
+    // 完整配置是否已就位。服务端内联的 window.__PUBLIC_CONFIG__ 只是 /public/config 的子集
+    // （brand / seo / 模板等首屏字段），nav_config、email_verification_enabled 这类可选开关键
+    // 不在其中：消费内联配置后为 false，任一次 configAPI.get() 成功赋值后为 true。
+    // 可选开关一律用 utils/configFlags.ts 的 optionalFlagOn(configComplete, value) 读取，
+    // 避免 `value !== false` 在内联阶段把缺失的键当成"开启"而闪一下。
+    const configComplete = ref(false)
     const loading = ref(false)
     // 服务器与客户端的时间偏移量（毫秒），serverTime = clientTime + offset
     const serverTimeOffset = ref(0)
@@ -100,6 +106,7 @@ export const useAppStore = defineStore('app', () => {
         // 为了减小首屏 payload 没有被 inline 的字段）。
         if (!force && typeof window !== 'undefined' && (window as any).__PUBLIC_CONFIG__) {
             config.value = (window as any).__PUBLIC_CONFIG__
+            configComplete.value = false
             applySEO()
             applyCustomScripts(config.value?.scripts)
             void (async () => {
@@ -108,6 +115,7 @@ export const useAppStore = defineStore('app', () => {
                     const response = await configAPI.get()
                     const responseTime = Date.now()
                     config.value = response.data.data
+                    configComplete.value = true
                     syncServerTimeOffset(response, requestTime, responseTime)
                     applySEO()
                     applyCustomScripts(config.value?.scripts)
@@ -124,6 +132,7 @@ export const useAppStore = defineStore('app', () => {
             const response = await configAPI.get()
             const responseTime = Date.now()
             config.value = response.data.data
+            configComplete.value = true
             syncServerTimeOffset(response, requestTime, responseTime)
             applySEO()
             applyCustomScripts(config.value?.scripts)
@@ -152,6 +161,7 @@ export const useAppStore = defineStore('app', () => {
     return {
         locale,
         config,
+        configComplete,
         loading,
         serverTimeOffset,
         isResellerTenant,
