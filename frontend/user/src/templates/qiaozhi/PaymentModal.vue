@@ -112,7 +112,7 @@
 
         <!-- 加密货币操作：切换网络或币种 / 已转账但未到账 -->
         <div
-          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire"
+          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire && (switchableChannels.length || txHashSupported)"
           class="pay-modal__crypto-actions"
         >
           <div class="pay-modal__action-row">
@@ -127,7 +127,12 @@
               {{ t('qiaozhi.payment.modal.switchNetwork') }}
             </button>
 
-            <button type="button" class="pay-modal__action-btn is-solid" @click="toggleTxPanel">
+            <button
+              v-if="txHashSupported"
+              type="button"
+              class="pay-modal__action-btn is-solid"
+              @click="toggleTxPanel"
+            >
               <CheckCircle2 />
               {{ t('qiaozhi.payment.modal.txHashBtn') }}
             </button>
@@ -151,11 +156,12 @@
             <p v-else-if="switchError" class="pay-modal__panel-msg is-err">{{ switchError }}</p>
           </div>
 
-          <div v-if="txPanelOpen" class="pay-modal__panel">
+          <div v-if="txPanelOpen && txHashSupported" class="pay-modal__panel">
             <input
               v-model="txHashInput"
               class="pay-modal__input"
               type="text"
+              maxlength="128"
               autocomplete="off"
               spellcheck="false"
               :placeholder="t('qiaozhi.payment.modal.txHashPlaceholder')"
@@ -423,6 +429,10 @@ const cryptoTokenLabel = computed(() => {
 
 const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
+// 「已转账但未到账 → 提交交易哈希」只有 epusdt 网关实现了（GatewayTxHashSubmitter）；
+// 其他加密渠道（bepusdt / dujiaopay）同样有收款地址，但后端会直接回"不支持"，不给入口。
+const txHashSupported = computed(() => props.order?.providerType === 'epusdt')
+
 const cryptoChainLabel = computed(() => (props.order?.chain ? chainLabel(props.order.chain) : ''))
 
 // 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
@@ -601,7 +611,9 @@ const clearPaidEmitTimer = () => {
   }
 }
 
-const runSuccessAnimation = () => {
+// order 由触发方在确认已付的那一刻捕获传入：动画结束时才读 props.order 的话，
+// 动画期间若订单被换掉（重新发起支付的窄窗口），会对新的未付单 emit paid。
+const runSuccessAnimation = (order: PaymentModalOrder | null) => {
   cancelAnimation()
   const duration = prefersReducedMotion ? 300 : 2600
   const delay = prefersReducedMotion ? 0 : 350
@@ -617,7 +629,6 @@ const runSuccessAnimation = () => {
     }
     animationFrame.value = null
     stage.value = 'success'
-    const order = props.order
     const emitPaidDelay = prefersReducedMotion ? 400 : 1500
     // 句柄保存下来：动画期间用户关闭弹窗 / 组件卸载时要取消，否则关掉后仍会触发 paid 跳转。
     paidEmitTimer.value = setTimeout(() => {
@@ -629,13 +640,15 @@ const runSuccessAnimation = () => {
 }
 
 const triggerSuccessFromPolling = (paidAtRaw?: string | number | null) => {
+  // 此刻的 props.order 就是轮询确认已付的那一单（pollOnce 已校验 sn 未变），先捕获再起动画。
+  const order = props.order
   stopPolling()
   if (stage.value !== 'waiting') return
   // 收据时间冻结在服务端支付时刻；解析不了就取当前服务器时间。倒计时钟随之停掉。
   paidAt.value = parsePaidAtMs(paidAtRaw, appStore.getServerTime())
   stopNowTimer()
   stage.value = 'running'
-  runSuccessAnimation()
+  runSuccessAnimation(order)
 }
 
 const pollOnce = async () => {

@@ -599,6 +599,11 @@ watch(showPaymentModal, (opened) => {
   }
 })
 
+// 切换网络后是另一笔支付记录：上一渠道的"已提交 / 提交失败"反馈不再适用，清掉。
+watch(() => paymentOrder.value?.channelId, () => {
+  paymentTxFeedback.value = null
+})
+
 const validateForm = (): string => {
   fieldErrors.value = {}
   if (!userAuthStore.isAuthenticated) {
