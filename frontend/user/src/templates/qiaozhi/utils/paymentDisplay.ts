@@ -44,13 +44,21 @@ export const parsePaidAtMs = (raw: unknown, fallback: number): number => {
 }
 
 /**
- * 创单后是否走内嵌支付弹窗：有支付载荷（二维码或支付链接）、订单未已付（如钱包全额抵扣的 order_paid），
- * 且交互模式解析为 qr（空模式视为 qr，与 classic 一致）；redirect / wap / page 走独立支付页。
+ * 创单后是否走内嵌支付弹窗：订单未已付（如钱包全额抵扣的 order_paid）且满足其一：
+ * - 响应带链上收款地址（epusdt / bepusdt / dujiaopay）：弹窗渲染的是地址二维码 + 链上金额，
+ *   与渠道的 interaction_mode 无关——epusdt 配成 redirect 时 qr_code / pay_url 都是收银台链接，
+ *   但 wallet_address 照样下发，此时仍应弹窗；
+ * - 有支付载荷（二维码或支付链接）且交互模式解析为 qr（空模式视为 qr，与 classic 一致）。
+ * 其余（redirect / wap / page 的纯跳转渠道、无支付字段）走独立支付页 /pay。
  */
 export const shouldOpenInlineModal = (
-  payData: { qr_code?: unknown; pay_url?: unknown; order_paid?: unknown; interaction_mode?: unknown } | null | undefined,
+  payData:
+    | { qr_code?: unknown; pay_url?: unknown; order_paid?: unknown; interaction_mode?: unknown; wallet_address?: unknown }
+    | null
+    | undefined,
 ): boolean => {
   if (!payData || payData.order_paid) return false
+  if (trimmed(payData.wallet_address)) return true
   if (!trimmed(payData.qr_code) && !trimmed(payData.pay_url)) return false
   return resolvePaymentPresentationMode(payData.interaction_mode) === 'qr'
 }

@@ -688,8 +688,9 @@ const submitOrder = async () => {
     if (!orderNo) throw new Error(t('qiaozhi.detail.errSubmit'))
 
     // 后端 /orders/create-and-pay 已直接返回支付字段:qr_code / pay_url /
-    // expires_at / interaction_mode。扫码类(qr)渠道拿到完整响应就当页弹 Modal,不再跳 /pay。
-    // 跳转类(redirect/wap/page)渠道走 /pay,由 usePayment 负责自动打开支付链接。
+    // expires_at / interaction_mode / wallet_address。扫码类(qr)渠道与带链上收款地址的加密货币单
+    // 拿到完整响应就当页弹 Modal,不再跳 /pay(加密单弹窗渲染地址二维码,与 interaction_mode 无关)。
+    // 纯跳转类(redirect/wap/page,无地址)渠道走 /pay,由 usePayment 负责自动打开支付链接。
     // 没有支付字段(例如 channel_id 为 0、全额钱包抵扣、通道返错)时同样 fallback 到
     // 旧的 /pay 独立页,保留原流程不丢失。
     if (shouldOpenInlineModal(payData)) {

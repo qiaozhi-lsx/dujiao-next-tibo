@@ -66,6 +66,26 @@ test('shouldOpenInlineModal: 仅 qr 模式且有支付载荷、未已付时走�
   assert.equal(shouldOpenInlineModal(null), false)
 })
 
+test('shouldOpenInlineModal: 带链上收款地址的加密货币单不论 interaction_mode 都走弹窗', () => {
+  // epusdt 渠道配成 redirect 时 qr_code / pay_url 都是收银台链接，但响应仍带 wallet_address，
+  // 弹窗渲染的是地址二维码 + 链上金额，与 interaction_mode 无关。
+  assert.equal(
+    shouldOpenInlineModal({
+      qr_code: 'https://gw.example/cashier/1',
+      pay_url: 'https://gw.example/cashier/1',
+      interaction_mode: 'redirect',
+      wallet_address: 'TXYZabc123',
+    }),
+    true,
+  )
+  // 纯跳转渠道（无地址）仍走 /pay
+  assert.equal(shouldOpenInlineModal({ pay_url: 'https://p', interaction_mode: 'redirect' }), false)
+  // 空白地址不算
+  assert.equal(shouldOpenInlineModal({ pay_url: 'https://p', interaction_mode: 'redirect', wallet_address: '  ' }), false)
+  // 已付（钱包全额抵扣）即便有地址也不弹
+  assert.equal(shouldOpenInlineModal({ wallet_address: 'TXYZabc123', interaction_mode: 'redirect', order_paid: true }), false)
+})
+
 test('bareAmountText: chainAmount → payableAmount → amount，不带币种', () => {
   assert.equal(bareAmountText({ chainAmount: '13.45', payableAmount: '97.00', amount: '100.00' }), '13.45')
   assert.equal(bareAmountText({ payableAmount: '97.00', amount: '100.00' }), '97.00')
