@@ -20,9 +20,11 @@ const TEMPLATE_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SOURCE_FILE = /\.(vue|ts|css)$/
 
 const LEGACY = ['j', '8'].join('')
-const LEGACY_UPPER = LEGACY.toUpperCase()
-// Bare word, class/keyframe/variable prefix, component prefix, and the old stylesheet name.
-const LEGACY_PATTERN = new RegExp(String.raw`\b${LEGACY}\b|${LEGACY}-|${LEGACY_UPPER}[A-Z]|ji8\.`)
+// The old stylesheet / prose name (the prefix with an `i` in the middle), also assembled at runtime.
+const LEGACY_SHEET = ['j', 'i8'].join('')
+// Case-insensitive and unanchored on purpose: any occurrence of either string is a hit,
+// whether it is a bare word, a class / component prefix, a comment or the stylesheet name.
+const LEGACY_PATTERN = new RegExp(`${LEGACY}|${LEGACY_SHEET}`, 'i')
 
 function sourceFiles(dir: string): string[] {
   const out: string[] = []
@@ -68,6 +70,10 @@ const LIGHT_SCOPE = '.qiaozhi-scope, body.qiaozhi-tokens'
 const DARK_SCOPE = '.dark .qiaozhi-scope, .dark body.qiaozhi-tokens'
 const MOBILE_MEDIA = '@media (max-width: 760px)'
 
+// Third-party brand colours (contact panel glyphs / open buttons) plus the ink that sits on
+// those saturated fills. Declared on both scopes like every colour token, but identical in
+// dark: a brand colour does not follow the theme, and only the dark ink clears 4.5:1 on it.
+const QZ_BRAND_TOKENS = ['--qz-brand-telegram', '--qz-brand-whatsapp', '--qz-brand-wechat', '--qz-brand-qq', '--qz-on-brand']
 const QZ_COLOR_TOKENS = [
   '--qz-bg', '--qz-surface', '--qz-surface-raised', '--qz-surface-muted',
   '--qz-text', '--qz-text-secondary', '--qz-text-muted',
@@ -75,6 +81,7 @@ const QZ_COLOR_TOKENS = [
   '--qz-accent', '--qz-accent-strong', '--qz-accent-subtle', '--qz-on-accent',
   '--qz-success', '--qz-warning', '--qz-danger', '--qz-info',
   '--qz-header-bg',
+  ...QZ_BRAND_TOKENS,
 ]
 const QZ_SHADOW_TOKENS = ['--qz-shadow-resting', '--qz-shadow-raised', '--qz-shadow-floating']
 const QZ_SIZE_TOKENS = [
@@ -169,6 +176,18 @@ test('tokens.css defines the qz token contract on both scopes', () => {
   assert.equal(light.get('--qz-text-2xs'), '11px')
   assert.equal(light.get('--qz-container'), '1200px')
 
+  // Muted text on the white surface must keep ≥ 4.5:1 (WCAG AA): oklch 55% grey is ~4.9:1, Arc's 59% was ~4.1:1.
+  assert.equal(light.get('--qz-text-muted'), 'oklch(55% 0 0)', 'light --qz-text-muted must stay at oklch(55% 0 0)')
+
+  // Brand colours are theme-independent values declared on both scopes.
+  assert.deepEqual(
+    QZ_BRAND_TOKENS.filter((name) => light.get(name) !== dark.get(name)),
+    [],
+    'brand tokens must have the same value on the light and dark scopes',
+  )
+  // White on the brand fills is 2.0–2.8:1; the fixed dark ink is ≥ 7.1:1 on every one of them.
+  assert.equal(light.get('--qz-on-brand'), '#0a0a0a', '--qz-on-brand must stay the dark ink (#0a0a0a) in both themes')
+
   // ≤760px overrides: touch-friendly small controls and the compact header.
   assert.equal(mobile.get('--qz-control-sm'), '40px', `${MOBILE_MEDIA} must set --qz-control-sm: 40px`)
   assert.equal(mobile.get('--qz-header-h'), '60px', `${MOBILE_MEDIA} must set --qz-header-h: 60px`)
@@ -179,13 +198,14 @@ test('tokens.css defines the qz token contract on both scopes', () => {
 //
 // Colours come from --qz-* (color-mix() of tokens is fine), every font-size is a
 // --qz-text-* step and every control height is a --qz-control-* step. The only fixed
-// heights are glyphs inside controls (16 / 18), badge (22), chip (24) and the
-// empty-state icon (40). QzButton.vue keeps just its label morph / loader CSS; its
-// size and variant looks live in base.css as .qz-btn--*.
+// heights are glyphs inside controls (16 / 18), badge (22), chip (24), the
+// empty-state icon (40) and the 1px box of the visually-hidden utility (.qz-sr-only).
+// QzButton.vue keeps just its label morph / loader CSS; its size and variant looks live
+// in base.css as .qz-btn--*, so its <style> must not select .qz-btn at all.
 // ---------------------------------------------------------------------------
 const BASE_CSS = join(TEMPLATE_ROOT, 'styles', 'base.css')
 const QZ_BUTTON_VUE = join(TEMPLATE_ROOT, 'components', 'QzButton.vue')
-const BASE_PX_HEIGHTS = new Set(['16px', '18px', '22px', '24px', '40px'])
+const BASE_PX_HEIGHTS = new Set(['1px', '16px', '18px', '22px', '24px', '40px'])
 const QZ_BUTTON_STATE_CLASSES = ['is-sm', 'is-md', 'is-lg', 'is-primary', 'is-secondary', 'is-ghost', 'is-danger']
 
 const lineOf = (text: string, index: number) => text.slice(0, index).split('\n').length
@@ -218,11 +238,15 @@ test('base.css only consumes tokens', () => {
 
 test('QzButton.vue has no size/variant css of its own', () => {
   const sfc = readFileSync(QZ_BUTTON_VUE, 'utf8')
-  const style = [...sfc.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(([, body = '']) => body).join('\n')
+  // Comments may describe where the looks live; only rules count.
+  const style = [...sfc.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
+    .map(([, body = '']) => body.replace(/\/\*[\s\S]*?\*\//g, ''))
+    .join('\n')
   assert.ok(style.trim().length > 0, 'QzButton.vue should keep a <style> block for its label morph and loader')
 
   const leaked = QZ_BUTTON_STATE_CLASSES.filter((name) => style.includes(name))
   assert.deepEqual(leaked, [], 'QzButton size / variant styling belongs to .qz-btn--* in styles/base.css')
+  assert.ok(!/\.qz-btn\b/.test(style), 'QzButton.vue must not select .qz-btn (or .qz-btn--*) itself; that CSS lives in styles/base.css')
 })
 
 // ---------------------------------------------------------------------------
@@ -235,18 +259,14 @@ test('QzButton.vue has no size/variant css of its own', () => {
 // until it is deleted.
 //
 // PAGE_STYLE_PENDING lists the files that still carry their pre-token styles and are
-// migrated by later tasks (product detail / cart / auth lanes, then PR-2 for Payment,
-// PaymentModal, me/* and the remaining Qz* widgets). Remove a file from the list in the
-// same change that migrates it; PR-2 drops the list and the guard becomes full-coverage.
+// migrated by PR-2 (Checkout, Payment, PaymentModal, me/* and the remaining Qz* widgets).
+// Remove a file from the list in the same change that migrates it; PR-2 drops the list
+// and the guard becomes full-coverage.
 // ---------------------------------------------------------------------------
 const PAGE_STYLE_PENDING = new Set([
-  'Cart.vue',
   'Checkout.vue',
   'Payment.vue',
   'PaymentModal.vue',
-  'TwoFA.vue',
-  'auth/Login.vue',
-  'auth/Register.vue',
   'components/QzHoldConfirm.vue',
   'me/MeAffiliate.vue',
   'me/MeApi.vue',
@@ -290,4 +310,54 @@ test('page styles consume tokens only', () => {
   }
   assert.ok(checked > 0, 'expected at least one <style> block under templates/qiaozhi')
   assert.deepEqual(offenders, [], `${offenders.length} page-style declaration(s) bypass the qz tokens:\n${offenders.join('\n')}`)
+})
+
+// ---------------------------------------------------------------------------
+// Type floor: nothing renders below 11px (--qz-text-2xs) anywhere in the template.
+//
+// Unlike the token rules above this has no exemption list: every <style> block of every
+// .vue file (pending ones included) and every sheet under styles/ (legacy.css too) is
+// scanned. Same regex as the repo-wide `rg` check; comments are blanked first so a note
+// about an old size does not count.
+// ---------------------------------------------------------------------------
+const FONT_SIZE_BELOW_FLOOR = /font-size:\s*(?:[0-9]|10)(?:\.\d+)?px/
+
+function blankComments(css: string): string {
+  return css.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '))
+}
+
+function styleSheets(): string[] {
+  const dir = join(TEMPLATE_ROOT, 'styles')
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.css'))
+    .sort()
+    .map((name) => join(dir, name))
+}
+
+test('no font-size below 11px anywhere', () => {
+  const offenders: string[] = []
+  const report = (name: string, css: string, firstLine: number) => {
+    blankComments(css)
+      .split('\n')
+      .forEach((line, index) => {
+        const match = FONT_SIZE_BELOW_FLOOR.exec(line)
+        if (match) offenders.push(`${name}:${firstLine + index} ${match[0]}`)
+      })
+  }
+
+  const sheets = styleSheets()
+  assert.ok(sheets.length >= 4, 'expected tokens / base / layout / legacy under styles/')
+  for (const file of sheets) report(relative(TEMPLATE_ROOT, file).split(sep).join('/'), readFileSync(file, 'utf8'), 1)
+
+  let blocks = 0
+  for (const file of vueFiles(TEMPLATE_ROOT)) {
+    const name = relative(TEMPLATE_ROOT, file).split(sep).join('/')
+    const sfc = readFileSync(file, 'utf8')
+    for (const block of sfc.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
+      blocks += 1
+      report(name, block[1] ?? '', lineOf(sfc, block.index)) // body starts on the <style> tag's line
+    }
+  }
+  assert.ok(blocks > 0, 'expected at least one <style> block under templates/qiaozhi')
+  assert.deepEqual(offenders, [], `${offenders.length} font-size declaration(s) below the 11px floor (use var(--qz-text-2xs) or larger):\n${offenders.join('\n')}`)
 })

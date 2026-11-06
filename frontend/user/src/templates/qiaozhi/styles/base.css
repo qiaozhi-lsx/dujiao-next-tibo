@@ -15,12 +15,12 @@
    while pages migrate, and page `<style scoped>` overrides stay cheap. State guards use
    `:where(:not(…))` for the same reason.
 
-   Press feedback: `.qz-btn` / `.qz-icon-btn` scale by `--qz-press` on :active. QzButton.vue
-   and QzQtyStepper.vue write it per button width (.985 wide / .97 / .96 icon); the CSS
-   fallback is .97 for buttons and .96 for icon buttons.
+   Press feedback: `.qz-btn` / `.qz-icon-btn` / `.qz-pill` scale by `--qz-press` on :active.
+   QzButton.vue and QzQtyStepper.vue write it per button width (.985 wide / .97 / .96 icon);
+   the CSS fallback is .97 for buttons and pills and .96 for icon buttons.
 
    Order: button → icon button → pill → chip / badge → field → card / panel → eyebrow /
-   section head / empty state → focus → reduced motion.
+   section head / empty state → visually hidden → focus → reduced motion.
    ========================================================================= */
 
 /* ---------- Button (Arc Button: .button / .primary .secondary .ghost .danger / .sm .lg) ---------- */
@@ -150,6 +150,7 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
+    transform var(--qz-duration-spring) var(--qz-ease-spring),
     color var(--qz-duration-fast) var(--qz-ease-standard),
     background-color var(--qz-duration-fast) var(--qz-ease-standard);
 }
@@ -158,6 +159,11 @@
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill:hover:where(:not(.is-active)) { color: var(--qz-text); background: var(--qz-accent-subtle); }
 }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill:active:where(:not(.is-active)) { color: var(--qz-text); background: var(--qz-accent-subtle); }
+/* Same press scale as .qz-btn (instant in, spring out through the resting transition); the active pill presses too, a disabled one (SKU pill) does not. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill:active:where(:not(:disabled, [aria-disabled="true"])) {
+  transform: scale(var(--qz-press, .97));
+  transition: transform var(--qz-duration-instant) var(--qz-ease-standard);
+}
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill.is-active { color: var(--qz-on-accent); background: var(--qz-accent); }
 
 /* ---------- Chip / Badge (Arc Badge, pill form; 24 / 22 high, 11px) ---------- */
@@ -306,6 +312,21 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > p { margin: var(--qz-space-1) 0 0; font-size: var(--qz-text-sm); line-height: var(--qz-leading-body); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty .qz-btn { margin-top: var(--qz-space-5); }
 
+/* ---------- Visually hidden (screen-reader only text: live regions, sr-only headings) ----------
+   The 1px box (not 0) keeps every screen reader announcing it. Declared on both scopes: the
+   search box's live region sits in the header, the category drawer is teleported to <body>. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- Keyboard focus (Arc foundation :focus-visible outline) ----------
    Pointer focus draws nothing; keyboard focus draws the accent outline (WCAG 2.4.7). Left out: text fields
    (they match :focus-visible on click too and answer with their border — see .qz-field-control), menu items
@@ -326,5 +347,5 @@
 /* ---------- Reduced motion: no transitions, no press scale ---------- */
 @media (prefers-reduced-motion: reduce) {
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill, .qz-field-control) { transition: none; }
-  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn):active { transform: none; transition: none; }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill):active { transform: none; transition: none; }
 }

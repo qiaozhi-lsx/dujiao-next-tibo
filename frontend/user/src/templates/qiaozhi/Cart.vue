@@ -6,7 +6,7 @@
         <span class="qz-eyebrow">{{ t('qiaozhi.cart.eyebrow') }}</span>
         <h1>
           <span>{{ t('cart.title') }}</span>
-          <span v-if="cartItems.length" class="qz-chip">{{ totalItems }} {{ t('qiaozhi.catalog.unit') }}</span>
+          <span v-if="cartItems.length" class="qz-chip" aria-hidden="true">{{ totalItems }} {{ t('qiaozhi.catalog.unit') }}</span>
         </h1>
         <p>{{ t('cart.subtitle') }}</p>
       </div>

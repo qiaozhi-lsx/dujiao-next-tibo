@@ -1,14 +1,15 @@
 /* =========================================================================
-   Qiaozhi（Ji8 复刻版）— 青绿设计系统 · 从 18cm.ka8.ai 逐规则还原
+   Qiaozhi legacy 样式（从原站逐规则还原的旧设计系统，正在逐页迁到 tokens / base / layout / 页面 <style>）
    作用域: .qiaozhi-scope / body.qiaozhi-tokens（浮层） · 暗色 .dark 翻转
-   结构: 令牌层（--ui-* 全套映射，标准页面自动换肤）
+   结构: 令牌层（旧 --bg / --surface / --ui-* 变量全部桥接到 --qz-* token，标准页面自动换肤）
          （顶栏 / 页脚 / 底部导航 / 容器 / 客服浮钮 / 语言弹层的外壳已迁至 layout.css）
          + 首页（qz-hero / qz-featured / qz-fcard + fa-* 艺术动画 / qz-catalog / qz-grid / qz-card）
          + 详情页独占段已迁入 ProductDetail.vue / QzQtyStepper.vue 的 <style>；
-           这里剩下的 qz-pd-* / qz-ic-* 是 Cart / Payment / Checkout / 登录注册 / 订单页仍在共用的规则
+           这里剩下的 qz-pd-* / qz-ic-* 是 Payment / Checkout / 订单页仍在共用的规则
+   字号地板：全表没有小于 11px（--qz-text-2xs）的 font-size；42–46px 的胶囊高度走 --qz-control-md。
    ========================================================================= */
 
-/* ---------- 兜底基础（标准页面在 scope 内直接沿用 Ji8 底色） ---------- */
+/* ---------- 兜底基础（标准页面在 scope 内直接沿用 legacy 底色，底色本身已是 --qz-* token） ---------- */
 html { scrollbar-gutter: stable; overflow-y: scroll; }
 .qiaozhi-scope { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; min-height: 100vh; display: flex; flex-direction: column; transition: background .2s, color .2s; }
 .qiaozhi-scope ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -59,14 +60,9 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon > img { width: 100%; height: 100%; object-fit: contain; }
 .qiaozhi-scope .qz-brand-svg { fill: currentcolor; }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon > b { font-size: 14px; }
-/* .qz-section-heading：Cart.vue 仍在用的旧名；首页 / 列表页已改用 base.css 的 .qz-section-head，Cart 迁移后删除本段 */
-.qiaozhi-scope .qz-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
-.qiaozhi-scope .qz-section-heading > div { min-width: 0px; }
-.qiaozhi-scope .qz-section-heading h2 { margin: 2px 0px 0px; color: var(--text); font-size: 20px; font-weight: 700; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.qiaozhi-scope .qz-section-heading > span { flex: 0 0 auto; color: var(--muted); font-size: 11px; white-space: nowrap; }
 /* qz-skeleton-card 已在文件顶部用字段级骨架重写，这里只保留 qz-skeleton-row */
 .qiaozhi-scope .qz-skeleton-row { height: 105px; margin: 10px; }
-.qiaozhi-scope .qz-btn-primary { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0px; border-radius: var(--r-icon); padding: 10px 15px; background: linear-gradient(135deg,var(--accent),var(--accent-strong)); box-shadow: var(--shadow-primary); color: var(--on-accent); font-size: 12px; font-weight: 700; white-space: nowrap; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
+.qiaozhi-scope .qz-btn-primary { min-height: var(--qz-control-md); display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0px; border-radius: var(--r-icon); padding: 10px 15px; background: linear-gradient(135deg,var(--accent),var(--accent-strong)); box-shadow: var(--shadow-primary); color: var(--on-accent); font-size: 12px; font-weight: 700; white-space: nowrap; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
 .qiaozhi-scope .qz-btn-primary svg { width: 16px; height: 16px; }
 .qiaozhi-scope .qz-btn-primary:hover { transform: translateY(-1px); }
 .qiaozhi-scope .qz-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -77,12 +73,6 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 }
 @media (max-width: 760px) {
 .qiaozhi-scope .qz-catalog { display: block; }
-}
-@media (max-width: 760px) {
-.qiaozhi-scope .qz-section-heading { margin-bottom: 10px; }
-}
-@media (max-width: 760px) {
-.qiaozhi-scope .qz-section-heading h2 { font-size: 17px; }
 }
 @media (max-width: 760px) {
 .qiaozhi-scope .qz-skeleton-card { min-height: 220px; padding: 16px; }
@@ -136,7 +126,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-pd-alert { padding: 10px 12px; border-radius: 11px; font-size: 12.5px; font-weight: 700; }
 .qiaozhi-scope .qz-pd-alert.is-danger { background: var(--red-soft); color: var(--red); }
 .qiaozhi-scope .qz-pd-alert.is-warm { background: var(--amber-soft); color: var(--amber); }
-.qiaozhi-scope .qz-pd-cart, .qiaozhi-scope .qz-pd-buy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border-radius: 12px; font-size: 14px; font-weight: 800; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
+.qiaozhi-scope .qz-pd-cart, .qiaozhi-scope .qz-pd-buy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: var(--qz-control-md); border-radius: 12px; font-size: 14px; font-weight: 800; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
 .qiaozhi-scope .qz-pd-cart { border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--accent-strong); }
 .qiaozhi-scope .qz-pd-cart svg { width: 17px; height: 17px; }
 .qiaozhi-scope .qz-pd-buy { width: 100%; background: linear-gradient(90deg,var(--accent),var(--accent-strong)); color: var(--on-accent); box-shadow: var(--shadow-primary); }
@@ -147,8 +137,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-pd-detail { padding: 24px 28px 28px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
 .qiaozhi-scope .qz-pd-detail > h2 { margin-bottom: 14px; font-size: 18px; font-weight: 700; color: var(--text); }
 .qiaozhi-scope .qz-pd-skeleton { display: grid; gap: 16px; }
-.qiaozhi-scope :is(.qz-pd-sk-back, .qz-pd-sk-block, .qz-pd-sk-line) { border-radius: 12px; background: var(--surface-3); animation: 1.4s ease-in-out 0s infinite normal none running qz-pd-pulse; }
-.qiaozhi-scope .qz-pd-sk-back { width: 110px; height: 38px; }
+.qiaozhi-scope :is(.qz-pd-sk-block, .qz-pd-sk-line) { border-radius: 12px; background: var(--surface-3); animation: 1.4s ease-in-out 0s infinite normal none running qz-pd-pulse; }
 .qiaozhi-scope .qz-pd-sk-block { aspect-ratio: 1 / 1; max-height: 520px; }
 .qiaozhi-scope .qz-pd-sk-line { height: 18px; }
 .qiaozhi-scope .qz-pd-sk-line.is-lg { height: 32px; width: 80%; }
@@ -189,7 +178,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-ic-field { display: grid; gap: 4px; }
 .qiaozhi-scope .qz-ic-field > label { font-size: 12px; font-weight: 700; color: var(--muted); }
 .qiaozhi-scope .qz-ic-field > label b { margin-left: 3px; color: var(--red); }
-.qiaozhi-scope .qz-ic-field input:not([type="radio"]):not([type="checkbox"]), .qiaozhi-scope .qz-ic-field textarea, .qiaozhi-scope .qz-ic-field select { width: 100%; min-width: 0px; min-height: 42px; padding: 9px 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-size: 14px; outline: 0px; transition: border-color 0.15s, box-shadow 0.15s; }
+.qiaozhi-scope .qz-ic-field input:not([type="radio"]):not([type="checkbox"]), .qiaozhi-scope .qz-ic-field textarea, .qiaozhi-scope .qz-ic-field select { width: 100%; min-width: 0px; min-height: var(--qz-control-md); padding: 9px 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-size: 14px; outline: 0px; transition: border-color 0.15s, box-shadow 0.15s; }
 .qiaozhi-scope .qz-ic-field textarea { resize: vertical; }
 .qiaozhi-scope .qz-ic-field input:focus, .qiaozhi-scope .qz-ic-field textarea:focus, .qiaozhi-scope .qz-ic-field select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .qiaozhi-scope .qz-ic-field input::placeholder, .qiaozhi-scope .qz-ic-field textarea::placeholder { color: var(--muted); }
@@ -205,7 +194,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-ic-pay h3 { display: flex; align-items: center; gap: 6px; margin: 0px; font-size: 12px; font-weight: 700; color: var(--muted); }
 .qiaozhi-scope .qz-ic-pay h3 svg { width: 15px; height: 15px; }
 .qiaozhi-scope .qz-ic-channels { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
-.qiaozhi-scope .qz-ic-channel, .qiaozhi-scope .qz-ic-balance { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 7px 10px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.qiaozhi-scope .qz-ic-channel, .qiaozhi-scope .qz-ic-balance { display: flex; align-items: center; gap: 8px; min-height: var(--qz-control-md); padding: 7px 10px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .qiaozhi-scope .qz-ic-channel:hover:not(:disabled), .qiaozhi-scope .qz-ic-balance:hover { border-color: var(--accent-line); }
 .qiaozhi-scope .qz-ic-channel:disabled { opacity: 0.5; cursor: not-allowed; }
 .qiaozhi-scope .qz-ic-channel.is-active, .qiaozhi-scope .qz-ic-balance.is-active { border-color: var(--accent); background: var(--accent-soft); }
@@ -241,7 +230,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-xcheck textarea:focus, .qiaozhi-scope .qz-xcheck input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .qiaozhi-scope .qz-xcheck textarea::placeholder, .qiaozhi-scope .qz-xcheck input::placeholder { color: var(--muted); }
 .qiaozhi-scope .qz-xcheck-inline { display: grid; grid-template-columns: minmax(0px, 1fr) auto; gap: 8px; }
-.qiaozhi-scope .qz-xcheck-btn { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0px; border-radius: 11px; padding: 0px 16px; background: linear-gradient(90deg,var(--accent),var(--accent-strong)); color: var(--on-accent); font-size: 14px; font-weight: 800; white-space: nowrap; box-shadow: var(--shadow-primary); transition: transform 0.15s, opacity 0.15s; }
+.qiaozhi-scope .qz-xcheck-btn { min-height: var(--qz-control-md); display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0px; border-radius: 11px; padding: 0px 16px; background: linear-gradient(90deg,var(--accent),var(--accent-strong)); color: var(--on-accent); font-size: 14px; font-weight: 800; white-space: nowrap; box-shadow: var(--shadow-primary); transition: transform 0.15s, opacity 0.15s; }
 .qiaozhi-scope .qz-xcheck-btn svg { width: 16px; height: 16px; }
 .qiaozhi-scope .qz-xcheck-btn:hover { transform: translateY(-1px); }
 .qiaozhi-scope .qz-xcheck-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -347,7 +336,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .fa-x-logo svg { width: 25px; height: 25px; }
 .qiaozhi-scope .fa-x-logo b { font-size: 25px; font-weight: 700; letter-spacing: -0.01em; }
 .qiaozhi-scope .fa-x-meta { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
-.qiaozhi-scope .fa-x-meta small { color: rgba(255, 255, 255, 0.5); font-size: 9px; letter-spacing: 0.24em; }
+.qiaozhi-scope .fa-x-meta small { color: rgba(255, 255, 255, 0.5); font-size: var(--qz-text-2xs); letter-spacing: 0.24em; }
 .qiaozhi-scope .fa-x-meta em { color: rgba(255, 255, 255, 0.85); font-size: 11px; font-style: normal; letter-spacing: 0.1em; white-space: nowrap; }
 .qiaozhi-scope .fa-x-sheen { position: absolute; inset: -40% -30%; background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.2) 50%, transparent 58%); animation: 5s ease-in-out 0s infinite normal none running fa-sheen; pointer-events: none; }
 .qiaozhi-scope .fa-duo .fa-glow { background: radial-gradient(circle, rgba(88, 204, 2, 0.22), transparent 66%); }
@@ -414,7 +403,6 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-order-status.is-danger { background: var(--red-soft); color: var(--red); }
 .qiaozhi-scope .qz-order-status.is-accent { background: var(--accent-soft); color: var(--accent-strong); }
 .qiaozhi-scope .qz-order-deliver-hint { margin: -6px 0px 12px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
-.qiaozhi-scope .qz-sr-only { position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0px; }
 .qiaozhi-scope .qz-order-card { padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow-soft); }
 .qiaozhi-scope .qz-order-card-tag { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
 .qiaozhi-scope .qz-order-card-h2 { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; font-size: 15px; font-weight: 700; color: var(--text); }
@@ -526,12 +514,12 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-order-amount-grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* ---------- Arc 按钮语言（参考 uiarc.dev Button）：全站胶囊化 + 按压缩放 ---------- */
-.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-pd-cart-icon, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button, .qz-pd-skus button, .qz-share) {
+/* ---------- Arc 按钮语言（参考 uiarc.dev Button）：未迁移页面的按钮胶囊化 + 按压缩放 ---------- */
+.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button) {
   border-radius: var(--r-pill);
   transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
-.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-pd-cart-icon, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button, .qz-pd-skus button, .qz-share):not(:disabled):active {
+.qiaozhi-scope :is(.qz-btn-primary, .qz-pd-back, .qz-pd-cart, .qz-pd-buy, .qz-order-back, .qz-order-btn, .qz-xcheck-btn, .qz-me-act, .qz-me-pager button):not(:disabled):active {
   transform: scale(0.97);
   transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
@@ -573,7 +561,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 .qiaozhi-scope .qz-tabs-list { position: relative; display: flex; gap: 2px; width: 100%; }
 .qiaozhi-scope .qz-tabs[data-orientation="vertical"] .qz-tabs-list { flex-direction: column; }
 .qiaozhi-scope .qz-tabs[data-orientation="horizontal"] .qz-tabs-list { width: max-content; }
-.qiaozhi-scope .qz-tabs-tab { position: relative; z-index: 1; flex: 1 0 auto; display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 13px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; text-align: left; transition: color 0.18s; }
+.qiaozhi-scope .qz-tabs-tab { position: relative; z-index: 1; flex: 1 0 auto; display: flex; align-items: center; gap: 9px; height: var(--qz-control-md); padding: 0 13px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; text-align: left; transition: color 0.18s; }
 .qiaozhi-scope .qz-tabs[data-orientation="horizontal"] .qz-tabs-tab { flex: 0 0 auto; }
 .qiaozhi-scope .qz-tabs-tab:hover { color: var(--text); }
 .qiaozhi-scope .qz-tabs-tab.is-active { color: var(--on-accent); }
@@ -665,7 +653,7 @@ body.qiaozhi-tokens > div.z-\[100\].pointer-events-none { bottom: auto; top: 71p
 
 /* 自绘下拉（QzSelect）：胶囊触发器 + 浮层选项面板 */
 .qiaozhi-scope .qz-select { position: relative; min-width: 0; }
-.qiaozhi-scope .qz-select-btn { width: 100%; min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 14px; text-align: left; outline: 0; transition: border-color 0.15s, box-shadow 0.15s; }
+.qiaozhi-scope .qz-select-btn { width: 100%; min-height: var(--qz-control-md); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 13px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 14px; text-align: left; outline: 0; transition: border-color 0.15s, box-shadow 0.15s; }
 .qiaozhi-scope .qz-select-btn:hover:not(:disabled) { border-color: var(--accent-line); }
 .qiaozhi-scope .qz-select-btn:focus-visible, .qiaozhi-scope .qz-select-btn.is-open { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .qiaozhi-scope .qz-select-btn:disabled { opacity: 0.55; }

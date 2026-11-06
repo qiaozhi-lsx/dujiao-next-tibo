@@ -20,10 +20,10 @@
         <RouterLink :to="ordersPath" class="qz-pill" :class="{ 'is-active': section === 'orders' }">
           <ClipboardList /><span>{{ t('qiaozhi.nav.orders') }}</span>
         </RouterLink>
-        <RouterLink v-if="blogEnabled" to="/blog" class="qz-pill" :class="{ 'is-active': section === 'blog' }">
+        <!-- 使用教程（qz-nav-blog）在 ≤1000px 只留图标；次要项（qz-nav-minor）在 ≤1120px 只留图标。title / aria-label 保留文案 -->
+        <RouterLink v-if="blogEnabled" to="/blog" class="qz-pill qz-nav-blog" :class="{ 'is-active': section === 'blog' }" :title="t('qiaozhi.nav.tutorial')" :aria-label="t('qiaozhi.nav.tutorial')">
           <BookOpen /><span>{{ t('qiaozhi.nav.tutorial') }}</span>
         </RouterLink>
-        <!-- 次要项（qz-nav-minor）在 ≤1000px 只留图标，title / aria-label 保留文案 -->
         <RouterLink to="/2fa" class="qz-pill qz-nav-minor" :class="{ 'is-active': section === 'tfa' }" :title="t('qiaozhi.nav.tfa')" :aria-label="t('qiaozhi.nav.tfa')">
           <ShieldCheck /><span>{{ t('qiaozhi.nav.tfa') }}</span>
         </RouterLink>
@@ -283,7 +283,7 @@ const onScroll = () => {
 onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('scroll', onScroll, { passive: true })
-  // 浮层（Toast / ConfirmDialog / 公告弹窗）Teleport 到 body，靠这个 class 拿到 ji8 配色
+  // 浮层（Toast / ConfirmDialog / 公告弹窗）Teleport 到 body，靠这个 class 拿到 --qz-* token 与 legacy 配色变量
   document.body.classList.add('qiaozhi-tokens')
 })
 onUnmounted(() => {

@@ -4,7 +4,9 @@
    Derived from Arc UI foundation.css (uiarc.dev, github.com/kuratlielia/arc-library, MIT).
    Arc's semantic roles, neutral oklch scale, radii, control heights, type scale, shadows,
    easing curves and durations are carried over; every name is re-prefixed `--qz-`.
-   Consumers (base.css, layout.css, page <style scoped>) read these tokens only — never raw values.
+   Rule for every other qiaozhi sheet — base.css (primitives), layout.css (shell), the page
+   <style scoped> blocks: read these tokens, never raw values. legacy.css bridges its old
+   `--bg` / `--surface` / … variables onto them while the remaining pages migrate.
 
    Structure: light colours → dark colours → theme-independent sizes → ≤760px overrides.
 
@@ -16,14 +18,22 @@
      dark) rather than Arc's `oklch(33% 0 0)` + `data-accent` mechanism; `--qz-on-accent` is a fixed
      colour, not `var(--background)`; `--qz-accent-subtle` keeps the legacy alpha (.1 light / .14 dark).
    - Light page / surface / text keep the legacy values (`#fafafa` / `#ffffff` / `#0a0a0a`); only the
-     grey steps (muted surface, borders, secondary and muted text) move to Arc's neutral scale.
+     grey steps (muted surface, borders, secondary and muted text) move to Arc's neutral scale —
+     except light `--qz-text-muted`, darkened from Arc's `oklch(59% 0 0)` (~4.1:1 on white) to
+     `oklch(55% 0 0)` (~4.9:1) so muted labels, hints and footer small print clear WCAG AA.
      Dark takes Arc's dark values (`oklch(19% 0 0)` page etc.).
+   - Added `--qz-brand-telegram` / `-whatsapp` / `-wechat` / `-qq`: third-party brand colours for the
+     contact panel glyphs and their "open" buttons, plus `--qz-on-brand` (the dark ink on those fills —
+     `--qz-on-accent` is white in light mode and fails AA there). Same values in both themes (a brand
+     colour does not follow the theme); kept here so no other sheet carries a colour literal.
    - Status hues keep the template's warning / danger / info (`#c68416` / `#d84a5a` / `#2769a8`, dark
      `#e0a63a` / `#f0697a` / `#7fb4ea`) plus a matching success (`#2f8f6f`, dark `#63c49e`) instead of
      Arc's `--tone-*` pastels.
    - Lengths are px, not rem (the legacy sheet is px-based). Added: `--qz-text-2xs: 11px` type floor,
      `--qz-header-bg`, `--qz-container`, `--qz-header-h`; `--qz-control-sm` grows to 40px below 760px.
-   - Not carried over: `--control-*`, `--tone-*`, `--arc-gradient-*`, `--series-*`, `--font-*`,
+   - Not carried over: `--control-on` / `--control-track` / `--control-thumb` / `--control-glyph` /
+     `--control-fill` (form-control part colours; Arc's control heights are carried over as
+     `--qz-control-*`), `--tone-*`, `--arc-gradient-*`, `--series-*`, `--font-*`,
      `--tracking-body`, `--ease-in-out`, `--text-4xl/5xl` and the global `:focus-visible` rules
      (focus styling is scoped in base.css; `--qz-focus-outline` keeps Arc's default colour).
    ========================================================================= */
@@ -38,7 +48,7 @@
   /* Text */
   --qz-text: #0a0a0a;
   --qz-text-secondary: oklch(46% 0 0);
-  --qz-text-muted: oklch(59% 0 0);
+  --qz-text-muted: oklch(55% 0 0);
   /* Edges */
   --qz-border: oklch(93.5% 0 0);
   --qz-border-subtle: oklch(96.5% 0 0);
@@ -55,6 +65,13 @@
   --qz-info: #2769a8;
   /* Chrome */
   --qz-header-bg: rgba(255, 255, 255, .9);
+  /* Third-party brands (contact panel); theme-independent, repeated unchanged on the dark scope.
+     --qz-on-brand is the ink on those saturated fills: white is only 2.0–2.8:1 on them, #0a0a0a ≥ 7.1:1. */
+  --qz-brand-telegram: #26a5e4;
+  --qz-brand-whatsapp: #25d366;
+  --qz-brand-wechat: #07c160;
+  --qz-brand-qq: #1ebafc;
+  --qz-on-brand: #0a0a0a;
   /* Elevation */
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .035);
   --qz-shadow-raised: 0 6px 18px oklch(0% 0 0 / .065), 0 1px 3px oklch(0% 0 0 / .035);
@@ -82,6 +99,11 @@
   --qz-danger: #f0697a;
   --qz-info: #7fb4ea;
   --qz-header-bg: oklch(19% 0 0 / .9);
+  --qz-brand-telegram: #26a5e4;
+  --qz-brand-whatsapp: #25d366;
+  --qz-brand-wechat: #07c160;
+  --qz-brand-qq: #1ebafc;
+  --qz-on-brand: #0a0a0a;
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .18);
   --qz-shadow-raised: 0 8px 22px oklch(0% 0 0 / .22);
   --qz-shadow-floating: 0 22px 55px oklch(0% 0 0 / .34);

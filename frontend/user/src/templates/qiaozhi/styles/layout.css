@@ -9,12 +9,14 @@
    `.qz-btn qz-btn--secondary qz-btn--sm` for the account button.
 
    Scope: `.qiaozhi-scope` only (nothing here is teleported to <body>).
-   Breakpoints: ≤1120 tighter header padding · ≤1000 secondary nav items (2FA / notice /
-   about) collapse to icon-only pills · ≤760 nav + desktop footer hidden, bottom nav +
-   mobile footer links shown, header 60px (token override in tokens.css).
-   Values: colours, font sizes, spacing, radii, motion are tokens; the only literal px are
-   icon glyphs (16 / 18), 1px hairlines and a few content-driven boxes (brand mark 34,
-   count badge 18, popover / panel widths).
+   Breakpoints: ≤1120 tighter header padding, secondary nav items (2FA / notice / about)
+   collapse to icon-only pills · ≤1000 the tutorial pill collapses too · ≤760 nav + desktop
+   footer hidden, bottom nav + mobile footer links shown, header 60px (token override in
+   tokens.css). The nav row is a hidden-scrollbar scroll box with an inline-end fade, so
+   whatever still overflows is never shown cut.
+   Values: colours, font sizes, spacing, radii, motion are tokens (brand glyph colours are
+   the `--qz-brand-*` tokens); the only literal px are icon glyphs (16 / 18), 1px hairlines
+   and a few content-driven boxes (brand mark 34, count badge 18, popover / panel widths).
    ========================================================================= */
 
 /* ---------- Layout-private geometry (derived from tokens; not design tokens) ----------
@@ -148,7 +150,10 @@
 
 /* Primary nav: a row of `.qz-pill`s. The row is a hidden-scrollbar scroll box so that, when
    every optional item is enabled and the viewport is narrow, pills scroll instead of
-   overlapping the brand or the actions; `safe center` keeps them centred while they fit. */
+   overlapping the brand or the actions; `safe center` keeps them centred while they fit.
+   The static inline-end mask fades the last 24px of the box, so a pill that does overflow
+   dissolves instead of showing a cut edge (only alpha matters: --qz-text is opaque in both
+   themes, `transparent` is the fade). While everything fits, nothing reaches that strip. */
 .qiaozhi-scope .qz-nav {
   display: flex;
   align-items: center;
@@ -159,6 +164,7 @@
   padding: var(--qz-space-1); /* room for focus rings inside the scroll box */
   overflow-x: auto;
   scrollbar-width: none;
+  mask-image: linear-gradient(to right, var(--qz-text) calc(100% - var(--qz-space-6)), transparent);
 }
 .qiaozhi-scope .qz-nav::-webkit-scrollbar {
   display: none;
@@ -422,6 +428,17 @@
 .qiaozhi-scope .qz-contact-icon:not(.is-email) svg {
   fill: currentcolor; /* solid brand glyphs; the mail icon is stroke-based */
 }
+/* Brand rows: the glyph and the row's "open" button take the brand colour (tokens.css --qz-brand-*),
+   keyed by the glyph's `is-<key>` class; the button label is the fixed dark ink `--qz-on-brand` in both
+   themes (white fails AA on these fills). The mail row keeps the neutral glyph and the accent button. */
+.qiaozhi-scope .qz-contact-icon.is-telegram { color: var(--qz-brand-telegram); }
+.qiaozhi-scope .qz-contact-icon.is-whatsapp { color: var(--qz-brand-whatsapp); }
+.qiaozhi-scope .qz-contact-icon.is-wechat { color: var(--qz-brand-wechat); }
+.qiaozhi-scope .qz-contact-icon.is-qq { color: var(--qz-brand-qq); }
+.qiaozhi-scope .qz-contact-list li:has(> .qz-contact-icon.is-telegram) .qz-btn--primary { color: var(--qz-on-brand); background: var(--qz-brand-telegram); border-color: var(--qz-brand-telegram); }
+.qiaozhi-scope .qz-contact-list li:has(> .qz-contact-icon.is-whatsapp) .qz-btn--primary { color: var(--qz-on-brand); background: var(--qz-brand-whatsapp); border-color: var(--qz-brand-whatsapp); }
+.qiaozhi-scope .qz-contact-list li:has(> .qz-contact-icon.is-wechat) .qz-btn--primary { color: var(--qz-on-brand); background: var(--qz-brand-wechat); border-color: var(--qz-brand-wechat); }
+.qiaozhi-scope .qz-contact-list li:has(> .qz-contact-icon.is-qq) .qz-btn--primary { color: var(--qz-on-brand); background: var(--qz-brand-qq); border-color: var(--qz-brand-qq); }
 .qiaozhi-scope .qz-contact-text {
   flex: 1 1 auto;
   min-width: 0;
@@ -488,7 +505,8 @@
   }
 }
 
-/* ---------- ≤1120: tighter header ---------- */
+/* ---------- ≤1120: tighter header; secondary nav items (2FA / notice / about) become icon-only pills
+   (label stays as title / aria-label) ---------- */
 @media (max-width: 1120px) {
   .qiaozhi-scope .qz-header {
     padding-inline: var(--qz-space-6);
@@ -496,19 +514,24 @@
   .qiaozhi-scope .qz-nav .qz-pill {
     padding-inline: var(--qz-space-2);
   }
-}
-
-/* ---------- ≤1000: secondary nav items become icon-only pills (label stays as title / aria-label) ---------- */
-@media (max-width: 1000px) {
-  .qiaozhi-scope .qz-header {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
   .qiaozhi-scope .qz-nav .qz-nav-minor {
     width: var(--qz-control-sm);
     padding-inline: 0;
     justify-content: center;
   }
   .qiaozhi-scope .qz-nav .qz-nav-minor > span {
+    display: none;
+  }
+}
+
+/* ---------- ≤1000: the tutorial (blog) pill collapses to its icon as well ---------- */
+@media (max-width: 1000px) {
+  .qiaozhi-scope .qz-nav .qz-nav-blog {
+    width: var(--qz-control-sm);
+    padding-inline: 0;
+    justify-content: center;
+  }
+  .qiaozhi-scope .qz-nav .qz-nav-blog > span {
     display: none;
   }
 }
@@ -548,7 +571,7 @@
     padding: var(--qz-space-5) var(--qz-space-3) var(--qz-space-8); /* bottom-nav clearance lives on .qz-footer-mobile */
   }
   .qiaozhi-scope > .qz-main > .min-h-screen {
-    padding-bottom: var(--qz-bottom-nav-clearance);
+    padding-bottom: var(--qz-space-8); /* same as .qz-container; the clearance lives on .qz-footer-mobile */
   }
 
   .qiaozhi-scope .qz-footer-mobile {

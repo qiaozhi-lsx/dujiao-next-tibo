@@ -1,10 +1,17 @@
 <template>
   <div ref="rootEl" class="qz-container qz-tfa">
     <section class="qz-panel qz-tfa-card qz-reveal is-pending">
+      <!-- 页头：eyebrow + h1 + 说明 + 返回（与购物车 / 查订单页同款胶囊） -->
       <header class="qz-tfa-head">
-        <span class="qz-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
-        <h1>{{ t('qiaozhi.tfa.title') }}</h1>
-        <p>{{ t('qiaozhi.tfa.desc') }}</p>
+        <div class="qz-tfa-head-copy">
+          <span class="qz-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
+          <h1>{{ t('qiaozhi.tfa.title') }}</h1>
+          <p>{{ t('qiaozhi.tfa.desc') }}</p>
+        </div>
+        <RouterLink to="/" class="qz-btn qz-btn--secondary qz-btn--sm">
+          <ChevronLeft />
+          {{ t('auth.login.backHome') }}
+        </RouterLink>
       </header>
 
       <!-- 输入区 -->
@@ -71,7 +78,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, ClipboardPaste, Copy } from 'lucide-vue-next'
+import { Check, ChevronLeft, ClipboardPaste, Copy } from 'lucide-vue-next'
 import { setupReveal } from './utils/reveal'
 import QzButton from './components/QzButton.vue'
 
@@ -278,12 +285,22 @@ onUnmounted(() => {
   overflow: visible;
 }
 
-/* ---------- 页头（同样压过 legacy 的 .qz-panel > header 内边距 / 底线） ---------- */
+/* ---------- 页头：文案 + 返回胶囊（同 Cart / GuestOrders 的页头布局，手机端胶囊挪到文案上方） ---------- */
 .qz-panel > .qz-tfa-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--qz-space-4);
+}
+
+.qz-tfa-head-copy {
   display: grid;
   gap: var(--qz-space-2);
-  padding: 0;
-  border-bottom: 0;
+  min-width: 0;
+}
+
+.qz-tfa-head > .qz-btn {
+  flex: none;
 }
 
 .qz-tfa-head h1 {
@@ -427,6 +444,12 @@ onUnmounted(() => {
   .qz-panel.qz-tfa-card {
     gap: var(--qz-space-4);
     padding: var(--qz-space-6) var(--qz-space-5);
+  }
+
+  .qz-panel > .qz-tfa-head {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: var(--qz-space-3);
   }
 }
 

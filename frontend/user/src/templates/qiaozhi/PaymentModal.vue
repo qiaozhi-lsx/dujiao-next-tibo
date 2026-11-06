@@ -1329,7 +1329,7 @@ onBeforeUnmount(() => {
 @keyframes pay-modal-rec-in { from { transform: translateY(60px); opacity: 0; } }
 
 .pay-modal__rec-header {
-  font-size: 10px; letter-spacing: 1.3px;
+  font-size: var(--qz-text-2xs); letter-spacing: 1.3px;
   color: var(--ux-ink-3); font-weight: 600;
   padding-bottom: 12px;
   border-bottom: 1px dashed var(--ux-line-2);
@@ -1361,8 +1361,9 @@ onBeforeUnmount(() => {
   font-size: 11px; color: var(--ux-ink-3);
   display: flex; align-items: center; gap: 5px;
 }
+/* 状态点画成 6px 圆（而非 7px 的 "●" 字形），模板字号地板是 11px */
 .pay-modal__rec-sub::before {
-  content: "●"; color: var(--ux-mint); font-size: 7px;
+  content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--ux-mint);
 }
 .pay-modal__rec-amt {
   font-size: 14px; font-weight: 800;
