@@ -1127,11 +1127,14 @@ onBeforeUnmount(() => {
   display: flex; gap: 10px;
 }
 .pay-modal__action-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  flex: 1 1 0; min-width: 0; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  /* 两个按钮平分一行（手机上每个只有约 154px 宽），英文等长文案会折成两行：高度跟随内容而不是写死 44px，
+     否则第二行会溢出按钮边框。字号与弹窗正文一致（14px），中文文案在手机宽度下也能保持一行。 */
+  flex: 1 1 0; min-width: 0; min-height: 44px;
+  padding: 8px 10px;
   border: 0; border-radius: 14px;
   cursor: pointer;
-  font-size: 15.5px; font-weight: 500;
+  font-size: 14px; font-weight: 500; line-height: 1.2; text-align: center;
   background: var(--ux-surface); color: var(--ux-ink-2);
   box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
 }
@@ -1142,7 +1145,7 @@ onBeforeUnmount(() => {
 }
 .pay-modal__action-btn.is-solid:hover:not(:disabled) { color: #fff; background: #262626; }
 .pay-modal__action-btn:disabled { opacity: .55; cursor: not-allowed; }
-.pay-modal__action-btn svg { width: 17px; height: 17px; }
+.pay-modal__action-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
 
 .pay-modal__panel {
   padding: 12px;
