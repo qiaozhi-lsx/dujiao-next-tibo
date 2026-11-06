@@ -26,6 +26,9 @@
      contact panel glyphs and their "open" buttons, plus `--qz-on-brand` (the dark ink on those fills —
      `--qz-on-accent` is white in light mode and fails AA there). Same values in both themes (a brand
      colour does not follow the theme); kept here so no other sheet carries a colour literal.
+   - Added `--qz-art-*`: the featured-card illustration palette (QzFeaturedCard.vue). Not an Arc concept; the
+     values are the brand literals of the old sheet, declared on both scopes with dark overrides only for the
+     per-variant washes and text inks. Fills / shadows are composite values, like `--qz-shadow-*`.
    - Status hues are Arc's `--tone-*` colours mapped onto `--qz-success` / `-warning` / `-danger` / `-info`:
      light takes Arc's deepened light tones (`oklch(50% 0.12 162)` / `oklch(55% 0.12 68)` / `oklch(53% 0.18 10)` /
      `oklch(51% 0.11 240)`), each ≥ 4.5:1 on white (5.6 / 5.0 / 5.8 / 5.7) for the 11–12px badges, chips and
@@ -79,6 +82,59 @@
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .035);
   --qz-shadow-raised: 0 6px 18px oklch(0% 0 0 / .065), 0 1px 3px oklch(0% 0 0 / .035);
   --qz-shadow-floating: 0 20px 48px oklch(0% 0 0 / .105), 0 3px 10px oklch(0% 0 0 / .045);
+  /* Featured-card artwork (QzFeaturedCard.vue, `.qz-fart` / `.fa-*`): the brand illustration palette, lifted
+     1:1 from the old sheet. `-wash` is the per-variant art background, `-ink` / `-num` are text colours, `-1..n`
+     are the flat brand colours the component color-mix()es its alpha variants from, `-shadow` values are complete
+     box-shadow / drop-shadow lists, and card / badge / chip fills are whole gradients. Brand colours do not follow
+     the theme (repeated unchanged on the dark scope); only the washes and the text inks have dark values. */
+  --qz-art-white: #ffffff;
+  --qz-art-icon-shadow: rgba(15, 23, 42, 0.2);
+  /* ChatGPT card stack: three pastel cards on dark teal ink */
+  --qz-art-gpt-1: linear-gradient(140deg, rgb(236, 252, 248), rgb(196, 238, 229));
+  --qz-art-gpt-2: linear-gradient(140deg, rgb(243, 240, 255), rgb(218, 211, 248));
+  --qz-art-gpt-3: linear-gradient(140deg, rgb(255, 246, 230), rgb(251, 223, 186));
+  --qz-art-gpt-ink: rgb(21, 52, 58);
+  --qz-art-gpt-shadow: rgba(20, 45, 60, 0.16) 0px 16px 34px, rgba(255, 255, 255, 0.65) 0px 0px 0px 1px inset;
+  /* Gemini star: -1 violet (orbit / glow / middle stop), -2 blue and -3 pink are the star's outer stops */
+  --qz-art-gemini-wash: linear-gradient(160deg, rgb(245, 243, 255), rgb(251, 249, 255));
+  --qz-art-gemini-1: rgb(141, 107, 255);
+  --qz-art-gemini-2: #4f8bff;
+  --qz-art-gemini-3: #d65fb4;
+  --qz-art-gemini-twinkle: rgb(160, 140, 255);
+  --qz-art-gemini-num: rgb(113, 88, 226);
+  --qz-art-gemini-shadow: rgba(108, 92, 231, 0.35) 0px 12px 24px;
+  /* X Premium card: near-black gradient stops, white ink */
+  --qz-art-x-wash: rgba(15, 23, 42, 0.09);
+  --qz-art-x-1: rgb(48, 52, 59);
+  --qz-art-x-2: rgb(12, 13, 16);
+  --qz-art-x-3: rgb(30, 32, 37);
+  --qz-art-x-shadow: rgba(0, 0, 0, 0.3) 0px 24px 44px, rgba(255, 255, 255, 0.14) 0px 1px inset;
+  /* Duolingo: -1 is the glow green, -ink the word pills, -num the day counter */
+  --qz-art-duo-wash: linear-gradient(160deg, rgb(239, 251, 228), rgb(248, 253, 242));
+  --qz-art-duo-1: rgb(88, 204, 2);
+  --qz-art-duo-ink: rgb(75, 154, 0);
+  --qz-art-duo-num: rgb(88, 167, 0);
+  --qz-art-duo-shadow: rgba(60, 120, 0, 0.14) 0px 8px 20px;
+  /* Muse: -1 orange / -2 pink (ring stroke, glow, number gradient), -3 glow centre; four ring badges; rising chips */
+  --qz-art-muse-wash: linear-gradient(160deg, rgb(255, 243, 228), rgb(255, 238, 246));
+  --qz-art-muse-1: rgb(224, 113, 29);
+  --qz-art-muse-2: rgb(232, 68, 122);
+  --qz-art-muse-3: rgb(255, 138, 76);
+  --qz-art-muse-twinkle: rgb(255, 159, 90);
+  --qz-art-muse-num: linear-gradient(120deg, rgb(224, 113, 29), rgb(232, 68, 122));
+  --qz-art-muse-badge-1: linear-gradient(135deg, rgb(255, 154, 98), rgb(255, 95, 143));
+  --qz-art-muse-badge-2: linear-gradient(135deg, rgb(124, 140, 255), rgb(165, 107, 255));
+  --qz-art-muse-badge-3: linear-gradient(135deg, rgb(63, 63, 70), rgb(10, 10, 10));
+  --qz-art-muse-badge-4: linear-gradient(135deg, rgb(247, 183, 51), rgb(252, 143, 58));
+  --qz-art-muse-badge-shadow: rgba(160, 60, 40, 0.2) 0px 5px 12px;
+  --qz-art-muse-chip: linear-gradient(135deg, rgb(255, 233, 210), rgb(255, 217, 230));
+  --qz-art-muse-chip-ink: rgb(185, 72, 15);
+  --qz-art-muse-chip-shadow: rgba(185, 72, 15, 0.16) 0px 6px 16px;
+  /* Tools strip (full-width card): -1 is the glow blue, -shadow sits under the price pills */
+  --qz-art-tools-wash: linear-gradient(120deg, rgb(238, 244, 255), rgb(236, 250, 244));
+  --qz-art-tools-1: rgb(31, 102, 245);
+  --qz-art-tools-twinkle: rgb(111, 156, 255);
+  --qz-art-tools-shadow: rgba(18, 35, 63, 0.08) 0px 3px 8px;
 }
 
 /* ---------- Dark (tuned separately, not inverted) ---------- */
@@ -110,6 +166,50 @@
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .18);
   --qz-shadow-raised: 0 8px 22px oklch(0% 0 0 / .22);
   --qz-shadow-floating: 0 22px 55px oklch(0% 0 0 / .34);
+  /* Featured-card artwork: washes turn into translucent tints of the brand colour, the text inks lighten;
+     everything else is the brand palette and repeats the light values. */
+  --qz-art-white: #ffffff;
+  --qz-art-icon-shadow: rgba(15, 23, 42, 0.2);
+  --qz-art-gpt-1: linear-gradient(140deg, rgb(236, 252, 248), rgb(196, 238, 229));
+  --qz-art-gpt-2: linear-gradient(140deg, rgb(243, 240, 255), rgb(218, 211, 248));
+  --qz-art-gpt-3: linear-gradient(140deg, rgb(255, 246, 230), rgb(251, 223, 186));
+  --qz-art-gpt-ink: rgb(21, 52, 58);
+  --qz-art-gpt-shadow: rgba(20, 45, 60, 0.16) 0px 16px 34px, rgba(255, 255, 255, 0.65) 0px 0px 0px 1px inset;
+  --qz-art-gemini-wash: linear-gradient(160deg, rgba(141, 107, 255, 0.14), rgba(141, 107, 255, 0.05));
+  --qz-art-gemini-1: rgb(141, 107, 255);
+  --qz-art-gemini-2: #4f8bff;
+  --qz-art-gemini-3: #d65fb4;
+  --qz-art-gemini-twinkle: rgb(160, 140, 255);
+  --qz-art-gemini-num: rgb(180, 164, 255);
+  --qz-art-gemini-shadow: rgba(108, 92, 231, 0.35) 0px 12px 24px;
+  --qz-art-x-wash: rgba(255, 255, 255, 0.07);
+  --qz-art-x-1: rgb(48, 52, 59);
+  --qz-art-x-2: rgb(12, 13, 16);
+  --qz-art-x-3: rgb(30, 32, 37);
+  --qz-art-x-shadow: rgba(0, 0, 0, 0.3) 0px 24px 44px, rgba(255, 255, 255, 0.14) 0px 1px inset;
+  --qz-art-duo-wash: linear-gradient(160deg, rgba(88, 204, 2, 0.13), rgba(88, 204, 2, 0.04));
+  --qz-art-duo-1: rgb(88, 204, 2);
+  --qz-art-duo-ink: rgb(142, 224, 74);
+  --qz-art-duo-num: rgb(142, 224, 74);
+  --qz-art-duo-shadow: rgba(60, 120, 0, 0.14) 0px 8px 20px;
+  --qz-art-muse-wash: linear-gradient(160deg, rgba(245, 158, 11, 0.15), rgba(232, 68, 122, 0.08));
+  --qz-art-muse-1: rgb(224, 113, 29);
+  --qz-art-muse-2: rgb(232, 68, 122);
+  --qz-art-muse-3: rgb(255, 138, 76);
+  --qz-art-muse-twinkle: rgb(255, 159, 90);
+  --qz-art-muse-num: linear-gradient(120deg, rgb(255, 176, 102), rgb(255, 134, 173));
+  --qz-art-muse-badge-1: linear-gradient(135deg, rgb(255, 154, 98), rgb(255, 95, 143));
+  --qz-art-muse-badge-2: linear-gradient(135deg, rgb(124, 140, 255), rgb(165, 107, 255));
+  --qz-art-muse-badge-3: linear-gradient(135deg, rgb(63, 63, 70), rgb(10, 10, 10));
+  --qz-art-muse-badge-4: linear-gradient(135deg, rgb(247, 183, 51), rgb(252, 143, 58));
+  --qz-art-muse-badge-shadow: rgba(160, 60, 40, 0.2) 0px 5px 12px;
+  --qz-art-muse-chip: linear-gradient(135deg, rgb(255, 233, 210), rgb(255, 217, 230));
+  --qz-art-muse-chip-ink: rgb(185, 72, 15);
+  --qz-art-muse-chip-shadow: rgba(185, 72, 15, 0.16) 0px 6px 16px;
+  --qz-art-tools-wash: linear-gradient(120deg, rgba(31, 102, 245, 0.14), rgba(19, 192, 142, 0.08));
+  --qz-art-tools-1: rgb(31, 102, 245);
+  --qz-art-tools-twinkle: rgb(111, 156, 255);
+  --qz-art-tools-shadow: rgba(18, 35, 63, 0.08) 0px 3px 8px;
 }
 
 /* ---------- Sizes, type, motion (theme-independent) ---------- */

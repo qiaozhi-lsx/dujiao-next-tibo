@@ -114,6 +114,7 @@ import QzProductCard from './components/QzProductCard.vue'
 import QzCategoryPanel, { type PanelCategory } from './components/QzCategoryPanel.vue'
 import QzSearch from './components/QzSearch.vue'
 import type { SearchableItem } from './utils/searchRank'
+import { pickFeatured } from './utils/featured'
 import { setupReveal } from './utils/reveal'
 import { useQiaozhiPrice } from './utils/price'
 
@@ -192,14 +193,8 @@ const activeCategoryName = computed(() => {
 })
 
 // ==================== 精选拆分 ====================
-const FEATURED_PATTERN = /chatgpt|gpt|gemini|bard|google|^x-|x-premium|twitter|duolingo|duo|muse/i
-
-const featuredProducts = computed(() => {
-  const matched = allProducts.value.filter((p) => FEATURED_PATTERN.test(String(p.slug || '')))
-  if (matched.length) return matched.slice(0, 5)
-  // 没有任何匹配变体的商品时，用前 4 个产品做默认卡
-  return allProducts.value.slice(0, 4)
-})
+// 后台给商品打 featured / 精选 标签即入选（前 5）；一个都没打时沿用 slug 品牌正则，再回退前 4 做默认卡。
+const featuredProducts = computed(() => pickFeatured(allProducts.value))
 
 const toolsCard = computed(() => {
   if (!allProducts.value.length) return null
