@@ -94,7 +94,7 @@
         <QzButton
           type="submit"
           size="lg"
-          class="qz-arc-block"
+          class="qz-btn--block"
           :loading="recharging"
           :disabled="channelLoading || !hasChannels"
         >

@@ -1,8 +1,7 @@
 <template>
   <button
     ref="buttonEl"
-    class="qz-arc-btn"
-    :class="[`is-${variant}`, `is-${size}`, { 'is-loading': loading, 'is-inert': inert }]"
+    :class="['qz-btn', `qz-btn--${variant}`, size !== 'md' && `qz-btn--${size}`, { 'is-loading': loading, 'is-inert': inert }]"
     :disabled="disabled || undefined"
     :aria-busy="loading || undefined"
     :aria-disabled="loading || ariaDisabled || undefined"
@@ -148,61 +147,11 @@ watch(() => props.loading, (value) => {
 </script>
 
 <style>
-.qz-arc-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  border-radius: var(--r-pill, 999px);
-  font-weight: 800;
-  line-height: 1;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-}
-.qz-arc-btn:active:not(:disabled):not(.is-inert) {
-  transform: scale(var(--qz-press, 0.97));
-  transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-}
-.qz-arc-btn[aria-busy="true"] { cursor: progress; }
+/* 外观（尺寸 / 变体 / hover / active / disabled / focus）全部在 styles/base.css 的 .qz-btn / .qz-btn--* 里，这里只管 label 形变与 loader */
 
-.qz-arc-btn.is-sm { height: 34px; padding: 0px 13px; font-size: 12.5px; }
-.qz-arc-btn.is-md { height: 44px; padding: 0px 22px; font-size: 14px; }
-.qz-arc-btn.is-lg { height: 50px; padding: 0px 28px; font-size: 15px; }
-.qz-arc-btn.is-sm .qz-arc-content { gap: 6px; }
-.qz-arc-btn.is-md .qz-arc-content { gap: 8px; }
-.qz-arc-btn.is-lg .qz-arc-content { gap: 8px; }
-.qz-arc-btn.is-sm .qz-arc-content svg { width: 14px; height: 14px; }
-.qz-arc-btn.is-md .qz-arc-content svg { width: 16px; height: 16px; }
-.qz-arc-btn.is-lg .qz-arc-content svg { width: 18px; height: 18px; }
-
-.qz-arc-btn.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.qz-arc-btn.is-secondary { background: var(--surface); border-color: var(--line-strong); color: var(--text); }
-.qz-arc-btn.is-ghost { background: transparent; border-color: transparent; color: var(--text); }
-.qz-arc-btn.is-danger { background: var(--surface); border-color: var(--line-strong); color: var(--red); }
-
-@media (hover: hover) and (pointer: fine) {
-  .qz-arc-btn.is-primary:hover:not(:disabled):not(.is-inert) { background: var(--accent-strong); border-color: var(--accent-strong); }
-  .qz-arc-btn.is-secondary:hover:not(:disabled):not(.is-inert) { background: var(--surface-2); border-color: var(--accent-line); }
-  .qz-arc-btn.is-ghost:hover:not(:disabled):not(.is-inert) { background: var(--accent-soft); }
-  .qz-arc-btn.is-danger:hover:not(:disabled):not(.is-inert) { background: var(--red-soft); border-color: var(--red); }
-}
-
-/* 禁用：主按钮整体褪色；次/危险保留描边变灰底；ghost 变灰字——不可用仍读得出是按钮 */
-.qz-arc-btn:disabled { cursor: not-allowed; }
-.qz-arc-btn.is-primary:disabled { opacity: 0.4; }
-.qz-arc-btn.is-secondary:disabled,
-.qz-arc-btn.is-danger:disabled { background: var(--surface-2); color: var(--muted); }
-.qz-arc-btn.is-ghost:disabled { color: var(--muted); }
-
-.qz-arc-btn.qz-arc-block { width: 100%; }
-
-/* label 槽：宽度由脚本测出并弹簧形变；内容永远按自然宽度渲染，不换行 */
-.qz-arc-slot { display: inline-grid; place-items: center; }
-.qz-arc-content { display: inline-flex; align-items: center; white-space: nowrap; }
+/* label 槽：宽度由脚本测出并弹簧形变；内容永远按自然宽度渲染，不换行；图标与文字间距沿用 .qz-btn 的 gap */
+.qz-arc-slot { display: inline-grid; place-items: center; gap: inherit; }
+.qz-arc-content { display: inline-flex; align-items: center; gap: inherit; white-space: nowrap; }
 .qz-arc-label { display: inline-flex; align-items: center; gap: inherit; }
 
 /* 文案切换：新字从下方轻微上浮（带模糊）进场，旧字加速上移退场 */
@@ -223,8 +172,8 @@ watch(() => props.loading, (value) => {
 .qz-arc-label-fade-enter-from,
 .qz-arc-label-fade-leave-to { opacity: 0; }
 
-/* loading 转圈 */
-.qz-arc-loader { display: inline-grid; place-items: center; margin-right: 8px; }
+/* loading 转圈（与 label 的间距由 .qz-btn 的 gap 提供） */
+.qz-arc-loader { display: inline-grid; place-items: center; }
 .qz-arc-spinner {
   width: 15px;
   height: 15px;
@@ -240,8 +189,6 @@ watch(() => props.loading, (value) => {
 .qz-arc-loader-leave-to { opacity: 0; transform: scale(0.6); }
 
 @media (prefers-reduced-motion: reduce) {
-  .qz-arc-btn,
-  .qz-arc-btn:active:not(:disabled):not(.is-inert) { transform: none; transition-duration: 0.001ms; }
   .qz-arc-label-text-enter-from,
   .qz-arc-label-text-leave-to,
   .qz-arc-label-icon-enter-from,

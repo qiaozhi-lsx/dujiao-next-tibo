@@ -173,3 +173,54 @@ test('tokens.css defines the qz token contract on both scopes', () => {
   assert.equal(mobile.get('--qz-control-sm'), '40px', `${MOBILE_MEDIA} must set --qz-control-sm: 40px`)
   assert.equal(mobile.get('--qz-header-h'), '60px', `${MOBILE_MEDIA} must set --qz-header-h: 60px`)
 })
+
+// ---------------------------------------------------------------------------
+// Base classes in styles/base.css consume tokens only.
+//
+// Colours come from --qz-* (color-mix() of tokens is fine), every font-size is a
+// --qz-text-* step and every control height is a --qz-control-* step. The only fixed
+// heights are glyphs inside controls (16 / 18), badge (22), chip (24) and the
+// empty-state icon (40). QzButton.vue keeps just its label morph / loader CSS; its
+// size and variant looks live in base.css as .qz-btn--*.
+// ---------------------------------------------------------------------------
+const BASE_CSS = join(TEMPLATE_ROOT, 'styles', 'base.css')
+const QZ_BUTTON_VUE = join(TEMPLATE_ROOT, 'components', 'QzButton.vue')
+const BASE_PX_HEIGHTS = new Set(['16px', '18px', '22px', '24px', '40px'])
+const QZ_BUTTON_STATE_CLASSES = ['is-sm', 'is-md', 'is-lg', 'is-primary', 'is-secondary', 'is-ghost', 'is-danger']
+
+const lineOf = (text: string, index: number) => text.slice(0, index).split('\n').length
+
+test('base.css only consumes tokens', () => {
+  const css = readFileSync(BASE_CSS, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+
+  const colourLiterals = [...css.matchAll(/#[0-9a-f]{3,8}\b|\b(?:rgba?|oklch)\(/gi)].map(
+    (match) => `base.css:${lineOf(css, match.index)} ${match[0]}`,
+  )
+  assert.deepEqual(colourLiterals, [], 'base.css must not contain #hex / rgb() / rgba() / oklch() literals; use --qz-* tokens')
+
+  const fontSizes = [...css.matchAll(/font-size\s*:\s*([^;}]+)/g)]
+    .filter(([, value = '']) => !value.trim().startsWith('var(--qz-text-'))
+    .map((match) => `base.css:${lineOf(css, match.index)} font-size: ${(match[1] ?? '').trim()}`)
+  assert.deepEqual(fontSizes, [], 'every font-size in base.css must be a --qz-text-* token')
+
+  const heights = [...css.matchAll(/(?<![\w-])(min-height|height)\s*:\s*([^;}]+)/g)]
+    .filter(([, , value = '']) => {
+      const trimmed = value.trim()
+      return /^[\d.]+px$/.test(trimmed) ? !BASE_PX_HEIGHTS.has(trimmed) : !trimmed.startsWith('var(--qz-control-')
+    })
+    .map((match) => `base.css:${lineOf(css, match.index)} ${match[1]}: ${(match[2] ?? '').trim()}`)
+  assert.deepEqual(
+    heights,
+    [],
+    `height / min-height in base.css must be var(--qz-control-*) or one of ${[...BASE_PX_HEIGHTS].join(' / ')}`,
+  )
+})
+
+test('QzButton.vue has no size/variant css of its own', () => {
+  const sfc = readFileSync(QZ_BUTTON_VUE, 'utf8')
+  const style = [...sfc.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(([, body = '']) => body).join('\n')
+  assert.ok(style.trim().length > 0, 'QzButton.vue should keep a <style> block for its label morph and loader')
+
+  const leaked = QZ_BUTTON_STATE_CLASSES.filter((name) => style.includes(name))
+  assert.deepEqual(leaked, [], 'QzButton size / variant styling belongs to .qz-btn--* in styles/base.css')
+})
