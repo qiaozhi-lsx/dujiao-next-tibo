@@ -1,26 +1,50 @@
 package web
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
 
 // TestInjectInitialConfigEscapesScriptTag 验证注入的 JSON 不会被 </script> 污染破坏。
+//
+// HTML 词法分析器对 </script 的匹配大小写不敏感且允许标签名后跟空白，<!-- 后再出现 <script
+// 会进入 double-escaped 状态；三类向量都不能以字面量形式出现在 inline script 的 JSON 体中。
 func TestInjectInitialConfigEscapesScriptTag(t *testing.T) {
+	const siteName = "</SCRIPT ><script>alert(1)</script><!--<script>"
 	payload := map[string]interface{}{
 		"storefront_template": "qiaozhi",
-		"site_name":           "ai.1iiu.com</script><script>alert(1)</script>",
+		"site_name":           siteName,
 	}
 	got, err := renderInitialConfigScript(payload)
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
 	}
-	if !strings.Contains(got, "window.__PUBLIC_CONFIG__") {
+	const prefix = "window.__PUBLIC_CONFIG__="
+	start := strings.Index(got, prefix)
+	if start < 0 {
 		t.Fatalf("expected window.__PUBLIC_CONFIG__ assignment, got: %s", got)
 	}
-	// 必须对 </script> 进行转义，避免 XSS
-	if strings.Contains(got, "</script>") && !strings.Contains(got, `<\/script>`) {
-		t.Fatalf("script tag not escaped: %s", got)
+	start += len(prefix)
+	// 包装器自身以 ;</script> 结尾，取最后一个作为 JSON 体的右边界
+	end := strings.LastIndex(got, ";</script>")
+	if end < start {
+		t.Fatalf("expected trailing ;</script>, got: %s", got)
+	}
+	body := got[start:end]
+	lower := strings.ToLower(body)
+	for _, vector := range []string{"</script", "<script", "<!--"} {
+		if strings.Contains(lower, vector) {
+			t.Fatalf("JSON body must not contain %q (case-insensitive), got: %s", vector, body)
+		}
+	}
+	// 转义后的 JSON 必须仍然合法，且能还原出原始字符串
+	var m map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &m); err != nil {
+		t.Fatalf("JSON body must be valid JSON: %v, body: %s", err, body)
+	}
+	if m["site_name"] != siteName {
+		t.Fatalf("site_name round-trip mismatch: got %q want %q", m["site_name"], siteName)
 	}
 	// 必须带 data-cfasync="false"，否则 Cloudflare Rocket Loader 会异步化这段 inline script
 	if !strings.Contains(got, `data-cfasync="false"`) {
