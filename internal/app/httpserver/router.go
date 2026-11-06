@@ -288,7 +288,9 @@ func SetupRouter(cfg *config.Config, c *container.Container) *gin.Engine {
 		siteResolver := web.SiteResolver(func(req *http.Request) (bool, string) {
 			return siteResolverFromTenant(c.ResellerDomainResolver.ResolveRequest(req.Context(), req))
 		})
-		if err := web.RegisterUser(r, web.UserFS(), c.SettingService, siteResolver); err != nil {
+		// 入口内联配置走 publicconfig 的 settings 适配器而不是裸 SettingService：
+		// 适配器额外实现 web.InitialConfigFlagsSource，首帧才带 nav_config 与注册 / 邮箱验证开关。
+		if err := web.RegisterUser(r, web.UserFS(), publicconfigwiring.NewInitialConfigSource(c), siteResolver); err != nil {
 			log.Sugar().Fatalf("注册 user SPA 失败: %v", err)
 		}
 	}
