@@ -373,11 +373,11 @@ func newInjectableUserFS() fstest.MapFS {
 }
 
 // TestRegisterUser_SkipsInjectionForResellerHost 分销白标站的入口不能被注入主站的
-// brand/seo/nav/scripts，否则首帧会闪出主站品牌、执行主站脚本。
+// brand/seo/nav/scripts，否则首帧会闪出主站品牌、执行主站脚本；也不该为此去读 settings。
 func TestRegisterUser_SkipsInjectionForResellerHost(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	settings := staticConfigSource{"brand": map[string]interface{}{"site_name": "Main Shop"}}
+	settings := &countingConfigSource{data: map[string]interface{}{"brand": map[string]interface{}{"site_name": "Main Shop"}}}
 	site := func(*http.Request) (bool, string) { return false, "r.example.test" }
 	if err := RegisterUser(r, newInjectableUserFS(), settings, site); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
@@ -396,6 +396,9 @@ func TestRegisterUser_SkipsInjectionForResellerHost(t *testing.T) {
 	}
 	if !strings.Contains(body, "user-spa") {
 		t.Fatalf("expected raw SPA index, got: %s", body)
+	}
+	if got := settings.calls.Load(); got != 0 {
+		t.Fatalf("GetConfig calls = %d, want 0 (non-main site must not read settings)", got)
 	}
 }
 

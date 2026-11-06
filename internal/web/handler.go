@@ -36,8 +36,8 @@ var safeTenantHost = regexp.MustCompile(`^[a-z0-9.\-:\[\]]*$`)
 //
 // tenant.host 是第一个进入内联 <script> 的请求侧数据：Go 服务器会拒绝含 '<' '>' '"' 空白的
 // req.Host，但 reseller.trusted_forwarded_host 开启时它来自 X-Forwarded-Host，而 NormalizeHost
-// 只做小写 / 去端口。renderInitialConfigScript 关闭了 json 的 HTML 转义且只精确替换 "</script>"，
-// "</script >" 之类变体会把脚本元素提前关闭，所以这里按白名单兜底，不依赖序列化层的转义策略。
+// 只做小写 / 去端口，不过滤字符。这里按 Host 字面量白名单兜底，不依赖序列化层的转义策略
+// （无论 encoding/json 是否转义 HTML、是否替换 "</script>"），是纵深防御。
 func isSafeTenantHost(host string) bool {
 	return safeTenantHost.MatchString(host)
 }

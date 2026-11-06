@@ -17,9 +17,13 @@ import (
 // 需要秒级一致性时走 URL 版本号或 CF Purge API,不要在这里拉长 TTL。
 const publicCacheControlValue = "public, max-age=10, s-maxage=10"
 
-// publicCacheVaryValue 声明公开接口响应随请求语言变化:
-// 文案按 X-Lang / Accept-Language 本地化(见 i18n.ResolveLocale),
-// 缓存键必须区分语言,否则 zh-CN 的响应会被重放给 en-US 访客。
+// publicCacheVaryValue 声明公开接口响应可能随请求语言变化。
+//
+// 成功响应体当前不按请求语言渲染(多语言字段整包下发,由前端选语言);按 X-Lang /
+// Accept-Language 本地化的只有错误体(见 i18n.ResolveLocale),而错误体已由 response.Error
+// 写成 no-store。所以 Vary 在这里是兜底:为已 no-store 的错误体与未来可能按语言渲染的
+// 公开字段兜住缓存键,不让 zh-CN 的响应被重放给 en-US 访客。
+// 代价是尊重 Vary 的缓存(nginx / Varnish)会按 Accept-Language 碎片化;Cloudflare 忽略 Vary,不受影响。
 // ?lang 查询参数本身就在缓存键里,无需声明。
 const publicCacheVaryValue = "Accept-Language, X-Lang"
 
