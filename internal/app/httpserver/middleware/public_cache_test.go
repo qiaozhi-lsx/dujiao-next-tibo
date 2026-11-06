@@ -85,3 +85,43 @@ func TestPublicCacheHeaders_HandlerCanOverride(t *testing.T) {
 		t.Errorf("handler override failed, got %q", got)
 	}
 }
+
+// TestPublicCacheHeaders_HandlerCanOverrideWithNoStore 验证挂在 /api/v1/public 组上的
+// 中间件在 c.Next() 之前写默认头后，一次性挑战类接口（如 /captcha/image）在 handler 内
+// c.Header("Cache-Control", "no-store") 能把最终响应头替换为唯一的 no-store（不是追加第二个值），
+// 且该覆盖只作用于本次响应，同组其他路由仍拿到默认缓存头。
+func TestPublicCacheHeaders_HandlerCanOverrideWithNoStore(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	public := r.Group("/api/v1/public")
+	public.Use(PublicCacheHeaders())
+	public.GET("/captcha/image", func(c *gin.Context) {
+		c.Header("Cache-Control", "no-store")
+		c.JSON(http.StatusOK, gin.H{"captcha_id": "id-1"})
+	})
+	public.GET("/config", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/public/captcha/image", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+	if got := w.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want %q", got, "no-store")
+	}
+	if vals := w.Header().Values("Cache-Control"); len(vals) != 1 {
+		t.Errorf("Cache-Control should be replaced, not appended; got %q", vals)
+	}
+
+	// 覆盖只影响本次响应：同组未覆盖的路由仍带默认缓存头。
+	req2 := httptest.NewRequest(http.MethodGet, "/api/v1/public/config", nil)
+	w2 := httptest.NewRecorder()
+	r.ServeHTTP(w2, req2)
+	if got := w2.Header().Get("Cache-Control"); got == "" || got == "no-store" {
+		t.Errorf("sibling route Cache-Control = %q, want middleware default", got)
+	}
+}

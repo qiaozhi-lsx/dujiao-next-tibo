@@ -26,6 +26,11 @@ func NewPublicHandler(generator ImageChallengeGenerator) *PublicHandler {
 
 // GetImageCaptcha 获取图片验证码挑战。
 func (h *PublicHandler) GetImageCaptcha(c *gin.Context) {
+	// 验证码是一次性挑战，且错误分支同样返回 HTTP 200 + 业务错误码；
+	// 必须在任何响应路径之前覆盖 /api/v1/public 路由组写入的 public 缓存头，
+	// 否则 CDN/浏览器会在 10s 内把同一个 captcha_id（或同一份错误）复用给刷新请求。
+	c.Header("Cache-Control", "no-store")
+
 	if h == nil || h.generator == nil {
 		ginutil.RespondError(c, response.CodeInternal, "error.captcha_unavailable", captchacontract.ErrConfigInvalid)
 		return
