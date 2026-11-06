@@ -1,13 +1,13 @@
 <template>
-  <div class="qz-container qz-pd">
-    <!-- 返回 -->
-    <button type="button" class="qz-pd-back" @click="goBack">
+  <div class="qz-container qz-pd-page">
+    <!-- 返回：secondary sm 胶囊，只在手机端吸顶（桌面静态，不再压住下方标题） -->
+    <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm qz-pd-return" @click="goBack">
       <ChevronLeft />
       {{ t('qiaozhi.detail.back') }}
     </button>
 
     <!-- 骨架 -->
-    <div v-if="loading" class="qz-pd-skeleton">
+    <div v-if="loading" class="qz-pd-skeleton" aria-hidden="true">
       <div class="qz-pd-sk-block"></div>
       <div class="qz-pd-sk-line is-lg"></div>
       <div class="qz-pd-sk-line"></div>
@@ -22,7 +22,7 @@
           <div class="qz-pd-media-sticky">
             <div class="qz-pd-stage">
               <img v-if="currentImage" :src="currentImage" :alt="title" />
-              <span v-else class="qz-pd-logo qz-brand-icon"><b>{{ title.slice(0, 1) }}</b></span>
+              <span v-else class="qz-pd-logo" aria-hidden="true"><b>{{ title.slice(0, 1) }}</b></span>
             </div>
             <div v-if="gallery.length > 1" class="qz-pd-thumbs">
               <button
@@ -30,6 +30,7 @@
                 :key="i"
                 type="button"
                 :class="{ 'is-active': i === currentIndex }"
+                :aria-pressed="i === currentIndex"
                 @click="currentIndex = i"
               >
                 <img :src="img" :alt="`${i + 1}`" loading="lazy" />
@@ -40,13 +41,15 @@
 
         <!-- 右：购买区（内嵌下单） -->
         <div class="qz-pd-info">
-          <h1>{{ title }}</h1>
+          <div class="qz-pd-title-row">
+            <h1>{{ title }}</h1>
+            <button type="button" class="qz-btn qz-btn--ghost qz-btn--sm" @click="shareProduct"><Share2 />{{ t('qiaozhi.detail.share') }}</button>
+          </div>
 
-          <div class="qz-pd-chips">
-            <span class="is-accent"><Zap />{{ fulfillmentLabel }}</span>
-            <span class="is-accent">{{ purchaseTypeLabel }}</span>
-            <span :class="soldOut ? 'is-danger' : 'is-accent'">{{ stockLabel }}</span>
-            <button type="button" class="qz-pd-share" @click="shareProduct"><Share2 />{{ t('qiaozhi.detail.share') }}</button>
+          <div class="qz-pd-chip-row">
+            <span class="qz-chip"><Zap />{{ fulfillmentLabel }}</span>
+            <span class="qz-chip">{{ purchaseTypeLabel }}</span>
+            <span class="qz-chip" :class="{ 'is-danger': soldOut }">{{ stockLabel }}</span>
           </div>
 
           <div class="qz-pd-price-row">
@@ -54,102 +57,117 @@
               <span class="qz-pd-price-sym">{{ unitPriceParts.symbol }}</span>
               <strong>{{ unitPriceParts.major }}{{ unitPriceParts.minor }}</strong>
             </div>
-            <div v-if="promoTag" class="qz-pd-price-tag" :class="promoTag.tone">{{ promoTag.text }}</div>
+            <span v-if="promoTag" class="qz-badge" :class="promoTag.tone">{{ promoTag.text }}</span>
           </div>
 
           <!-- 规格 -->
-          <div v-if="plans.length" class="qz-pd-field">
-            <label>{{ t('qiaozhi.detail.spec') }}</label>
-            <div class="qz-pd-skus">
+          <div v-if="plans.length" class="qz-field">
+            <span id="qz-pd-sku-label" class="qz-field-label">{{ t('qiaozhi.detail.spec') }}</span>
+            <div class="qz-pd-sku-list" role="group" aria-labelledby="qz-pd-sku-label">
               <button
                 v-for="plan in plans"
                 :key="plan.id"
                 type="button"
+                class="qz-pill"
+                :class="{ 'is-active': plan.selected }"
                 :disabled="plan.disabled"
-                :class="{ 'is-active': plan.selected, 'is-disabled': plan.disabled }"
+                :aria-pressed="plan.selected"
                 @click="selectPlan(plan.id, plan.disabled)"
               >
                 <b>{{ plan.name }}</b>
                 <small>{{ plan.hint }}</small>
               </button>
             </div>
-            <p v-if="requiresSKUSelection" class="qz-pd-hint">{{ t('productDetail.skuRequired') }}</p>
+            <p v-if="requiresSKUSelection" class="qz-field-hint">{{ t('productDetail.skuRequired') }}</p>
           </div>
 
           <!-- 数量 -->
-          <div class="qz-pd-field">
-            <label>{{ t('productDetail.quantity') }}</label>
-            <QzQtyStepper v-model="quantity" :min="quantityEffectiveMin" :max="quantityEffectiveLimit" />
+          <div class="qz-field">
+            <span class="qz-field-label">{{ t('productDetail.quantity') }}</span>
+            <div>
+              <QzQtyStepper v-model="quantity" :min="quantityEffectiveMin" :max="quantityEffectiveLimit" />
+            </div>
           </div>
 
           <template v-if="pitchLine">
-            <p class="qz-pd-desc" :class="{ 'qz-pd-desc--clamp': !descExpanded }">{{ pitchLine }}</p>
-            <button type="button" class="qz-pd-desc-toggle" @click="descExpanded = !descExpanded">
+            <p id="qz-pd-desc" class="qz-pd-desc" :class="{ 'qz-pd-desc--clamp': !descExpanded }">
+              <span class="qz-pd-desc-text">{{ pitchLine }}</span>
+            </p>
+            <button
+              type="button"
+              class="qz-btn qz-btn--ghost qz-btn--sm qz-pd-desc-toggle"
+              :aria-expanded="descExpanded"
+              aria-controls="qz-pd-desc"
+              @click="descExpanded = !descExpanded"
+            >
               {{ descExpanded ? t('qiaozhi.detail.descCollapse') : t('qiaozhi.detail.descExpand') }}
             </button>
           </template>
 
           <!-- 内嵌下单 -->
           <div class="qz-pd-actions">
-            <form class="qz-ic" novalidate @submit.prevent="submitOrder">
+            <form class="qz-pd-form" novalidate @submit.prevent="submitOrder">
               <!-- 游客字段 -->
               <template v-if="!userAuthStore.isAuthenticated">
-                <div class="qz-ic-row">
-                  <div class="qz-ic-field">
-                    <label for="qz-ic-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
+                <div class="qz-pd-form-row">
+                  <div class="qz-field">
+                    <label for="qz-pd-email" class="qz-field-label">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
                     <input
-                      id="qz-ic-email"
+                      id="qz-pd-email"
                       v-model="email"
                       type="email"
+                      class="qz-field-control"
                       autocomplete="email"
                       :placeholder="t('qiaozhi.detail.emailPlaceholder')"
                       :aria-invalid="!!fieldErrors.email"
-                      :aria-describedby="fieldErrors.email ? 'qz-ic-email-err' : undefined"
+                      :aria-describedby="fieldErrors.email ? 'qz-pd-email-err' : undefined"
                     />
-                    <p v-if="fieldErrors.email" id="qz-ic-email-err" class="qz-ic-error">{{ fieldErrors.email }}</p>
+                    <p v-if="fieldErrors.email" id="qz-pd-email-err" class="qz-field-error">{{ fieldErrors.email }}</p>
                   </div>
-                  <div class="qz-ic-field">
-                    <label for="qz-ic-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
+                  <div class="qz-field">
+                    <label for="qz-pd-password" class="qz-field-label">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
                     <input
-                      id="qz-ic-password"
+                      id="qz-pd-password"
                       v-model="orderPassword"
                       type="password"
+                      class="qz-field-control"
                       autocomplete="new-password"
                       :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
                       :aria-invalid="!!fieldErrors.password"
-                      :aria-describedby="fieldErrors.password ? 'qz-ic-password-err' : undefined"
+                      :aria-describedby="fieldErrors.password ? 'qz-pd-password-err' : undefined"
                     />
-                    <p v-if="fieldErrors.password" id="qz-ic-password-err" class="qz-ic-error">{{ fieldErrors.password }}</p>
+                    <p v-if="fieldErrors.password" id="qz-pd-password-err" class="qz-field-error">{{ fieldErrors.password }}</p>
                   </div>
                 </div>
-                <div v-if="captchaProvider === 'image'" class="qz-ic-field">
-                  <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
+                <div v-if="captchaProvider === 'image'" class="qz-field">
+                  <span class="qz-field-label">{{ t('qiaozhi.detail.captcha') }}<b>*</b></span>
                   <ImageCaptcha ref="imageCaptchaRef" v-model="captchaPayload" />
                 </div>
-                <div v-else-if="captchaProvider === 'turnstile'" class="qz-ic-field">
-                  <label>{{ t('qiaozhi.detail.captcha') }}<b>*</b></label>
-                  <TurnstileCaptcha ref="turnstileRef" v-model="turnstileToken" :site-key="turnstileSiteKey" />
+                <div v-else-if="captchaProvider === 'turnstile'" class="qz-field">
+                  <span class="qz-field-label">{{ t('qiaozhi.detail.captcha') }}<b>*</b></span>
+                  <TurnstileCaptcha ref="turnstileRef" v-model="turnstileToken" :site-key="turnstileSiteKey" :theme="theme" />
                 </div>
-                <p class="qz-ic-hint">
+                <p class="qz-pd-form-hint">
                   {{ t('qiaozhi.detail.guestHint') }}
                   <RouterLink :to="`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`">{{ t('qiaozhi.detail.loginToBuy') }}</RouterLink>
                 </p>
               </template>
-              <p v-else class="qz-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
+              <p v-else class="qz-pd-form-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
 
               <!-- 支付方式 -->
-              <div v-if="channels.length" class="qz-ic-pay">
-                <h3><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
-                <div class="qz-ic-channels">
+              <div v-if="channels.length" class="qz-pd-pay">
+                <h3 id="qz-pd-pay-label" class="qz-field-label"><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
+                <div class="qz-pd-pay-options" role="group" aria-labelledby="qz-pd-pay-label">
                   <button
                     v-for="ch in channels"
                     :key="ch.id"
                     type="button"
-                    class="qz-ic-channel"
+                    class="qz-pd-pay-option"
                     :class="{ 'is-active': selectedChannelId === ch.id }"
+                    :aria-pressed="selectedChannelId === ch.id"
                     @click="selectedChannelId = ch.id"
                   >
-                    <i></i>
+                    <i aria-hidden="true"></i>
                     <img v-if="ch.icon" :src="ch.icon" alt="" />
                     <span>
                       <b>{{ ch.name }}</b>
@@ -159,18 +177,18 @@
                 </div>
               </div>
 
-              <div class="qz-ic-total">
+              <div class="qz-pd-total">
                 <span>{{ t('qiaozhi.detail.totalDue') }}</span>
                 <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
               </div>
 
-              <p v-if="formError" class="qz-ic-alert is-error" role="alert">{{ formError }}</p>
-              <p v-else-if="cannotPurchaseReason" class="qz-ic-alert" role="status">{{ cannotPurchaseReason }}</p>
+              <p v-if="formError" class="qz-pd-alert is-error" role="alert">{{ formError }}</p>
+              <p v-else-if="cannotPurchaseReason" class="qz-pd-alert" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="qz-pd-buttons">
                 <button
                   type="button"
-                  class="qz-pd-cart-icon"
+                  class="qz-icon-btn"
                   :disabled="!canPurchase"
                   :aria-label="t('productDetail.addToCart')"
                   :title="t('productDetail.addToCart')"
@@ -195,13 +213,13 @@
       </div>
 
       <!-- 商品详情 -->
-      <div v-if="detailHtml" class="qz-pd-detail">
+      <section v-if="detailHtml" class="qz-pd-detail">
         <h2>{{ t('qiaozhi.detail.details') }}</h2>
         <div class="qz-pd-prose" v-html="detailHtml"></div>
-      </div>
+      </section>
 
       <!-- 相关文章 -->
-      <div v-if="relatedPosts.length" class="qz-pd-detail">
+      <section v-if="relatedPosts.length" class="qz-pd-detail">
         <h2>{{ t('productDetail.relatedPosts') }}</h2>
         <div class="qz-pd-posts">
           <RouterLink v-for="rp in relatedPosts" :key="rp.id" :to="`/blog/${rp.slug}`">
@@ -209,14 +227,14 @@
             <small>{{ rp.summary ? getLocalizedText(rp.summary).slice(0, 60) : '' }}</small>
           </RouterLink>
         </div>
-      </div>
+      </section>
     </template>
 
     <!-- 错误 -->
     <div v-else class="qz-empty">
       <PackageOpen />
       <b>{{ t('productDetail.notFound') }}</b>
-      <button type="button" class="qz-btn-primary" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
+      <button type="button" class="qz-btn qz-btn--primary" @click="loadProduct">{{ t('errorBoundary.retry') }}</button>
     </div>
 
     <!-- 当页支付 Modal -->
@@ -252,6 +270,7 @@ import { getFirstImageUrl, getImageUrl } from '../../utils/image'
 import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
 import { getAffiliateCode, getAffiliateVisitorKey } from '../../utils/affiliate'
+import { useTheme } from '../../utils/theme'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useQiaozhiPrice } from './utils/price'
@@ -267,6 +286,8 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const userAuthStore = useUserAuthStore()
 const { split: splitPrice } = useQiaozhiPrice()
+// 站点亮/暗主题：传给 Turnstile，暗色下验证码跟着切深色（组件内监听 theme 变化重渲染）
+const { theme } = useTheme()
 
 const {
   loading, product, relatedPosts,
@@ -338,7 +359,8 @@ const totalParts = computed(() => splitPrice(totalAmount.value))
 const promoTag = computed(() => {
   const sku = selectedSku.value
   if ((sku && hasSkuPromotionPrice(sku)) || (!sku && hasPromotionPrice(product.value))) {
-    return { tone: 'is-promo', text: t('products.promotionTag') }
+    // 促销标用 base 的状态徽标（.qz-badge.is-danger = 红色 12% 底）
+    return { tone: 'is-danger', text: t('products.promotionTag') }
   }
   return null
 })
@@ -740,3 +762,434 @@ onMounted(() => {
   if (!appStore.config) void appStore.loadConfig()
 })
 </script>
+
+<style scoped>
+/* 商品详情页：控件全部来自 styles/base.css（.qz-btn / .qz-icon-btn / .qz-pill / .qz-chip / .qz-badge /
+   .qz-field*），这里只放页面布局与详情页专属元素，只读 --qz-* token（无色值字面量、无 px 字号）。
+
+   选择器一律挂在页面根 .qz-pd-page 下：legacy.css 里 Cart / Payment / Checkout / 订单页仍在用的
+   .qz-pd-* 共享规则（-card / -media / -stage / -info / -price* / -desc / -detail / -skeleton…）
+   与本页元素同名且特指度同为 (0,2,0)，多一层根类让本页规则在特指度上稳赢，不依赖加载顺序；
+   凡 legacy 对这些元素声明过的属性，这里都显式声明了一遍，共享规则日后删掉时本页不会变样。 */
+
+/* ---------- 页面骨架 ---------- */
+.qz-pd-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
+  max-width: 1080px;
+}
+.qz-pd-page .qz-pd-return { align-self: flex-start; }
+
+.qz-pd-page .qz-pd-skeleton { display: grid; gap: var(--qz-space-4); }
+.qz-pd-page .qz-pd-sk-block,
+.qz-pd-page .qz-pd-sk-line {
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  animation: qz-pd-pulse 1.4s ease-in-out infinite;
+}
+.qz-pd-page .qz-pd-sk-block { aspect-ratio: 4 / 3; max-height: 420px; }
+.qz-pd-page .qz-pd-sk-line { height: 18px; }
+.qz-pd-page .qz-pd-sk-line.is-lg { width: 80%; height: 32px; }
+.qz-pd-page .qz-pd-sk-line.is-sm { width: 45%; }
+.qz-pd-page .qz-pd-sk-line.is-btn { height: var(--qz-control-lg); margin-top: auto; }
+@keyframes qz-pd-pulse { 50% { opacity: .55; } }
+
+/* ---------- 左图右单 ---------- */
+.qz-pd-page .qz-pd-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  overflow: visible; /* 媒体列 sticky 需要 */
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-panel);
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-resting);
+}
+
+/* 媒体列透明底；圆角跟随卡片内缘（≤1023 单列时改为上两角），底色一旦加回来也对得上 */
+.qz-pd-page .qz-pd-media {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--qz-space-3);
+  min-width: 0;
+  padding: var(--qz-space-4);
+  border-radius: calc(var(--qz-radius-panel) - 1px) 0 0 calc(var(--qz-radius-panel) - 1px);
+  background: transparent;
+}
+.qz-pd-page .qz-pd-media-sticky {
+  position: sticky;
+  top: calc(var(--qz-header-h) + var(--qz-space-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-3);
+}
+/* 主图台：4/3（手机 16/9），contain 不裁图，底色用弱化面 */
+.qz-pd-page .qz-pd-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+.qz-pd-page .qz-pd-stage > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* 无图兜底：首字母圆徽 */
+.qz-pd-page .qz-pd-logo {
+  display: grid;
+  place-items: center;
+  width: 28%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--qz-surface);
+  color: var(--qz-text-secondary);
+  box-shadow: var(--qz-shadow-resting);
+}
+.qz-pd-page .qz-pd-logo b { font-size: var(--qz-text-3xl); font-weight: 800; line-height: 1; }
+
+.qz-pd-page .qz-pd-thumbs { display: flex; gap: var(--qz-space-2); overflow-x: auto; scrollbar-width: none; }
+.qz-pd-page .qz-pd-thumbs button {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  opacity: .65;
+  cursor: pointer;
+  transition:
+    opacity var(--qz-duration-fast) var(--qz-ease-standard),
+    border-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qz-pd-page .qz-pd-thumbs button.is-active { border-color: var(--qz-accent); opacity: 1; }
+.qz-pd-page .qz-pd-thumbs img { width: 100%; height: 100%; object-fit: cover; }
+
+.qz-pd-page .qz-pd-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-3);
+  min-width: 0;
+  padding: var(--qz-space-5) var(--qz-space-6);
+}
+
+/* 标题行：h1 + 右端幽灵分享钮（负外边距抵掉按钮内边距，让文字与右缘对齐） */
+.qz-pd-page .qz-pd-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+}
+.qz-pd-page .qz-pd-title-row h1 {
+  min-width: 0;
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-body);
+  letter-spacing: var(--qz-tracking-display);
+  overflow-wrap: anywhere;
+}
+.qz-pd-page .qz-pd-title-row .qz-btn { flex: none; margin-right: calc(-1 * var(--qz-space-3)); }
+
+/* 信息 chips。legacy.css 的 .qz-chip（首页卡片段，待该车道删除）与 base 同特指度且后加载，
+   ≤760 会把字号压到 9px：这里钉住 base 的尺寸与字色，等 legacy 段删掉后这条即是无害重复。 */
+.qz-pd-page .qz-pd-chip-row { display: flex; flex-wrap: wrap; gap: var(--qz-space-2); margin-top: calc(-1 * var(--qz-space-1)); }
+.qz-pd-page .qz-chip {
+  min-height: 24px;
+  padding: 0 var(--qz-space-2);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-2xs);
+  font-weight: 600;
+  line-height: 1;
+}
+.qz-pd-page .qz-chip svg { width: 12px; height: 12px; }
+.qz-pd-page .qz-chip.is-danger { color: var(--qz-danger); background: color-mix(in oklab, var(--qz-danger) 12%, transparent); }
+
+/* 价格：符号与数字之间不留 gap（¥28.90），数字等宽；促销徽标靠行右端 */
+.qz-pd-page .qz-pd-price-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--qz-space-3); }
+.qz-pd-page .qz-pd-price {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0;
+  color: var(--qz-text);
+  font-variant-numeric: tabular-nums;
+}
+.qz-pd-page .qz-pd-price-sym { color: var(--qz-text); font-size: var(--qz-text-lg); font-weight: 700; }
+.qz-pd-page .qz-pd-price strong {
+  color: var(--qz-text);
+  font-size: var(--qz-text-3xl);
+  font-weight: 800;
+  line-height: var(--qz-leading-display);
+  letter-spacing: 0;
+}
+
+/* 规格：.qz-pill 取 md 高；选中 = 1px 强调色描边 + 弱强调底（无内阴影）；不可选 = 虚线边 + 弱化字 */
+.qz-pd-page .qz-pd-sku-list { display: flex; flex-wrap: wrap; gap: var(--qz-space-2); }
+.qz-pd-page .qz-pd-sku-list .qz-pill {
+  min-height: var(--qz-control-md);
+  max-width: 100%;
+  padding-inline: var(--qz-space-4);
+  border: 1px solid var(--qz-border-strong);
+  color: var(--qz-text);
+  text-align: left;
+  transition:
+    color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard),
+    border-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qz-pd-page .qz-pd-sku-list .qz-pill.is-active {
+  border-color: var(--qz-accent);
+  background: var(--qz-accent-subtle);
+  color: var(--qz-text);
+  box-shadow: none;
+}
+.qz-pd-page .qz-pd-sku-list .qz-pill:disabled {
+  border-style: dashed;
+  background: transparent;
+  color: var(--qz-text-muted);
+  cursor: not-allowed;
+}
+.qz-pd-page .qz-pd-sku-list .qz-pill b { min-width: 0; overflow: hidden; font-weight: 600; text-overflow: ellipsis; }
+.qz-pd-page .qz-pd-sku-list .qz-pill small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); }
+.qz-pd-page .qz-pd-sku-list .qz-pill small::before { content: "·"; margin-right: var(--qz-space-1); }
+.qz-pd-page .qz-pd-sku-list .qz-pill.is-active small { color: var(--qz-text-secondary); }
+
+/* 简介折叠：外层只管内边距 / 底色，行数裁切放在内层文本上，折叠态底部渐隐，不露半行 */
+.qz-pd-page .qz-pd-desc {
+  position: relative;
+  margin: 0;
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: 1.55;
+  white-space: normal;
+}
+.qz-pd-page .qz-pd-desc-text { display: block; white-space: pre-line; }
+.qz-pd-page .qz-pd-desc--clamp .qz-pd-desc-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  mask-image: linear-gradient(currentColor 70%, transparent);
+}
+.qz-pd-page .qz-pd-desc-toggle { align-self: flex-start; margin-top: calc(-1 * var(--qz-space-2)); }
+
+/* ---------- 内嵌下单 ---------- */
+.qz-pd-page .qz-pd-actions {
+  display: grid;
+  gap: var(--qz-space-3);
+  margin-top: auto;
+  padding-top: var(--qz-space-3);
+  border-top: 1px solid var(--qz-border);
+}
+.qz-pd-page .qz-pd-form { display: grid; gap: var(--qz-space-3); }
+.qz-pd-page .qz-pd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--qz-space-3); }
+.qz-pd-page .qz-pd-form-hint {
+  margin: 0;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+.qz-pd-page .qz-pd-form-hint a {
+  margin-left: var(--qz-space-1);
+  color: var(--qz-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.qz-pd-page .qz-pd-form-hint.is-ok { color: var(--qz-success); }
+
+/* 支付方式：弱化面板内的卡片式单选行；选中 = 1px 强调色描边 + 弱强调底 */
+.qz-pd-page .qz-pd-pay {
+  display: grid;
+  gap: var(--qz-space-2);
+  padding: var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+.qz-pd-page .qz-pd-pay h3 { display: flex; align-items: center; gap: var(--qz-space-1); margin: 0; }
+.qz-pd-page .qz-pd-pay h3 svg { width: 16px; height: 16px; color: var(--qz-text-muted); }
+.qz-pd-page .qz-pd-pay-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--qz-space-2); }
+.qz-pd-page .qz-pd-pay-option {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  min-height: var(--qz-control-md);
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  box-shadow: var(--qz-shadow-resting);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .qz-pd-page .qz-pd-pay-option:hover:where(:not(.is-active)) { border-color: var(--qz-border-strong); }
+}
+.qz-pd-page .qz-pd-pay-option.is-active { border-color: var(--qz-accent); background: var(--qz-accent-subtle); }
+.qz-pd-page .qz-pd-pay-option > i {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--qz-border-strong);
+  border-radius: 50%;
+  background: var(--qz-surface);
+  transition: border var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qz-pd-page .qz-pd-pay-option.is-active > i { border: 5px solid var(--qz-accent); }
+.qz-pd-page .qz-pd-pay-option img { flex: none; width: 24px; height: 24px; border-radius: 6px; object-fit: contain; }
+.qz-pd-page .qz-pd-pay-option > span { display: grid; min-width: 0; }
+.qz-pd-page .qz-pd-pay-option b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.qz-pd-page .qz-pd-pay-option small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); }
+
+.qz-pd-page .qz-pd-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  padding-top: var(--qz-space-2);
+  border-top: 1px solid var(--qz-border);
+}
+.qz-pd-page .qz-pd-total span { color: var(--qz-text-secondary); font-size: var(--qz-text-sm); }
+.qz-pd-page .qz-pd-total strong {
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 表单提示条：默认为警示色（不可购买原因），is-error 为错误色 */
+.qz-pd-page .qz-pd-alert {
+  margin: 0;
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border-radius: var(--qz-radius-control);
+  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
+  color: var(--qz-warning);
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+}
+.qz-pd-page .qz-pd-alert.is-error { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
+
+/* 购物车图标钮（md 圆钮）+ lg 主按钮 */
+.qz-pd-page .qz-pd-buttons {
+  display: grid;
+  grid-template-columns: var(--qz-control-md) minmax(0, 1fr);
+  gap: var(--qz-space-2);
+  align-items: center;
+}
+
+/* ---------- 商品详情 / 相关文章 ---------- */
+.qz-pd-page .qz-pd-detail {
+  padding: var(--qz-space-6);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-panel);
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-resting);
+}
+.qz-pd-page .qz-pd-detail > h2 {
+  margin: 0 0 var(--qz-space-3);
+  color: var(--qz-text);
+  font-size: var(--qz-text-lg);
+  font-weight: 700;
+  line-height: var(--qz-leading-body);
+}
+/* 富文本由 v-html 注入，没有 scoped 属性，用 :deep() 命中 */
+.qz-pd-page .qz-pd-prose { color: var(--qz-text); font-size: var(--qz-text-sm); line-height: 1.75; overflow-wrap: anywhere; }
+.qz-pd-page .qz-pd-prose :deep(p) { margin: 0 0 var(--qz-space-3); }
+.qz-pd-page .qz-pd-prose :deep(p:last-child) { margin-bottom: 0; }
+.qz-pd-page .qz-pd-prose :deep(img) { max-width: 100%; height: auto; border-radius: var(--qz-radius-control); }
+.qz-pd-page .qz-pd-prose :deep(ul),
+.qz-pd-page .qz-pd-prose :deep(ol) { margin: 0 0 var(--qz-space-3); padding-left: 1.4em; }
+.qz-pd-page .qz-pd-prose :deep(ul) { list-style: disc; }
+.qz-pd-page .qz-pd-prose :deep(ol) { list-style: decimal; }
+.qz-pd-page .qz-pd-prose :deep(h1),
+.qz-pd-page .qz-pd-prose :deep(h2),
+.qz-pd-page .qz-pd-prose :deep(h3),
+.qz-pd-page .qz-pd-prose :deep(h4) { margin: var(--qz-space-4) 0 var(--qz-space-2); font-weight: 700; line-height: var(--qz-leading-body); }
+.qz-pd-page .qz-pd-prose :deep(h1) { font-size: var(--qz-text-xl); }
+.qz-pd-page .qz-pd-prose :deep(h2) { font-size: var(--qz-text-lg); }
+.qz-pd-page .qz-pd-prose :deep(h3),
+.qz-pd-page .qz-pd-prose :deep(h4) { font-size: var(--qz-text-base); }
+.qz-pd-page .qz-pd-prose :deep(a) { color: var(--qz-text); text-decoration: underline; text-underline-offset: 2px; }
+
+.qz-pd-page .qz-pd-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--qz-space-3); }
+.qz-pd-page .qz-pd-posts a {
+  display: grid;
+  gap: var(--qz-space-1);
+  padding: var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  color: var(--qz-text);
+  text-decoration: none;
+  transition:
+    border-color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .qz-pd-page .qz-pd-posts a:hover { border-color: var(--qz-border-strong); background: var(--qz-surface-muted); }
+}
+.qz-pd-page .qz-pd-posts b { font-size: var(--qz-text-sm); font-weight: 600; line-height: var(--qz-leading-body); }
+.qz-pd-page .qz-pd-posts small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1023px) {
+  .qz-pd-page { gap: var(--qz-space-3); }
+  .qz-pd-page .qz-pd-card { grid-template-columns: minmax(0, 1fr); }
+  .qz-pd-page .qz-pd-media { border-radius: calc(var(--qz-radius-panel) - 1px) calc(var(--qz-radius-panel) - 1px) 0 0; }
+  .qz-pd-page .qz-pd-media-sticky { position: static; }
+  .qz-pd-page .qz-pd-stage { max-height: 320px; }
+  .qz-pd-page .qz-pd-sk-block { max-height: 260px; }
+}
+@media (max-width: 760px) {
+  /* 手机端返回钮吸在顶栏下方；桌面保持静态 */
+  .qz-pd-page .qz-pd-return {
+    position: sticky;
+    top: calc(var(--qz-header-h) + var(--qz-space-2));
+    z-index: 5;
+  }
+}
+@media (max-width: 640px) {
+  .qz-pd-page .qz-pd-media { padding: var(--qz-space-3); }
+  .qz-pd-page .qz-pd-stage { aspect-ratio: 16 / 9; }
+  .qz-pd-page .qz-pd-info { padding: var(--qz-space-4) var(--qz-space-3); }
+  .qz-pd-page .qz-pd-title-row h1 { font-size: var(--qz-text-lg); }
+  .qz-pd-page .qz-pd-price strong { font-size: var(--qz-text-2xl); }
+  .qz-pd-page .qz-pd-form-row { grid-template-columns: 1fr; }
+  .qz-pd-page .qz-pd-detail { padding: var(--qz-space-4) var(--qz-space-3) var(--qz-space-5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-pd-page .qz-pd-sk-block,
+  .qz-pd-page .qz-pd-sk-line { animation: none; }
+  .qz-pd-page .qz-pd-thumbs button,
+  .qz-pd-page .qz-pd-sku-list .qz-pill,
+  .qz-pd-page .qz-pd-pay-option,
+  .qz-pd-page .qz-pd-pay-option > i,
+  .qz-pd-page .qz-pd-posts a { transition: none; }
+}
+</style>
