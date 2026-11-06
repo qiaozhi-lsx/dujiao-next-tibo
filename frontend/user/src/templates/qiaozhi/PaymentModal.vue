@@ -247,9 +247,17 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
+import { useAppStore } from '../../stores/app'
 import { chainLabel } from '../../utils/cryptoChain'
 import { countdownTone } from '../../utils/countdownTone'
-import { bareAmountText, resolvePayableCurrency, shouldShowFee } from './utils/paymentDisplay'
+import {
+  bareAmountText,
+  isPaidOrderStatus,
+  isTerminalOrderStatus,
+  parsePaidAtMs,
+  resolvePayableCurrency,
+  shouldShowFee,
+} from './utils/paymentDisplay'
 import bscLogo from '../../assets/chains/bsc.png'
 import tronLogo from '../../assets/chains/tron.png'
 import solanaLogo from '../../assets/chains/solana.png'
@@ -311,6 +319,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const appStore = useAppStore()
 
 type Stage = 'waiting' | 'running' | 'success'
 const stage = ref<Stage>('waiting')
@@ -321,10 +330,16 @@ const walletCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const switchPanelOpen = ref(false)
 const txPanelOpen = ref(false)
 const txHashInput = ref('')
-const now = ref(Date.now())
+// 倒计时用校正后的服务器时钟，避免客户端改时导致提前 / 延后过期。
+const now = ref(appStore.getServerTime())
 const nowTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const paidEmitTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const animationFrame = ref<number | null>(null)
+// 服务端已返回终态（取消 / 过期 / 退款）：不等倒计时走完，直接进入过期态。
+const forcedExpired = ref(false)
+// 支付成功时刻（服务端 paid_at），收据上的时间冻结在这一刻而不是随 now 继续走。
+const paidAt = ref<number | null>(null)
 const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
   : false
@@ -367,9 +382,11 @@ const expireMs = computed(() => {
   return Number.isNaN(ts) ? null : ts
 })
 
+// 过期态：倒计时走完，或服务端已返回终态（forcedExpired）；已进入支付成功流程后不再显示。
 const orderPastExpire = computed(() => {
-  if (expireMs.value === null) return false
-  return expireMs.value <= now.value && stage.value === 'waiting'
+  if (stage.value !== 'waiting') return false
+  if (forcedExpired.value) return true
+  return expireMs.value !== null && expireMs.value <= now.value
 })
 
 const showCountdown = computed(() => expireMs.value !== null && stage.value === 'waiting' && !orderPastExpire.value)
@@ -489,7 +506,7 @@ const formatDateText = (raw?: number | string | null) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const receiptTimeText = computed(() => formatDateText(now.value))
+const receiptTimeText = computed(() => formatDateText(paidAt.value ?? now.value))
 
 const shortSn = computed(() => {
   const sn = props.order?.sn || ''
@@ -555,9 +572,9 @@ const stopNowTimer = () => {
 
 const startNowTimer = () => {
   stopNowTimer()
-  now.value = Date.now()
+  now.value = appStore.getServerTime()
   nowTimer.value = setInterval(() => {
-    now.value = Date.now()
+    now.value = appStore.getServerTime()
   }, 1000)
 }
 
@@ -572,6 +589,13 @@ const cancelAnimation = () => {
   if (animationFrame.value !== null) {
     cancelAnimationFrame(animationFrame.value)
     animationFrame.value = null
+  }
+}
+
+const clearPaidEmitTimer = () => {
+  if (paidEmitTimer.value !== null) {
+    clearTimeout(paidEmitTimer.value)
+    paidEmitTimer.value = null
   }
 }
 
@@ -593,25 +617,29 @@ const runSuccessAnimation = () => {
     stage.value = 'success'
     const order = props.order
     const emitPaidDelay = prefersReducedMotion ? 400 : 1500
-    setTimeout(() => {
+    // 句柄保存下来：动画期间用户关闭弹窗 / 组件卸载时要取消，否则关掉后仍会触发 paid 跳转。
+    paidEmitTimer.value = setTimeout(() => {
+      paidEmitTimer.value = null
       if (order) emit('paid', order)
     }, emitPaidDelay)
   }
   animationFrame.value = requestAnimationFrame(tick)
 }
 
-const triggerSuccessFromPolling = () => {
+const triggerSuccessFromPolling = (paidAtRaw?: string | number | null) => {
   stopPolling()
   if (stage.value !== 'waiting') return
+  // 收据时间冻结在服务端支付时刻；解析不了就取当前服务器时间。倒计时钟随之停掉。
+  paidAt.value = parsePaidAtMs(paidAtRaw, appStore.getServerTime())
+  stopNowTimer()
   stage.value = 'running'
   runSuccessAnimation()
 }
 
-const PAID_STATUSES = new Set(['paid', 'fulfilling', 'partially_delivered', 'delivered', 'completed'])
-
 const pollOnce = async () => {
   const o = props.order
   if (!o || !o.sn) return
+  const sn = o.sn
   try {
     let resp
     if (o.guestCredentials && o.guestCredentials.email) {
@@ -622,28 +650,37 @@ const pollOnce = async () => {
     } else {
       resp = await userOrderAPI.detail(o.sn, { silentBusinessError: true })
     }
+    // 等待响应期间可能已关窗或已换单（重新发起支付）：迟到的响应不能再起动画 / 作用到新单上。
+    if (!props.open || props.order?.sn !== sn) return
     const data = resp?.data?.data
     const status = String(data?.status || '')
-    if (PAID_STATUSES.has(status)) {
-      triggerSuccessFromPolling()
+    if (isPaidOrderStatus(status)) {
+      triggerSuccessFromPolling(data?.paid_at)
+    } else if (isTerminalOrderStatus(status)) {
+      // 后台取消 / 过期 / 退款等终态：不必等倒计时走完，停轮询并切到过期态。
+      stopPolling()
+      forcedExpired.value = true
     }
   } catch {
-    // 轮询失败静默忽略；下一次 2s 继续
+    // 轮询失败静默忽略；下一次 5s 继续
   }
 }
 
 const startPolling = () => {
   stopPolling()
+  // 5s 一次，与 classic usePayment 一致；游客订单详情按 IP 限流 120 次/分钟，
+  // 2s 轮询在多标签页或同一出口 IP 下容易触顶被封 60s。
   pollTimer.value = setInterval(() => {
     void pollOnce()
-  }, 2000)
+  }, 5000)
 }
 
-// 过期瞬间可能刚完成付款、2s 轮询尚未翻转：重发起前先补查一次状态，
+// 过期态下轮询已停，而过期瞬间可能刚完成付款：重发起前先补查一次状态，
 // 已支付则直接进入成功流程，避免旧单已付、又新建一单的重复付款窗口。
 const handleRenew = async () => {
   await pollOnce()
-  if (stage.value !== 'waiting') return
+  // 补查期间关了窗就不再重建订单（补查结果已被丢弃，不能据此判定未付）。
+  if (!props.open || stage.value !== 'waiting') return
   emit('renew-payment')
 }
 
@@ -748,6 +785,8 @@ const resetState = () => {
   switchPanelOpen.value = false
   txPanelOpen.value = false
   txHashInput.value = ''
+  forcedExpired.value = false
+  paidAt.value = null
 }
 
 watch(() => props.open, async (opened) => {
@@ -755,15 +794,20 @@ watch(() => props.open, async (opened) => {
     resetState()
     startNowTimer()
     await renderQRCode()
-    if (props.order?.sn) startPolling()
+    // 二维码渲染是异步的：期间若弹窗已被关闭（else 分支已清理），不能再起轮询 / 锁滚动。
+    if (!props.open) return
+    // 打开时已过期的单不起轮询：orderPastExpire 的 watch 只在 false→true 时停轮询，这里等不到翻转。
+    if (props.order?.sn && !orderPastExpire.value) startPolling()
     previouslyFocused.value = (document.activeElement as HTMLElement) || null
     await nextTick()
+    if (!props.open) return
     modalRef.value?.focus()
     document.body.style.overflow = 'hidden'
   } else {
     stopNowTimer()
     stopPolling()
     cancelAnimation()
+    clearPaidEmitTimer()
     if (walletCopiedTimer.value !== null) {
       clearTimeout(walletCopiedTimer.value)
       walletCopiedTimer.value = null
@@ -777,12 +821,23 @@ watch(() => props.open, async (opened) => {
   }
 }, { immediate: true })
 
-watch(() => props.order, async () => {
+watch(() => props.order, async (next, prev) => {
   if (!props.open) return
   switchPanelOpen.value = false
   txPanelOpen.value = false
   txHashInput.value = ''
+  // 重新发起支付时弹窗不关、直接换成新订单：上一单的终态标记要清掉，
+  // 过期时已停掉的轮询也要为新单重新拉起（切换网络同单不换号，不走这里）。
+  if (next?.sn && next.sn !== prev?.sn) {
+    forcedExpired.value = false
+    if (stage.value === 'waiting' && !orderPastExpire.value) startPolling()
+  }
   await renderQRCode()
+})
+
+// 进入过期态（倒计时走完或服务端终态）后停止轮询；重发起前由 handleRenew 补查一次。
+watch(orderPastExpire, (expired) => {
+  if (expired) stopPolling()
 })
 
 watch(() => props.txFeedback, (feedback) => {
@@ -793,6 +848,7 @@ onBeforeUnmount(() => {
   stopNowTimer()
   stopPolling()
   cancelAnimation()
+  clearPaidEmitTimer()
   if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
   if (amountCopiedTimer.value !== null) clearTimeout(amountCopiedTimer.value)
   document.body.style.overflow = ''
