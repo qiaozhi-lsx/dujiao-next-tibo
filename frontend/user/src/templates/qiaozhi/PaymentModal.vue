@@ -29,7 +29,7 @@
           <div class="pay-modal__amount-top">
             <small class="pay-modal__amount-label">
               {{ t('qiaozhi.payment.modal.amountPaid') }}
-              <em class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
+              <em v-if="feeText" class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
             </small>
             <div class="pay-modal__amount-value">
               <b>{{ amountBigText }}</b>
@@ -249,6 +249,7 @@ import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { chainLabel } from '../../utils/cryptoChain'
 import { countdownTone } from '../../utils/countdownTone'
+import { bareAmountText, resolvePayableCurrency, shouldShowFee } from './utils/paymentDisplay'
 import bscLogo from '../../assets/chains/bsc.png'
 import tronLogo from '../../assets/chains/tron.png'
 import solanaLogo from '../../assets/chains/solana.png'
@@ -277,7 +278,9 @@ export interface PaymentModalOrder {
   maskedEmail?: string
   interactionMode?: 'qr' | 'redirect' | string
   feeAmount?: string
+  feePolicy?: string
   payableAmount?: string
+  payableCurrency?: string
   walletAddress?: string
   chainAmount?: string
   chain?: string
@@ -437,15 +440,13 @@ const amountBigText = computed(() => {
   if (o.chainAmount) return `${o.chainAmount} ${cryptoTokenLabel.value || 'USDT'}`
   // 实付金额 = 含手续费金额；后端未下发时回退订单金额。
   const payable = (o.payableAmount || '').trim()
-  return payable ? formatCurrency(payable, o.currency) : formatCurrency(o.amount, o.currency)
+  return payable ? formatCurrency(payable, resolvePayableCurrency(o)) : formatCurrency(o.amount, o.currency)
 })
 
 const feeText = computed(() => {
   const o = props.order
-  if (!o) return ''
-  const raw = (o.feeAmount || '').trim()
-  if (!raw || raw === '0' || raw === '0.00') return ''
-  return formatCurrency(raw, o.currency)
+  if (!o || !shouldShowFee(o)) return ''
+  return formatCurrency((o.feeAmount || '').trim(), o.currency)
 })
 
 // 加密货币单：链上数量与法币实付的换算关系。网关按 amount(法币) + 实时汇率报出链上数量，
@@ -455,7 +456,7 @@ const equivalentText = computed(() => {
   if (!o || !o.chainAmount) return ''
   const payable = (o.payableAmount || '').trim()
   if (!payable) return ''
-  return formatCurrency(payable, o.currency)
+  return formatCurrency(payable, resolvePayableCurrency(o))
 })
 
 const payCardTitle = computed(() => (
@@ -684,7 +685,9 @@ const amountCopied = ref(false)
 const amountCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const handleCopyAmount = async () => {
-  const text = amountBigText.value.trim()
+  const o = props.order
+  if (!o) return
+  const text = bareAmountText(o)
   if (!text) return
   try {
     await navigator.clipboard.writeText(text)

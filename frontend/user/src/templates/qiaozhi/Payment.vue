@@ -389,7 +389,7 @@ const {
 } = usePayment()
 
 // 大价签三段式：优先用订单原币种金额（paymentResult.amount 在换汇渠道下是结算币种，这里只做视觉主金额）
-const totalParts = computed(() => splitPrice(order.value?.total_amount ?? '0'))
+const totalParts = computed(() => splitPrice(order.value?.total_amount ?? '0', order.value?.currency))
 
 // 入场动画
 const rootEl = ref<HTMLElement | null>(null)
