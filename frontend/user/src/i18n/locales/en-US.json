@@ -1742,7 +1742,9 @@
       "about": "About",
       "account": "Account",
       "primaryAria": "Primary navigation",
-      "footerAria": "Footer navigation"
+      "footerAria": "Footer navigation",
+      "bottomAria": "Bottom navigation",
+      "backTop": "Back to top"
     },
     "qty": {
       "decrease": "Decrease quantity",
@@ -1800,7 +1802,8 @@
       "hint": "Include your order number for faster help."
     },
     "footer": {
-      "rights": "All rights reserved"
+      "rights": "All rights reserved",
+      "mobileLinksAria": "Footer links"
     },
     "login": {
       "eyebrow": "SIGN IN",

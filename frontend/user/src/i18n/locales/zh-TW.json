@@ -1742,7 +1742,9 @@
       "about": "關於",
       "account": "個人中心",
       "primaryAria": "主導航",
-      "footerAria": "頁尾導航"
+      "footerAria": "頁尾導航",
+      "bottomAria": "底部導航",
+      "backTop": "回到頂部"
     },
     "qty": {
       "decrease": "減少數量",
@@ -1800,7 +1802,8 @@
       "hint": "訂單問題請帶上訂單號聯繫，處理更高效。"
     },
     "footer": {
-      "rights": "保留所有權利"
+      "rights": "保留所有權利",
+      "mobileLinksAria": "頁尾連結"
     },
     "login": {
       "eyebrow": "SIGN IN",

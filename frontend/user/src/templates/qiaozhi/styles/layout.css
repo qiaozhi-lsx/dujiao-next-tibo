@@ -1,0 +1,648 @@
+/* =========================================================================
+   qiaozhi layout shell
+
+   Header (brand / primary nav / actions), page container, desktop footer, mobile footer
+   links, mobile bottom nav, floating support button + contact panel, language popover,
+   back-to-top. Migrated from the legacy sheet and rewritten on `--qz-*` tokens
+   (tokens.css); interactive controls come from the base primitives (base.css):
+   `.qz-pill` for nav items, `.qz-icon-btn` / `.qz-icon-btn--sm` for icon buttons,
+   `.qz-btn qz-btn--secondary qz-btn--sm` for the account button.
+
+   Scope: `.qiaozhi-scope` only (nothing here is teleported to <body>).
+   Breakpoints: ≤1120 tighter header padding · ≤1000 secondary nav items (2FA / notice /
+   about) collapse to icon-only pills · ≤760 nav + desktop footer hidden, bottom nav +
+   mobile footer links shown, header 60px (token override in tokens.css).
+   Values: colours, font sizes, spacing, radii, motion are tokens; the only literal px are
+   icon glyphs (16 / 18), 1px hairlines and a few content-driven boxes (brand mark 34,
+   count badge 18, popover / panel widths).
+   ========================================================================= */
+
+/* ---------- Layout-private geometry (derived from tokens; not design tokens) ----------
+   The floating stack in the bottom-right corner: support button, with the back-to-top
+   button and the contact panel sitting one `--qz-fab-gap` above it. Mobile overrides
+   below lift the whole stack over the bottom nav. */
+.qiaozhi-scope {
+  --qz-fab-right: var(--qz-space-5);
+  --qz-fab-bottom: var(--qz-space-8);
+  --qz-fab-size: var(--qz-control-lg);
+  --qz-fab-height: 116px; /* vertical support pill: icon + four stacked glyphs */
+  --qz-fab-gap: var(--qz-space-3);
+  /* Space the page keeps clear for the fixed bottom nav on mobile (bottom padding of .qz-footer-mobile ≤760). */
+  --qz-bottom-nav-clearance: calc(var(--qz-control-md) + var(--qz-space-8) + env(safe-area-inset-bottom));
+}
+
+/* ---------- Main area & page container ---------- */
+.qiaozhi-scope > .qz-main {
+  flex: 1 1 0%;
+  min-width: 0;
+  padding-top: var(--qz-header-h);
+}
+
+/* Classic fallback views (src/views/*) render inside .qz-main with Tailwind `min-h-screen pt-20|pt-24`;
+   rebase them on the fixed header instead of their own top padding. */
+.qiaozhi-scope > .qz-main > .min-h-screen {
+  min-height: calc(100vh - var(--qz-header-h));
+}
+.qiaozhi-scope > .qz-main > .min-h-screen:is(.pt-20, .pt-24) {
+  padding-top: var(--qz-space-6) !important;
+}
+.qiaozhi-scope > .qz-main > .min-h-screen.flex-col > .mt-12 {
+  margin-top: 0;
+}
+
+.qiaozhi-scope .qz-container {
+  width: min(var(--qz-container), 92vw);
+  margin: 0 auto;
+  padding: var(--qz-space-6) 0 var(--qz-space-12);
+}
+
+/* ---------- Header ---------- */
+.qiaozhi-scope .qz-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: var(--qz-header-h);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: var(--qz-space-4);
+  padding: 0 max(var(--qz-space-6), 4vw);
+  border-bottom: 1px solid var(--qz-border);
+  background: var(--qz-header-bg);
+  backdrop-filter: blur(18px);
+}
+
+/* Brand: mark + two text lines. The text column is `minmax(0, 1fr)` so the block can give
+   way (ellipsis) before anything overlaps it. */
+.qiaozhi-scope .qz-brand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--qz-space-2);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.qiaozhi-scope .qz-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 30%;
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-raised);
+  color: var(--qz-accent-strong);
+  font-weight: 700;
+}
+.qiaozhi-scope .qz-brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.qiaozhi-scope .qz-brand-mark b {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--qz-accent-subtle);
+  color: var(--qz-accent-strong);
+  font-size: var(--qz-text-sm);
+}
+.qiaozhi-scope .qz-brand-mark--sm {
+  width: var(--qz-space-8);
+  height: var(--qz-space-8);
+}
+.qiaozhi-scope .qz-brand-mark--sm b {
+  font-size: var(--qz-text-xs);
+}
+.qiaozhi-scope .qz-brand-text {
+  display: grid;
+  min-width: 0;
+}
+.qiaozhi-scope .qz-brand-text > strong,
+.qiaozhi-scope .qz-brand-text > small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qiaozhi-scope .qz-brand-text > strong {
+  color: var(--qz-text);
+  font-size: var(--qz-text-base);
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: var(--qz-leading-display);
+}
+.qiaozhi-scope .qz-brand-text > small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-2xs);
+  font-weight: 500;
+  letter-spacing: .14em;
+  line-height: var(--qz-leading-body);
+  text-transform: uppercase;
+}
+
+/* Primary nav: a row of `.qz-pill`s. The row is a hidden-scrollbar scroll box so that, when
+   every optional item is enabled and the viewport is narrow, pills scroll instead of
+   overlapping the brand or the actions; `safe center` keeps them centred while they fit. */
+.qiaozhi-scope .qz-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-content: safe center;
+  gap: var(--qz-space-1);
+  min-width: 0;
+  padding: var(--qz-space-1); /* room for focus rings inside the scroll box */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.qiaozhi-scope .qz-nav::-webkit-scrollbar {
+  display: none;
+}
+.qiaozhi-scope .qz-nav .qz-pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+/* Actions: icon buttons (base `.qz-icon-btn--sm`) + account button (base `.qz-btn--sm`). */
+.qiaozhi-scope .qz-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--qz-space-2);
+}
+.qiaozhi-scope .qz-actions .qz-icon-btn {
+  position: relative; /* hosts .qz-cart-count */
+}
+.qiaozhi-scope .qz-lang {
+  position: relative;
+}
+
+/* Cart item count, pinned to the top-right of the cart icon button. */
+.qiaozhi-scope .qz-cart-count {
+  position: absolute;
+  right: calc(-1 * var(--qz-space-1));
+  top: calc(-1 * var(--qz-space-1));
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--qz-space-1);
+  display: grid;
+  place-items: center;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent);
+  color: var(--qz-on-accent);
+  font-size: var(--qz-text-2xs);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* Language popover under the language button. */
+.qiaozhi-scope .qz-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--qz-space-2));
+  z-index: 60;
+  min-width: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-1);
+  padding: var(--qz-space-2);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-panel);
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-floating);
+}
+.qiaozhi-scope .qz-popover button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  width: 100%;
+  min-height: var(--qz-control-sm);
+  padding: 0 var(--qz-space-3);
+  border: 0;
+  border-radius: var(--qz-radius-control);
+  background: transparent;
+  color: var(--qz-text-secondary);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qiaozhi-scope .qz-popover button.is-active {
+  background: var(--qz-accent-subtle);
+  color: var(--qz-accent-strong);
+}
+.qiaozhi-scope .qz-popover-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--qz-accent);
+}
+
+/* ---------- Desktop footer ---------- */
+.qiaozhi-scope .qz-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--qz-space-6);
+  padding: var(--qz-space-6) max(var(--qz-space-6), 4vw);
+  border-top: 1px solid var(--qz-border);
+  background: var(--qz-surface);
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+}
+.qiaozhi-scope .qz-footer > div {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-3);
+  min-width: 0;
+}
+.qiaozhi-scope .qz-footer p {
+  display: grid;
+  gap: var(--qz-space-1);
+  margin: 0;
+  min-width: 0;
+  line-height: var(--qz-leading-body);
+}
+.qiaozhi-scope .qz-footer p b {
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+}
+.qiaozhi-scope .qz-footer p small {
+  font-size: var(--qz-text-2xs);
+}
+.qiaozhi-scope .qz-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--qz-space-2) var(--qz-space-4);
+}
+.qiaozhi-scope .qz-footer nav a {
+  color: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+
+/* ---------- Mobile footer links (≤760 only; the desktop footer is hidden there) ---------- */
+.qiaozhi-scope .qz-footer-mobile {
+  display: none;
+}
+
+/* ---------- Mobile bottom nav (≤760 only) ---------- */
+.qiaozhi-scope .qz-bottom-nav {
+  display: none;
+}
+
+/* ---------- Floating support button + contact panel ---------- */
+.qiaozhi-scope .qz-support {
+  position: fixed;
+  right: var(--qz-fab-right);
+  bottom: var(--qz-fab-bottom);
+  z-index: 46;
+  width: var(--qz-fab-size);
+  min-height: var(--qz-fab-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-2);
+  padding: var(--qz-space-3) 0;
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-floating);
+  color: var(--qz-text);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qiaozhi-scope .qz-support[aria-expanded="true"] {
+  border-color: var(--qz-border-strong);
+  color: var(--qz-accent-strong);
+}
+.qiaozhi-scope .qz-support svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  color: var(--qz-accent-strong);
+}
+.qiaozhi-scope .qz-support span {
+  writing-mode: vertical-rl; /* CJK glyphs stack upright, Latin runs sideways — both fit the pill */
+  text-orientation: mixed;
+  letter-spacing: .04em;
+}
+
+.qiaozhi-scope .qz-contact-panel {
+  position: fixed;
+  right: calc(var(--qz-fab-right) + var(--qz-fab-size) + var(--qz-fab-gap));
+  bottom: var(--qz-fab-bottom);
+  z-index: 47;
+  width: min(300px, calc(100vw - var(--qz-space-6)));
+  padding: var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-panel);
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-floating);
+  color: var(--qz-text);
+}
+.qiaozhi-scope .qz-contact-panel > header {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  margin-bottom: var(--qz-space-3);
+}
+.qiaozhi-scope .qz-contact-panel > header strong {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+}
+.qiaozhi-scope .qz-contact-badge {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: var(--qz-space-8);
+  height: var(--qz-space-8);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent-subtle);
+  color: var(--qz-accent-strong);
+}
+.qiaozhi-scope .qz-contact-badge svg {
+  width: 16px;
+  height: 16px;
+}
+.qiaozhi-scope .qz-contact-list {
+  display: grid;
+  gap: var(--qz-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.qiaozhi-scope .qz-contact-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-3);
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+.qiaozhi-scope .qz-contact-list .qz-btn {
+  flex: 0 0 auto;
+}
+.qiaozhi-scope .qz-contact-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: var(--qz-space-6);
+  height: var(--qz-space-6);
+  color: var(--qz-text-secondary);
+}
+.qiaozhi-scope .qz-contact-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.qiaozhi-scope .qz-contact-icon:not(.is-email) svg {
+  fill: currentcolor; /* solid brand glyphs; the mail icon is stroke-based */
+}
+.qiaozhi-scope .qz-contact-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.qiaozhi-scope .qz-contact-text span {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-2xs);
+}
+.qiaozhi-scope .qz-contact-text code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: inherit;
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  user-select: all;
+}
+.qiaozhi-scope .qz-contact-panel > p {
+  margin: var(--qz-space-3) 0 0;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: 1.6;
+}
+
+/* ---------- Back to top (base `.qz-icon-btn`, md) — stacked above the support button ---------- */
+.qiaozhi-scope .qz-back-top {
+  position: fixed;
+  right: var(--qz-fab-right);
+  bottom: calc(var(--qz-fab-bottom) + var(--qz-fab-height) + var(--qz-fab-gap));
+  z-index: 46;
+  box-shadow: var(--qz-shadow-floating);
+  color: var(--qz-accent-strong);
+}
+/* No support button rendered (no contact config) → drop to the corner. */
+.qiaozhi-scope:not(:has(> .qz-support)) .qz-back-top {
+  bottom: var(--qz-fab-bottom);
+}
+
+/* ---------- Hover (pointer devices only) ---------- */
+@media (hover: hover) {
+  .qiaozhi-scope .qz-popover button:hover {
+    background: var(--qz-accent-subtle);
+    color: var(--qz-accent-strong);
+  }
+  .qiaozhi-scope .qz-footer nav a:hover,
+  .qiaozhi-scope .qz-footer-mobile a:hover {
+    color: var(--qz-accent-strong);
+  }
+  .qiaozhi-scope .qz-support:hover {
+    border-color: var(--qz-border-strong);
+    color: var(--qz-accent-strong);
+  }
+}
+
+/* ---------- Visibility utilities (header icon buttons vs. the account button) ----------
+   Hide-only on both sides, so a visible element keeps the `display` its own class gives it
+   (`.qz-icon-btn` is inline-grid). `.02px` closes the gap with `(max-width: 760px)` the way the
+   legacy sheet pairs its `1023.98px` queries. */
+@media (min-width: 760.02px) {
+  .qiaozhi-scope .qz-only-mobile {
+    display: none;
+  }
+}
+
+/* ---------- ≤1120: tighter header ---------- */
+@media (max-width: 1120px) {
+  .qiaozhi-scope .qz-header {
+    padding-inline: var(--qz-space-6);
+  }
+  .qiaozhi-scope .qz-nav .qz-pill {
+    padding-inline: var(--qz-space-2);
+  }
+}
+
+/* ---------- ≤1000: secondary nav items become icon-only pills (label stays as title / aria-label) ---------- */
+@media (max-width: 1000px) {
+  .qiaozhi-scope .qz-header {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .qiaozhi-scope .qz-nav .qz-nav-minor {
+    width: var(--qz-control-sm);
+    padding-inline: 0;
+    justify-content: center;
+  }
+  .qiaozhi-scope .qz-nav .qz-nav-minor > span {
+    display: none;
+  }
+}
+
+/* ---------- ≤760: mobile ---------- */
+@media (max-width: 760px) {
+  .qiaozhi-scope {
+    --qz-fab-right: var(--qz-space-3);
+    --qz-fab-bottom: calc(var(--qz-bottom-nav-clearance) + var(--qz-space-3));
+    --qz-fab-size: var(--qz-control-md);
+    --qz-fab-height: var(--qz-control-md);
+  }
+  /* Product page hides the bottom nav: nothing to clear, keep only the safe area. */
+  .qiaozhi-scope.is-product {
+    --qz-fab-bottom: calc(var(--qz-space-6) + env(safe-area-inset-bottom));
+  }
+
+  .qiaozhi-scope .qz-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--qz-space-2);
+    padding-inline: var(--qz-space-3);
+  }
+  .qiaozhi-scope .qz-brand-text > strong {
+    font-size: var(--qz-text-sm);
+  }
+  .qiaozhi-scope .qz-nav,
+  .qiaozhi-scope .qz-only-desktop,
+  .qiaozhi-scope .qz-footer {
+    display: none;
+  }
+  .qiaozhi-scope .qz-actions {
+    gap: var(--qz-space-1);
+  }
+
+  .qiaozhi-scope .qz-container {
+    width: 100%;
+    padding: var(--qz-space-5) var(--qz-space-3) var(--qz-space-8); /* bottom-nav clearance lives on .qz-footer-mobile */
+  }
+  .qiaozhi-scope > .qz-main > .min-h-screen {
+    padding-bottom: var(--qz-bottom-nav-clearance);
+  }
+
+  .qiaozhi-scope .qz-footer-mobile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 var(--qz-space-4);
+    padding: var(--qz-space-2) var(--qz-space-4) var(--qz-bottom-nav-clearance);
+    border-top: 1px solid var(--qz-border);
+    color: var(--qz-text-muted);
+    font-size: var(--qz-text-xs);
+  }
+  .qiaozhi-scope .qz-footer-mobile a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--qz-space-8);
+    color: inherit;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .qiaozhi-scope .qz-bottom-nav {
+    position: fixed;
+    left: var(--qz-space-2);
+    right: var(--qz-space-2);
+    bottom: max(var(--qz-space-2), env(safe-area-inset-bottom));
+    z-index: 45;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    padding: var(--qz-space-1);
+    border: 1px solid var(--qz-border);
+    border-radius: var(--qz-radius-control);
+    background: var(--qz-header-bg);
+    box-shadow: var(--qz-shadow-floating);
+    backdrop-filter: blur(18px);
+  }
+  .qiaozhi-scope .qz-bottom-nav a {
+    position: relative;
+    display: grid;
+    place-items: center;
+    gap: var(--qz-space-1);
+    min-width: 0;
+    padding: var(--qz-space-1) 0;
+    border-radius: calc(var(--qz-radius-control) - var(--qz-space-1));
+    color: var(--qz-text-muted);
+    font-size: var(--qz-text-2xs);
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    overflow: hidden;
+    transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
+  }
+  .qiaozhi-scope .qz-bottom-nav a svg {
+    width: 18px;
+    height: 18px;
+  }
+  .qiaozhi-scope .qz-bottom-nav a.is-active {
+    background: var(--qz-accent);
+    color: var(--qz-on-accent);
+  }
+  .qiaozhi-scope .qz-bottom-nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .qiaozhi-scope .qz-bottom-nav .qz-cart-count {
+    top: 0;
+    right: auto;
+    left: calc(50% + var(--qz-space-1));
+  }
+
+  /* Product page: no bottom nav → no clearance (the page-level sheet keeps its own spacing). */
+  .qiaozhi-scope.is-product .qz-bottom-nav {
+    display: none;
+  }
+  .qiaozhi-scope.is-product .qz-container {
+    padding-bottom: var(--qz-space-8);
+  }
+  .qiaozhi-scope.is-product .qz-footer-mobile {
+    padding-bottom: calc(var(--qz-space-4) + env(safe-area-inset-bottom));
+  }
+
+  /* Floating stack: 44px support square; contact panel moves above it (full width). */
+  .qiaozhi-scope .qz-support {
+    padding: 0;
+  }
+  .qiaozhi-scope .qz-support span {
+    display: none;
+  }
+  .qiaozhi-scope .qz-contact-panel {
+    right: var(--qz-fab-right);
+    bottom: calc(var(--qz-fab-bottom) + var(--qz-fab-height) + var(--qz-fab-gap));
+  }
+}
