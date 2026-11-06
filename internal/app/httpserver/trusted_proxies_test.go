@@ -1,10 +1,12 @@
 package httpserver
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	resellercontract "github.com/dujiao-next/internal/modules/reseller/contract"
 	"github.com/gin-gonic/gin"
 )
 
@@ -53,6 +55,31 @@ func TestConfigureTrustedProxiesRejectsTrustAllNetworks(t *testing.T) {
 		t.Run(network, func(t *testing.T) {
 			if err := configureTrustedProxies(gin.New(), []string{network}); err == nil {
 				t.Fatalf("expected %s to be rejected", network)
+			}
+		})
+	}
+}
+
+// SPA 壳的租户判定必须与 API 侧 ResellerTenantMiddleware 一致：只有识别出的主站才注入
+// 主站内联配置；分销站、未识别域名（API 会 404）、解析出错都不注入。
+func TestSiteResolverFromTenant(t *testing.T) {
+	cases := []struct {
+		name     string
+		tenant   resellercontract.TenantContext
+		err      error
+		wantMain bool
+		wantHost string
+	}{
+		{"main", resellercontract.MainTenantContext("shop.example.test"), nil, true, "shop.example.test"},
+		{"reseller", resellercontract.ResellerTenantContext("r.example.test", 7, 42, "r.example.test"), nil, false, "r.example.test"},
+		{"unavailable", resellercontract.UnavailableTenantContext("unknown.example.test", "not_found"), nil, false, "unknown.example.test"},
+		{"error", resellercontract.MainTenantContext("shop.example.test"), errors.New("resolve failed"), false, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotMain, gotHost := siteResolverFromTenant(tc.tenant, tc.err)
+			if gotMain != tc.wantMain || gotHost != tc.wantHost {
+				t.Fatalf("siteResolverFromTenant() = (%v, %q), want (%v, %q)", gotMain, gotHost, tc.wantMain, tc.wantHost)
 			}
 		})
 	}
