@@ -23,6 +23,8 @@ export function useForgot() {
     return siteName !== '' ? siteName : 'Qiaozhi&Ai'
   })
 
+  // 必须保持乐观读法（不要套 optionalFlagOn）：Forgot 页面是反向使用它的 —— 为 false 时渲染红色"功能已关闭"告警并隐藏表单，
+  // 若在内联配置阶段按关闭处理，冷启动会先闪出告警再换成表单。
   const emailVerificationEnabled = computed(() => appStore.config?.email_verification_enabled !== false)
 
   const email = ref('')

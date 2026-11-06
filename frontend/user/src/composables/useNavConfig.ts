@@ -6,6 +6,7 @@ import {
     BookOpen, Code, Phone, MapPin, Music, Camera,
 } from 'lucide-vue-next'
 import { useAppStore } from '../stores/app'
+import { optionalFlagOn } from '../utils/configFlags'
 import { getLocalizedText } from '../utils/resellerSiteConfig'
 
 /**
@@ -83,9 +84,11 @@ export const useNavConfig = () => {
     /** 列表模式下首页即商品列表，/products 与首页同页，导航里不再单独列一项 */
     const isListMode = computed(() => appStore.config?.template_mode === 'list')
 
-    const blogEnabled = computed(() => navConfig.value?.builtin?.blog !== false)
-    const noticeEnabled = computed(() => navConfig.value?.builtin?.notice !== false)
-    const aboutEnabled = computed(() => navConfig.value?.builtin?.about !== false)
+    // 内联的 window.__PUBLIC_CONFIG__ 不含 nav_config，完整配置到达前一律按关闭处理，
+    // 否则冷启动时这些链接会先闪现再消失（见 utils/configFlags.ts）
+    const blogEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.blog))
+    const noticeEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.notice))
+    const aboutEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.about))
 
     /** 内置导航项（博客 / 公告 / 关于），受后台开关控制 */
     const builtinNavItems = computed<NavItem[]>(() => {
