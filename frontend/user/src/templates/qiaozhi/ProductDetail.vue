@@ -251,10 +251,12 @@ import { processHtmlForDisplay } from '../../utils/content'
 import { getFirstImageUrl, getImageUrl } from '../../utils/image'
 import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
+import { getAffiliateCode, getAffiliateVisitorKey } from '../../utils/affiliate'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useQiaozhiPrice } from './utils/price'
 import { shouldOpenInlineModal } from './utils/paymentDisplay'
+import { buildCreateAndPayPayload, hasManualFormFields } from './utils/orderPayload'
 import PaymentModal, { type PaymentModalItem, type PaymentModalOrder } from './PaymentModal.vue'
 import J8Button from './components/J8Button.vue'
 import J8QtyStepper from './components/J8QtyStepper.vue'
@@ -275,7 +277,7 @@ const {
   isSkuPurchasable, skuDisplayText, skuStockText,
   requiresLogin, requiresSKUSelection, canPurchase, cannotPurchaseReason,
   quantityEffectiveMin, quantityEffectiveLimit,
-  addToCart, loadProduct,
+  addToCart, buyNow, loadProduct,
 } = useProductDetail()
 
 const title = computed(() => getLocalizedText(product.value?.title))
@@ -628,22 +630,40 @@ const submitOrder = async () => {
   submitting.value = true
   try {
     const items = buildItems()
+    // 手动表单商品需在结算页填写交付资料，商品页直接下单会被后端拒绝：
+    // 改走 classic 的 buy-now 路径（buyNowStore + /checkout?mode=buynow）。
+    if (hasManualFormFields(product.value?.manual_form_schema)) {
+      buyNow()
+      return
+    }
     let payData: any = null
     const guestEmailInput = email.value.trim()
     const guestPasswordInput = orderPassword.value
+    // 分销归因与 classic useCheckout 一致：空值在序列化时不出现。
+    const affiliateCode = getAffiliateCode()
+    const affiliateVisitorKey = getAffiliateVisitorKey()
     if (userAuthStore.isAuthenticated) {
-      const res = await userOrderAPI.createAndPay({ items, channel_id: selectedChannelId.value || undefined })
+      const res = await userOrderAPI.createAndPay(buildCreateAndPayPayload({
+        items,
+        channelId: selectedChannelId.value,
+        affiliateCode,
+        affiliateVisitorKey,
+      }))
       payData = res.data?.data
     } else {
-      const res = await guestOrderAPI.createAndPay({
+      const res = await guestOrderAPI.createAndPay(buildCreateAndPayPayload({
         items,
-        channel_id: selectedChannelId.value || undefined,
-        email: guestEmailInput,
-        order_password: guestPasswordInput,
-        captcha_payload: captchaProvider.value === 'image'
-          ? captchaPayload.value
-          : (turnstileToken.value ? { turnstile_token: turnstileToken.value } : {}),
-      })
+        channelId: selectedChannelId.value,
+        affiliateCode,
+        affiliateVisitorKey,
+        guest: {
+          email: guestEmailInput,
+          orderPassword: guestPasswordInput,
+          captchaPayload: captchaProvider.value === 'image'
+            ? captchaPayload.value
+            : (turnstileToken.value ? { turnstile_token: turnstileToken.value } : {}),
+        },
+      }))
       saveGuestOrderAuth({ email: guestEmailInput, order_password: guestPasswordInput })
       payData = res.data?.data
     }
