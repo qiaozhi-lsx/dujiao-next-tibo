@@ -16,28 +16,26 @@
     >
       <Minus />
     </button>
-    <span class="qz-qty-num" aria-live="polite" aria-atomic="true">
-      <span class="qz-sr-only">{{ t('productDetail.quantityAria', { count: modelValue }) }}</span>
+    <!-- 读屏只听这一处：当前数量整句播报一次；下面的滚动数字只是装饰，整体对辅助技术隐藏 -->
+    <span class="qz-sr-only" aria-live="polite" aria-atomic="true">{{ t('productDetail.quantityAria', { count: modelValue }) }}</span>
+    <span class="qz-qty-num" aria-hidden="true">
       <span
         class="qz-qty-col"
         :class="{ 'is-hide': rollDigits.hundreds === null }"
-        :style="{ transform: `translateY(${-(rollDigits.hundreds || 0) * 26}px)` }"
-        aria-hidden="true"
+        :style="{ transform: `translateY(calc(${-(rollDigits.hundreds || 0)} * var(--qz-qty-row)))` }"
       >
         <span v-for="d in 10" :key="`h-${d}`">{{ d - 1 }}</span>
       </span>
       <span
         class="qz-qty-col"
         :class="{ 'is-hide': rollDigits.tens === null }"
-        :style="{ transform: `translateY(${-(rollDigits.tens || 0) * 26}px)` }"
-        aria-hidden="true"
+        :style="{ transform: `translateY(calc(${-(rollDigits.tens || 0)} * var(--qz-qty-row)))` }"
       >
         <span v-for="d in 10" :key="`t-${d}`">{{ d - 1 }}</span>
       </span>
       <span
         class="qz-qty-col"
-        :style="{ transform: `translateY(${-rollDigits.ones * 26}px)` }"
-        aria-hidden="true"
+        :style="{ transform: `translateY(calc(${-rollDigits.ones} * var(--qz-qty-row)))` }"
       >
         <span v-for="d in 10" :key="`o-${d}`">{{ d - 1 }}</span>
       </span>
@@ -135,5 +133,86 @@ onUnmounted(() => {
 </script>
 
 <style>
-/* 样式全部在 templates/qiaozhi/styles/legacy.css：.qz-qty / .qz-qty-btn / .qz-qty-num / .qz-qty-col / .qz-sr-only（含 is-shake / is-hide 与 reduced-motion），组件不重复定义 */
+/* 数量步进器：sm 控件高的胶囊容器 + 两枚 28px 圆钮（.qz-icon-btn 式中性底）+ 列滚动数字。
+   只读 --qz-* token；.qz-sr-only 沿用模板全局的视觉隐藏类。
+   --qz-qty-row 是一格数字的行高，模板里的 translateY 也按它算，改尺寸只动这一处。 */
+.qz-qty {
+  --qz-qty-row: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--qz-space-1);
+  height: var(--qz-control-sm);
+  padding: 0 var(--qz-space-1);
+  border: 1px solid var(--qz-border-strong);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+}
+.qz-qty.is-shake { animation: qz-qty-shake var(--qz-duration-considered) var(--qz-ease-standard); }
+@keyframes qz-qty-shake {
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+.qz-qty-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--qz-duration-spring) var(--qz-ease-spring),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard),
+    color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+.qz-qty-btn svg { width: 14px; height: 14px; }
+@media (hover: hover) and (pointer: fine) {
+  .qz-qty-btn:hover:where(:not([aria-disabled="true"])) { background: var(--qz-accent-subtle); }
+}
+.qz-qty-btn:active:where(:not([aria-disabled="true"])) {
+  background: var(--qz-accent-subtle);
+  transform: scale(var(--qz-press, .96));
+  transition: transform var(--qz-duration-instant) var(--qz-ease-standard);
+}
+/* 到边界仍可点（点了抖一下提示），所以用 aria-disabled 而不是 disabled：只压灰，不移出焦点序 */
+.qz-qty-btn[aria-disabled="true"] { color: var(--qz-text-muted); cursor: not-allowed; }
+
+.qz-qty-num {
+  display: flex;
+  justify-content: center;
+  min-width: 24px;
+  height: var(--qz-qty-row);
+  padding: 0 var(--qz-space-1);
+  overflow: hidden;
+  font-size: var(--qz-text-sm);
+  font-weight: 700;
+  line-height: var(--qz-qty-row);
+  font-variant-numeric: tabular-nums;
+}
+.qz-qty-col {
+  display: flex;
+  flex-direction: column;
+  width: 10px;
+  transition:
+    transform var(--qz-duration-spring) var(--qz-ease-spring),
+    width var(--qz-duration-standard) var(--qz-ease-standard),
+    opacity var(--qz-duration-standard) var(--qz-ease-standard);
+}
+.qz-qty-col > span { height: var(--qz-qty-row); text-align: center; }
+.qz-qty-col.is-hide { width: 0; opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-qty-col, .qz-qty-btn { transition: none; }
+  .qz-qty.is-shake { animation: none; }
+  .qz-qty-btn:active { transform: none; }
+}
 </style>
