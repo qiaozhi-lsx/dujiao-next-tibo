@@ -348,7 +348,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowRight, ChevronLeft, ChevronRight, PackageOpen, Search, X } from 'lucide-vue-next'
@@ -506,6 +506,18 @@ const showAnnouncementIfNeeded = () => {
     announcementVisible.value = true
   }
 }
+// 内联首屏配置不含 announcement，完整 /public/config 稍后才到；监听配置而非在 onMounted 里只调一次。
+// 公告非空即置位，后台刷新再次替换 config 时不会重复弹。
+let announcementHandled = false
+watch(
+  () => appStore.config?.announcement,
+  (announcement) => {
+    if (announcementHandled || !announcement) return
+    announcementHandled = true
+    showAnnouncementIfNeeded()
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   if (!appStore.config) void appStore.loadConfig()
@@ -514,7 +526,6 @@ onMounted(async () => {
   } else {
     await Promise.all([loadBanners(), loadFeaturedProducts(), loadLatestPosts()])
   }
-  showAnnouncementIfNeeded()
 })
 
 onUnmounted(() => {
