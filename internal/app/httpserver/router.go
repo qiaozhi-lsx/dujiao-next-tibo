@@ -282,7 +282,16 @@ func SetupRouter(cfg *config.Config, c *container.Container) *gin.Engine {
 		if err := web.RegisterAdmin(r, cfg.Web.AdminPath, web.AdminFS()); err != nil {
 			log.Sugar().Fatalf("注册 admin SPA 失败: %v", err)
 		}
-		if err := web.RegisterUser(r, web.UserFS(), c.SettingService); err != nil {
+		// NoRoute 不经过 storefront 路由组的 ResellerTenantMiddleware，入口页要自己判断租户：
+		// 分销白标站不能被注入主站配置；解析出错时宁可不注入，让前端走 /public/config 兜底。
+		siteResolver := web.SiteResolver(func(req *http.Request) (bool, string) {
+			tenant, err := c.ResellerDomainResolver.ResolveRequest(req.Context(), req)
+			if err != nil {
+				return false, ""
+			}
+			return tenant.ResellerID == nil, tenant.Host
+		})
+		if err := web.RegisterUser(r, web.UserFS(), c.SettingService, siteResolver); err != nil {
 			log.Sugar().Fatalf("注册 user SPA 失败: %v", err)
 		}
 	}

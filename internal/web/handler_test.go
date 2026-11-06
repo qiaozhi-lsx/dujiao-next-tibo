@@ -221,7 +221,7 @@ func newUserFS() fstest.MapFS {
 func TestRegisterUser_ServesIndex(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
@@ -241,7 +241,7 @@ func TestRegisterUser_ServesIndex(t *testing.T) {
 func TestRegisterUser_ServesAsset(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
@@ -261,7 +261,7 @@ func TestRegisterUser_ServesAsset(t *testing.T) {
 func TestRegisterUser_HistoryFallback(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
@@ -283,7 +283,7 @@ func TestRegisterUser_HistoryFallback(t *testing.T) {
 func TestRegisterUser_ReservedPathsStay404(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
@@ -313,7 +313,7 @@ func TestRegisterUser_ReservedPathsStay404(t *testing.T) {
 func TestRegisterUser_NonReservedLookalikeStillServesSPA(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
@@ -339,7 +339,7 @@ func TestRegisterUser_DoesNotShadowExistingRoutes(t *testing.T) {
 	r.GET("/api/v1/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
@@ -352,6 +352,100 @@ func TestRegisterUser_DoesNotShadowExistingRoutes(t *testing.T) {
 	}
 	if w.Body.String() != "pong" {
 		t.Fatalf("body = %s, want pong", w.Body.String())
+	}
+}
+
+// staticConfigSource 是测试用的 InitialConfigSource，固定返回预置的站点配置。
+type staticConfigSource map[string]interface{}
+
+func (s staticConfigSource) GetConfig(map[string]interface{}) (map[string]interface{}, error) {
+	return s, nil
+}
+
+// newInjectableUserFS 返回带 </head> 的 user SPA 入口，让内联配置注入有落点。
+func newInjectableUserFS() fstest.MapFS {
+	return fstest.MapFS{
+		"index.html": &fstest.MapFile{Data: []byte(`<!doctype html><html><head><title>u</title></head><body>user-spa</body></html>`)},
+	}
+}
+
+// TestRegisterUser_SkipsInjectionForResellerHost 分销白标站的入口不能被注入主站的
+// brand/seo/nav/scripts，否则首帧会闪出主站品牌、执行主站脚本。
+func TestRegisterUser_SkipsInjectionForResellerHost(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	settings := staticConfigSource{"brand": map[string]interface{}{"site_name": "Main Shop"}}
+	site := func(*http.Request) (bool, string) { return false, "r.example.test" }
+	if err := RegisterUser(r, newInjectableUserFS(), settings, site); err != nil {
+		t.Fatalf("RegisterUser: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d", w.Code)
+	}
+	body := w.Body.String()
+	if strings.Contains(body, "window.__PUBLIC_CONFIG__") {
+		t.Fatalf("reseller host must not receive main-site inline config: %s", body)
+	}
+	if !strings.Contains(body, "user-spa") {
+		t.Fatalf("expected raw SPA index, got: %s", body)
+	}
+}
+
+// TestRegisterUser_InjectsTenantForMainHost 主站入口的内联配置要带 tenant 字段，
+// 与 /api/v1/public/config 同形，否则前端 isResellerTenant 首帧判错。
+func TestRegisterUser_InjectsTenantForMainHost(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	settings := staticConfigSource{"brand": map[string]interface{}{"site_name": "Main Shop"}}
+	site := func(*http.Request) (bool, string) { return true, "shop.example.test" }
+	if err := RegisterUser(r, newInjectableUserFS(), settings, site); err != nil {
+		t.Fatalf("RegisterUser: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d", w.Code)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "window.__PUBLIC_CONFIG__") {
+		t.Fatalf("expected inline config on main host, got: %s", body)
+	}
+	if !strings.Contains(body, `"tenant":{"host":"shop.example.test","mode":"main"}`) {
+		t.Fatalf("expected main tenant field in inline config, got: %s", body)
+	}
+}
+
+// TestRegisterUser_NilSiteResolverOmitsTenant 没有租户解析器时视为主站照常注入，
+// 但不编造 tenant 字段（保持旧调用方语义）。
+func TestRegisterUser_NilSiteResolverOmitsTenant(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	settings := staticConfigSource{"brand": map[string]interface{}{"site_name": "Main Shop"}}
+	if err := RegisterUser(r, newInjectableUserFS(), settings, nil); err != nil {
+		t.Fatalf("RegisterUser: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d", w.Code)
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "window.__PUBLIC_CONFIG__") {
+		t.Fatalf("expected inline config without site resolver, got: %s", body)
+	}
+	if strings.Contains(body, `"tenant"`) {
+		t.Fatalf("nil site resolver must not emit tenant field, got: %s", body)
 	}
 }
 
@@ -378,7 +472,7 @@ func TestCacheControlHeaders(t *testing.T) {
 	if err := RegisterAdmin(r, "/admin", newAdminFS("<html>admin-spa</html>")); err != nil {
 		t.Fatalf("RegisterAdmin: %v", err)
 	}
-	if err := RegisterUser(r, newUserFS(), nil); err != nil {
+	if err := RegisterUser(r, newUserFS(), nil, nil); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 

@@ -21,6 +21,12 @@ type InitialConfigSource interface {
 	GetConfig(defaults map[string]interface{}) (map[string]interface{}, error)
 }
 
+// SiteResolver 判断一次入口请求落在主站还是分销白标站。
+// 只用标准库类型，由调用方把分销模块的域名解析器适配进来，避免 web 包依赖业务模块。
+// isMain 为 false 时入口不注入任何内联配置（分销站的品牌/脚本由 /public/config 的 overlay 决定）；
+// host 为归一化后的请求 Host，会原样写进 tenant 字段。
+type SiteResolver func(req *http.Request) (isMain bool, host string)
+
 // initialConfigFieldWhitelist 决定哪些字段会被嵌入到首屏 HTML。
 // 只放首屏模板选择 + 品牌/SEO/多语言这些让骨架期不白屏的最小集，
 // payment_channels、server_time 之类让完整 /public/config 响应补齐。
@@ -211,7 +217,12 @@ func RegisterAdmin(r *gin.Engine, prefix string, fsys fs.FS) error {
 // <script>window.__PUBLIC_CONFIG__=...;</script>，让 Vue 启动即拿到基础配置，
 // 省掉冷启动首帧 /api/v1/public/config 这次 RTT。注入失败（settings 调用出错、
 // HTML 没 </head>）时降级返回原始 index.html，不影响渲染。
-func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error {
+//
+// site 不为 nil 时，每次入口请求先判断租户：分销白标站直接返回原始 index.html
+// （settings 里的 brand/seo/nav/scripts 都是主站的，注进去会让分销站首帧闪主站品牌）；
+// 主站则在 payload 里补 tenant 字段，与 /api/v1/public/config 同形。
+// site 为 nil 时视为主站注入，但不编造 tenant 字段。
+func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource, site SiteResolver) error {
 	if r == nil {
 		return errors.New("nil gin engine")
 	}
@@ -233,10 +244,23 @@ func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error
 			serveIndex(c, indexCached)
 			return
 		}
+		isMain, host := true, ""
+		if site != nil {
+			isMain, host = site(c.Request)
+		}
+		if !isMain {
+			serveIndex(c, indexCached)
+			return
+		}
 		payload := buildInitialConfigPayload(c.Request.Context(), settings)
 		if len(payload) == 0 {
 			serveIndex(c, indexCached)
 			return
+		}
+		// tenant 是按请求变化的字段，独立于站点配置本体之后再写入。
+		// 目前 payload 是每次请求新建的 map，可以直接改；若日后给 payload 加缓存，写 tenant 前必须先复制。
+		if site != nil {
+			payload["tenant"] = map[string]interface{}{"mode": "main", "host": host}
 		}
 		injected, err := injectInitialConfigIntoHTML(string(indexCached), payload)
 		if err != nil {
