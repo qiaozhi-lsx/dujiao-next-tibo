@@ -1740,7 +1740,13 @@
       "support": "Support",
       "notice": "News",
       "about": "About",
-      "account": "Account"
+      "account": "Account",
+      "primaryAria": "Primary navigation",
+      "footerAria": "Footer navigation"
+    },
+    "qty": {
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity"
     },
     "hero": {
       "eyebrow": "DIGITAL SERVICES",
@@ -1919,6 +1925,7 @@
       "helpOrderNo": "with order no."
     },
     "tfa": {
+      "eyebrow": "TWO-FACTOR AUTHENTICATOR",
       "title": "Two-factor codes",
       "desc": "Paste the 2FA secret or otpauth link from your product data to see the code instantly (all computed locally).",
       "placeholder": "e.g. JBSWY3DPEHPK3PXP",

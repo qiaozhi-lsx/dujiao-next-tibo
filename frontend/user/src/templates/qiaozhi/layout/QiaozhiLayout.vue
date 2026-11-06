@@ -13,7 +13,7 @@
         </span>
       </RouterLink>
 
-      <nav class="j8-nav" aria-label="主导航">
+      <nav class="j8-nav" :aria-label="t('qiaozhi.nav.primaryAria')">
         <RouterLink to="/" :class="{ 'is-active': route.path === '/' }">
           <ShoppingBag />{{ t('qiaozhi.nav.shop') }}
         </RouterLink>
@@ -90,7 +90,7 @@
           <small>© {{ year }} {{ brandName }} · {{ t('qiaozhi.footer.rights') }}</small>
         </p>
       </div>
-      <nav aria-label="页脚导航">
+      <nav :aria-label="t('qiaozhi.nav.footerAria')">
         <RouterLink :to="ordersPath">{{ t('qiaozhi.nav.orders') }}</RouterLink>
         <RouterLink v-if="blogEnabled" to="/blog">{{ t('qiaozhi.nav.tutorial') }}</RouterLink>
         <RouterLink to="/2fa">{{ t('qiaozhi.nav.tfa') }}</RouterLink>

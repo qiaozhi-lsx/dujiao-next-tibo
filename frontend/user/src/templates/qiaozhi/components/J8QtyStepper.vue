@@ -10,7 +10,7 @@
       type="button"
       class="j8-qty-btn"
       :aria-disabled="modelValue <= min"
-      :aria-label="t('common.previous')"
+      :aria-label="t('qiaozhi.qty.decrease')"
       @pointerdown="handlePointerDown"
       @click="stepQuantity(-1)"
     >
@@ -46,7 +46,7 @@
       type="button"
       class="j8-qty-btn is-plus"
       :aria-disabled="max !== null && modelValue >= max"
-      :aria-label="t('common.next')"
+      :aria-label="t('qiaozhi.qty.increase')"
       @pointerdown="handlePointerDown"
       @click="stepQuantity(1)"
     >

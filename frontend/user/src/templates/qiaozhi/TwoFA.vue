@@ -2,7 +2,7 @@
   <div ref="rootEl" class="j8-container">
     <div class="tfa-wrap">
       <div class="tfa-card j8-reveal is-pending">
-        <span class="j8-eyebrow">TWO-FACTOR AUTHENTICATOR</span>
+        <span class="j8-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
         <h1>{{ t('qiaozhi.tfa.title') }}</h1>
         <p class="tfa-desc">{{ t('qiaozhi.tfa.desc') }}</p>
 
