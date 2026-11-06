@@ -1825,6 +1825,21 @@
       "hasAccountPrefix": "已有帳號？",
       "goLogin": "直接登入"
     },
+    "forgot": {
+      "eyebrow": "RESET PASSWORD"
+    },
+    "notice": {
+      "eyebrow": "NOTICE"
+    },
+    "blog": {
+      "eyebrow": "BLOG"
+    },
+    "about": {
+      "eyebrow": "ABOUT"
+    },
+    "legal": {
+      "eyebrow": "LEGAL"
+    },
     "cart": {
       "eyebrow": "CART",
       "back": "返回首頁",
