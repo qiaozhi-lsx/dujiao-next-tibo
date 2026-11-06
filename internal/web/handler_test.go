@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -395,5 +396,37 @@ func TestCacheControlHeaders(t *testing.T) {
 				t.Fatalf("Cache-Control = %q, want %q", got, tc.want)
 			}
 		})
+	}
+}
+
+// fakeInitialConfigSource 是 InitialConfigSource 的最小测试替身，忽略 defaults 直接回放固定配置。
+type fakeInitialConfigSource struct {
+	data map[string]interface{}
+}
+
+func (f fakeInitialConfigSource) GetConfig(_ map[string]interface{}) (map[string]interface{}, error) {
+	return f.data, nil
+}
+
+// TestBuildInitialConfigPayload_IncludesTemplateMode 保证 template_mode 随首屏内联配置下发。
+// 路由里 /products、/categories/:slug 的组件解析依赖 appStore.config.template_mode，
+// 该字段不在白名单时首路由会按 card 模式固化进 route record，list 模式站点首屏布局错位。
+func TestBuildInitialConfigPayload_IncludesTemplateMode(t *testing.T) {
+	src := fakeInitialConfigSource{data: map[string]interface{}{
+		"template_mode":       "list",
+		"storefront_template": "qiaozhi",
+		"payment_channels":    []interface{}{map[string]interface{}{"code": "alipay"}},
+	}}
+
+	payload := buildInitialConfigPayload(context.Background(), src)
+
+	if got, ok := payload["template_mode"]; !ok || got != "list" {
+		t.Fatalf("payload[template_mode] = %v (present=%v), want \"list\"", got, ok)
+	}
+	if got, ok := payload["storefront_template"]; !ok || got != "qiaozhi" {
+		t.Fatalf("payload[storefront_template] = %v (present=%v), want \"qiaozhi\"", got, ok)
+	}
+	if _, ok := payload["payment_channels"]; ok {
+		t.Fatalf("payment_channels must not be inlined into first-screen payload, got %v", payload["payment_channels"])
 	}
 }

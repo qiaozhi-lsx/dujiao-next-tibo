@@ -273,7 +273,6 @@ watch([searchQuery, selectedCategory], () => {
 })
 
 onMounted(async () => {
-  if (!appStore.config) void appStore.loadConfig()
   try {
     const [prodRes, catRes] = await Promise.all([
       productAPI.list({ page: 1, page_size: 20 }),

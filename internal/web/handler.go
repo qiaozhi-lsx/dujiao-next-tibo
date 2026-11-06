@@ -26,6 +26,7 @@ type InitialConfigSource interface {
 // payment_channels、server_time 之类让完整 /public/config 响应补齐。
 var initialConfigFieldWhitelist = []string{
 	constants.SettingFieldStorefrontTemplate,
+	"template_mode",
 	"brand",
 	"seo",
 	constants.SettingFieldSiteCurrency,
