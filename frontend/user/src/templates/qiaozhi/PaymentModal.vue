@@ -15,33 +15,27 @@
         tabindex="-1"
         @keydown="handleKeydown"
       >
-        <button
-          type="button"
-          class="pay-modal__close"
-          :aria-label="t('qiaozhi.payment.modal.closeAria')"
-          @click="handleClose"
-        >
-          <X aria-hidden="true" />
-        </button>
-
         <!-- 金额卡 -->
         <div class="pay-modal__amount-card">
-          <button
-            type="button"
-            class="pay-modal__amount-copy"
-            :aria-label="t('qiaozhi.payment.modal.copyAmount')"
-            @click="handleCopyAmount"
-          >
-            <CheckCircle2 v-if="amountCopied" />
-            <Copy v-else />
-          </button>
           <div class="pay-modal__amount-top">
             <small class="pay-modal__amount-label">
               {{ t('qiaozhi.payment.modal.amountPaid') }}
               <em v-if="feeText" class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
             </small>
             <div class="pay-modal__amount-value">
-              <b>{{ amountBigText }}</b>
+              <!-- 复制金额按钮紧跟金额本身，不再悬浮在卡片右上角，弹窗顶部也不必为它额外留白。 -->
+              <div class="pay-modal__amount-main">
+                <b>{{ amountBigText }}</b>
+                <button
+                  type="button"
+                  class="pay-modal__amount-copy"
+                  :aria-label="t('qiaozhi.payment.modal.copyAmount')"
+                  @click="handleCopyAmount"
+                >
+                  <CheckCircle2 v-if="amountCopied" />
+                  <Copy v-else />
+                </button>
+              </div>
               <span v-if="paymentChipLabel" class="pay-modal__chain-chip">
                 <img v-if="chainLogo" class="pay-modal__chain-logo" :src="chainLogo" alt="" aria-hidden="true" />
                 <i v-else class="pay-modal__chain-dot" :class="chainDotClass" aria-hidden="true"></i>
@@ -71,12 +65,12 @@
 
         <!-- 支付卡：二维码 / 倒计时 / 收款地址 -->
         <div class="pay-modal__pay-card">
+          <!-- 标题与倒计时同一行：弹窗要在不滚动的前提下装下二维码 + 地址 + 操作区。 -->
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
-          </div>
-
-          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
-            {{ countdownText }}
+            <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
+              {{ countdownText }}
+            </div>
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
@@ -259,7 +253,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2, X } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { useAppStore } from '../../stores/app'
@@ -918,7 +912,11 @@ onBeforeUnmount(() => {
 
   position: relative;
   width: min(380px, calc(100vw - 32px));
-  max-height: min(90vh, 800px);
+  /* 目标是整个弹窗在视口内一屏放下、不出现内部滚动：等待支付态内容约 690px（英文约 720px），
+     展开操作面板后最高约 840px，上下各留 16px。高度由内容决定、不再额外写死上限，
+     只有极矮视口（横屏手机等）才回落到内部滚动兜底。 */
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -927,8 +925,7 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
   display: flex; flex-direction: column;
-  /* 顶部多留 30px 给右上角关闭按钮，避免压到金额卡右上角的复制按钮。 */
-  padding: 50px 20px 20px;
+  padding: 20px;
   color: var(--text, #0a0a0a);
   font: 14px/1.5 -apple-system, "Segoe UI", "PingFang SC", sans-serif;
   animation: pay-modal-rise .3s var(--ux-spring);
@@ -936,20 +933,6 @@ onBeforeUnmount(() => {
 }
 
 @keyframes pay-modal-rise { from { transform: translateY(20px) scale(.98); opacity: 0; } }
-
-/* 右上角关闭按钮：沿用操作区胶囊按钮的底色 / 描边 / hover，圆形 30px。 */
-.pay-modal__close {
-  position: absolute; top: 12px; right: 12px;
-  width: 30px; height: 30px;
-  border: 0; border-radius: 999px;
-  background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
-  display: grid; place-items: center;
-  cursor: pointer;
-  transition: background-color .15s, color .15s;
-}
-.pay-modal__close:hover { color: #000; background: var(--ux-surface-2); }
-.pay-modal__close svg { width: 16px; height: 16px; }
 
 .pay-modal::-webkit-scrollbar { width: 6px; height: 6px; }
 .pay-modal::-webkit-scrollbar-track { background: transparent; }
@@ -959,16 +942,21 @@ onBeforeUnmount(() => {
 /* ---- 金额卡 ---- */
 .pay-modal__amount-card {
   position: relative;
-  padding: 18px 18px 16px;
+  padding: 16px 16px 14px;
   border-radius: 18px;
   background: var(--ux-surface);
   box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
   margin-bottom: 12px;
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
+.pay-modal__amount-main {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 0; max-width: 100%;
+}
+.pay-modal__amount-main b { min-width: 0; }
 .pay-modal__amount-copy {
-  position: absolute; top: 16px; right: 16px;
-  width: 32px; height: 32px;
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
   border: 0; border-radius: 8px;
   background: var(--ux-surface-2); color: var(--ux-ink-2);
   display: grid; place-items: center;
@@ -980,7 +968,7 @@ onBeforeUnmount(() => {
 .pay-modal__amount-label {
   display: block;
   font-size: 13.5px; color: var(--ux-ink-3); font-weight: 500;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
 }
 .pay-modal__fee-note {
   font-style: normal;
@@ -988,8 +976,8 @@ onBeforeUnmount(() => {
   color: var(--ux-ink-3);
 }
 .pay-modal__amount-value {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
-  margin-bottom: 12px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  margin-bottom: 10px;
 }
 .pay-modal__amount-value b {
   font-size: 36px; font-weight: 700; letter-spacing: -.02em;
@@ -1012,8 +1000,8 @@ onBeforeUnmount(() => {
 .pay-modal__chain-dot.is-alipay { background: #1677ff; }
 .pay-modal__amount-meta {
   border-top: 1px solid var(--ux-line);
-  padding-top: 12px;
-  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 10px;
+  display: flex; flex-direction: column; gap: 6px;
 }
 .pay-modal__meta-row {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -1029,22 +1017,24 @@ onBeforeUnmount(() => {
 /* ---- 支付卡 ---- */
 .pay-modal__pay-card {
   border-radius: 18px;
-  padding: 18px 18px 0;
+  padding: 16px 16px 0;
   margin-bottom: 12px;
   background: var(--ux-surface);
   box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
   transition: opacity .4s, transform .5s var(--ux-ease);
 }
+/* 左标题右倒计时同一行：倒计时不再单独占一块 30px 大字，省下的高度用来让整个弹窗一屏放下。 */
 .pay-modal__pay-head {
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 8px;
 }
-.pay-modal__pay-head b { font-size: 15.5px; font-weight: 500; }
+/* 英文标题放不下一行时折成两行：行距收紧并均衡断行，避免末行只剩一个单词。 */
+.pay-modal__pay-head b { min-width: 0; font-size: 15.5px; font-weight: 500; line-height: 1.3; text-wrap: balance; }
 
 .pay-modal__cd-num {
-  text-align: center;
-  margin: 6px 0 12px;
-  font-size: 30px; font-weight: 700;
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 21px; font-weight: 700; line-height: 1.2;
   letter-spacing: .04em;
   color: #22c55e;
   font-family: var(--font-mono);
@@ -1058,7 +1048,7 @@ onBeforeUnmount(() => {
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   transition: filter .4s, opacity .4s;
 }
 .pay-modal__qr {
@@ -1087,8 +1077,8 @@ onBeforeUnmount(() => {
 .pay-modal__redirect-hint svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
 
 .pay-modal__addr {
-  margin-top: 12px;
-  padding: 14px 0 16px;
+  margin-top: 8px;
+  padding: 10px 0 12px;
   border-top: 1px solid var(--ux-line);
 }
 .pay-modal__addr-label {
@@ -1120,7 +1110,7 @@ onBeforeUnmount(() => {
 
 /* ---- 加密货币操作区 ---- */
 .pay-modal__crypto-actions {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
   margin-bottom: 12px;
 }
 .pay-modal__action-row {
@@ -1148,10 +1138,10 @@ onBeforeUnmount(() => {
 .pay-modal__action-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
 
 .pay-modal__panel {
-  padding: 12px;
+  padding: 10px;
   border-radius: 12px;
   background: var(--ux-surface-2);
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 6px;
 }
 .pay-modal__chip-list {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -1212,7 +1202,7 @@ onBeforeUnmount(() => {
 .pay-modal__stage {
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  min-height: 34px; margin-top: 4px;
+  min-height: 34px; margin-top: 0;
   overflow: hidden;
   transition: min-height .4s var(--ux-ease);
 }
@@ -1309,7 +1299,8 @@ onBeforeUnmount(() => {
 
 .pay-modal__rec {
   position: absolute;
-  left: 16px; right: 16px; bottom: 16px; top: 60px;
+  /* 顶部内边距已从 50px 收到 20px，收据层随之上移，四边留白接近一致。 */
+  left: 16px; right: 16px; bottom: 16px; top: 24px;
   display: none;
   flex-direction: column;
   padding: 22px 18px 16px;
@@ -1429,6 +1420,24 @@ onBeforeUnmount(() => {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
   transition: opacity .4s, transform .5s var(--ux-ease);
+}
+
+/* 矮视口（如 iPhone Safari 带工具条时约 664px 高）的紧凑模式：缩小大字金额与二维码、再收一轮内边距，
+   让等待支付态仍尽量一屏放下而不触发内部滚动。 */
+@media (max-height: 740px) {
+  .pay-modal { padding: 16px; }
+  .pay-modal__amount-card { padding: 12px 14px 10px; margin-bottom: 8px; }
+  .pay-modal__amount-value { margin-bottom: 6px; }
+  .pay-modal__amount-value b { font-size: 30px; }
+  .pay-modal__amount-meta { padding-top: 8px; gap: 4px; }
+  .pay-modal__pay-card { padding: 14px 14px 0; margin-bottom: 8px; }
+  .pay-modal__pay-head { margin-bottom: 6px; }
+  .pay-modal__qr-wrap { margin-bottom: 6px; }
+  .pay-modal__qr img,
+  .pay-modal__qr-placeholder { width: 100px; height: 100px; }
+  .pay-modal__addr { margin-top: 6px; padding: 8px 0 10px; }
+  .pay-modal__crypto-actions { margin-bottom: 8px; }
+  .pay-modal__stage { min-height: 30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
