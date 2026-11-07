@@ -253,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
@@ -652,6 +652,10 @@ const triggerSuccessFromPolling = (paidAtRaw?: string | number | null) => {
   runSuccessAnimation(order)
 }
 
+// 组件卸载后仍在途的轮询响应：dispatch 前丢弃，避免对已销毁的组件 ref 写值 / emit paid。
+const unmounted = ref(false)
+onUnmounted(() => { unmounted.value = true })
+
 const pollOnce = async () => {
   const o = props.order
   if (!o || !o.sn) return
@@ -666,15 +670,14 @@ const pollOnce = async () => {
     } else {
       resp = await userOrderAPI.detail(o.sn, { silentBusinessError: true })
     }
-    // 等待响应期间可能已关窗或已换单（重新发起支付）：迟到的响应不能再起动画 / 作用到新单上。
-    if (!props.open || props.order?.sn !== sn) return
+    // 等待响应期间可能已卸载 / 关窗 / 已换单（重新发起支付）：迟到的响应不能再起动画 / 作用到新单上。
+    if (unmounted.value || !props.open || props.order?.sn !== sn) return
     const data = resp?.data?.data
     const status = String(data?.status || '')
     if (isPaidOrderStatus(status)) {
       triggerSuccessFromPolling(data?.paid_at)
     } else if (isTerminalOrderStatus(status)) {
-      // 后台取消 / 过期 / 退款等终态：不必等倒计时走完，停轮询并切到过期态。
-      stopPolling()
+      // 后台取消 / 过期 / 退款等终态：翻 forcedExpired，orderPastExpire → true 后由 shouldPoll watch 自动停轮询。
       forcedExpired.value = true
     }
   } catch {
@@ -822,10 +825,9 @@ watch(() => props.open, async (opened) => {
     resetState()
     startNowTimer()
     await renderQRCode()
-    // 二维码渲染是异步的：期间若弹窗已被关闭（else 分支已清理），不能再起轮询 / 锁滚动。
+    // 二维码渲染是异步的：期间若弹窗已被关闭（else 分支已清理），不能再锁滚动。
     if (!props.open) return
-    // 打开时已过期的单不起轮询：orderPastExpire 的 watch 只在 false→true 时停轮询，这里等不到翻转。
-    if (props.order?.sn && !orderPastExpire.value) startPolling()
+    // 轮询起停由下方 shouldPoll watch 统一管理：reset 后 stage='waiting' + open=true + sn 真 + 未过期 → shouldPoll 翻 true 自然起轮询。
     previouslyFocused.value = (document.activeElement as HTMLElement) || null
     await nextTick()
     if (!props.open) return
@@ -833,7 +835,7 @@ watch(() => props.open, async (opened) => {
     document.body.style.overflow = 'hidden'
   } else {
     stopNowTimer()
-    stopPolling()
+    // 轮询关闭由 shouldPoll watch 覆盖（open=false → shouldPoll=false）；这里不再显式 stopPolling。
     cancelAnimation()
     clearPaidEmitTimer()
     if (walletCopiedTimer.value !== null) {
@@ -855,18 +857,24 @@ watch(() => props.order, async (next, prev) => {
   txPanelOpen.value = false
   txHashInput.value = ''
   // 重新发起支付时弹窗不关、直接换成新订单：上一单的终态标记要清掉，
-  // 过期时已停掉的轮询也要为新单重新拉起（切换网络同单不换号，不走这里）。
+  // 清掉 forcedExpired 后 orderPastExpire 翻回 false，shouldPoll watch 会自动为新单拉起轮询（同单不换号不走这里）。
   if (next?.sn && next.sn !== prev?.sn) {
     forcedExpired.value = false
-    if (stage.value === 'waiting' && !orderPastExpire.value) startPolling()
   }
   await renderQRCode()
 })
 
-// 进入过期态（倒计时走完或服务端终态）后停止轮询；重发起前由 handleRenew 补查一次。
-watch(orderPastExpire, (expired) => {
-  if (expired) stopPolling()
-})
+// 轮询起停收敛：只要（弹窗开 && 等待支付 && 未过期 && 有订单号）就应该轮询，任一条件翻转即刻起 / 停。
+// 替代了原来散在 watch(open) / watch(order sn 变) / watch(orderPastExpire) / pollOnce 终态分支里的多处 start/stop。
+const shouldPoll = computed(() => (
+  props.open && stage.value === 'waiting' && !orderPastExpire.value && Boolean(props.order?.sn)
+))
+watch(shouldPoll, (now) => {
+  if (now) startPolling()
+  else stopPolling()
+}, { immediate: true })
+
+// orderPastExpire 翻 true 后 shouldPoll 自然翻 false，这里原本的 stopPolling 已被 shouldPoll watch 覆盖——无须单列 watch。
 
 watch(() => props.txFeedback, (feedback) => {
   if (feedback?.ok) txHashInput.value = ''
