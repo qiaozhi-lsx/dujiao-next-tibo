@@ -152,7 +152,7 @@
                 :disabled="switchBusy || ch.id === order?.channelId"
                 @click="handleSwitchChannel(ch.id)"
               >
-                {{ ch.name }}
+                {{ channelDisplayName(ch.name) }}
               </button>
             </div>
             <p v-if="switchBusy" class="pay-modal__panel-msg">{{ t('qiaozhi.payment.modal.switching') }}</p>
@@ -257,7 +257,7 @@ import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } fr
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { useAppStore } from '../../stores/app'
-import { chainLabel } from '../../utils/cryptoChain'
+import { chainLabel, channelDisplayName } from '../../utils/cryptoChain'
 import { countdownTone } from '../../utils/countdownTone'
 import {
   bareAmountText,
@@ -443,7 +443,7 @@ const paymentChipLabel = computed(() => {
   if (cryptoChainLabel.value) return cryptoChainLabel.value
   const name = (props.order?.channelName || '').trim()
   if (!name) return ''
-  return /支付宝|alipay/i.test(name) ? 'Alipay' : name
+  return /支付宝|alipay/i.test(name) ? 'Alipay' : channelDisplayName(name)
 })
 
 // 有素材的链用真 logo（网关同款），其余链回退色点。

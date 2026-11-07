@@ -306,7 +306,7 @@
                 <i></i>
                 <img v-if="ch.icon" :src="ch.icon" alt="" />
                 <span>
-                  <b>{{ ch.name }}</b>
+                  <b>{{ channelDisplayName(ch.name) }}</b>
                   <small v-if="channelAmountLimitHint(ch)">{{ channelAmountLimitHint(ch) }}</small>
                 </span>
               </button>
@@ -367,6 +367,7 @@ import {
   Loader2, LogIn, PackageOpen, RefreshCw, RotateCcw, Wallet,
 } from 'lucide-vue-next'
 import { usePayment } from '../../composables/usePayment'
+import { channelDisplayName } from '../../utils/cryptoChain'
 import { useQiaozhiPrice } from './utils/price'
 import { setupReveal } from './utils/reveal'
 

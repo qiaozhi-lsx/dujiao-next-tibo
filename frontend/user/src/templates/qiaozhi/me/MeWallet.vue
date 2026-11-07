@@ -60,7 +60,7 @@
             <QzSelect
               id="qz-wallet-channel"
               :model-value="rechargeForm.channelId"
-              :items="[{ value: 0, label: t('personalCenter.wallet.channelPlaceholder') }, ...channels.map((channel: any) => ({ value: Number(channel.id), label: String(channel.name) }))]"
+              :items="[{ value: 0, label: t('personalCenter.wallet.channelPlaceholder') }, ...channels.map((channel: any) => ({ value: Number(channel.id), label: channelDisplayName(String(channel.name)) }))]"
               :disabled="!hasChannels || channelLoading || recharging"
               @update:model-value="rechargeForm.channelId = $event as number"
             />
@@ -176,6 +176,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ChevronLeft, ChevronRight, CreditCard, RefreshCw } from 'lucide-vue-next'
 import { walletAPI } from '../../../api'
+import { channelDisplayName } from '../../../utils/cryptoChain'
 import { useAppStore } from '../../../stores/app'
 import type { PageAlert } from '../../../utils/alerts'
 import {

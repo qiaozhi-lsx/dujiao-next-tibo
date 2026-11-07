@@ -433,7 +433,7 @@
                     loading="lazy"
                   />
                   <span>
-                    <b>{{ channel.name }}</b>
+                    <b>{{ channelDisplayName(channel.name) }}</b>
                     <small v-if="channel.fee_policy === 'customer_surcharge'">
                       {{ t('payment.feeLabel') }} {{ formatChannelFeeRate(channel) }} · {{ formatChannelFixedFee(channel) }}
                     </small>
@@ -496,6 +496,7 @@ import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useCheckout } from '../../composables/useCheckout'
 import { useLocalized } from '../../composables/useProduct'
+import { channelDisplayName } from '../../utils/cryptoChain'
 import { setupReveal } from './utils/reveal'
 import QzButton from './components/QzButton.vue'
 import QzSelect from './components/QzSelect.vue'

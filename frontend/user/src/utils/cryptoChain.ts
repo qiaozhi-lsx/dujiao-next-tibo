@@ -48,6 +48,9 @@ const USDT_SEPARATORS = /[-_/·\s()（）[\]]/g
  * 名字里没有独立的 USDT、认不出链、写了多条链（TRC20/BEP20/ERC20）或带有附加文字（（推荐）、快速到账）。
  * 只看渠道名，不看 channel_type：epusdt 等网关的真实网络在后台配置里，channel_type 可能是陈旧的 legacy 值。
  */
+/** 渠道名的统一展示文案：能规范成「USDT · 链名」就用它，否则原样返回管理端填写的名字。 */
+export const channelDisplayName = (name: string): string => usdtDisplayLabel(name) || name
+
 export const usdtDisplayLabel = (name: string): string => {
   const raw = (name || '').trim()
   if (!raw || !hasUsdtToken(raw)) return ''

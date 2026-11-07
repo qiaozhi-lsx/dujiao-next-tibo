@@ -1,6 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { chainLabel, hasUsdtToken, usdtDisplayLabel } from '../src/utils/cryptoChain.ts'
+import { chainLabel, channelDisplayName, hasUsdtToken, usdtDisplayLabel } from '../src/utils/cryptoChain.ts'
+
+test('channelDisplayName: 可规范化的渠道名统一成「USDT · 链名」，其余原样返回', () => {
+  assert.equal(channelDisplayName('USDT-BEP20'), 'USDT · BSC')
+  assert.equal(channelDisplayName('USDT-SOL'), 'USDT · Solana')
+  assert.equal(channelDisplayName('USDT-TRC20（推荐）'), 'USDT-TRC20（推荐）')
+  assert.equal(channelDisplayName('支付宝'), '支付宝')
+  assert.equal(channelDisplayName(''), '')
+})
 
 test('BEP20 链文案与网关对齐为 BSC', () => {
   assert.equal(chainLabel('binance'), 'BSC')

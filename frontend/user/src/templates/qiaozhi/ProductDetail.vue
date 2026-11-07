@@ -274,7 +274,7 @@ import { getFirstImageUrl, getImageUrl } from '../../utils/image'
 import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
 import { getAffiliateCode, getAffiliateVisitorKey } from '../../utils/affiliate'
-import { hasUsdtToken, usdtDisplayLabel } from '../../utils/cryptoChain'
+import { channelDisplayName, hasUsdtToken } from '../../utils/cryptoChain'
 import { useTheme } from '../../utils/theme'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
@@ -438,7 +438,7 @@ const channels = computed(() => {
       const channelType = String(ch?.channel_type || '')
       // name 原样保留给支付弹窗 / 支付记录回填；label 只用于本页支付方式行：
       // 渠道名纯粹是「USDT + 单一链」时统一成「USDT · 链名」，其余一律显示管理端原名（只看名字，不信 channel_type）。
-      const label = usdtDisplayLabel(name) || name
+      const label = channelDisplayName(name)
       return {
         id: Number(ch.id),
         name,
