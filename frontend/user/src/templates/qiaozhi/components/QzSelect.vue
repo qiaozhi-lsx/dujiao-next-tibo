@@ -2,7 +2,7 @@
   <div ref="rootEl" class="qz-select" :class="attrs.class as string | undefined" :style="attrs.style as any">
     <button
       type="button"
-      class="qz-select-btn"
+      class="qz-field-control qz-select-btn"
       :class="{ 'is-open': open, 'is-placeholder': showPlaceholder }"
       :disabled="disabled"
       v-bind="buttonAttrs"
@@ -206,3 +206,100 @@ onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', onDocPointerDown, true)
 })
 </script>
+
+<style>
+/* 自绘下拉：触发钮就是 base.css 的 .qz-field-control（md 高、control 圆角、强边框；hover 边框加深、
+   :focus-within / aria-invalid / :disabled 全部由基类接管，箭头按基类的 18px 弱化色），这里只补
+   按钮形态（两端对齐、左对齐文案、占位色、打开时箭头翻转）与浮层面板。
+   不用 scoped、沿用 base.css 的作用域前缀（浮层若日后 Teleport 到 body 也能命中）；覆盖基类属性的选择器带上
+   .qz-field-control，靠特指度赢。面板用 control 圆角，选项圆角按 space-1 内边距同心收一圈。全部取值走 --qz-* token。 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select {
+  position: relative;
+  min-width: 0;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control.qz-select-btn {
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+/* 展开态描边；aria-invalid 时让 base 的 danger 描边赢（与 base 里 [aria-invalid] 压过 :focus-within 的顺序一致） */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control.qz-select-btn.is-open:where(:not([aria-invalid="true"])) { border-color: var(--qz-accent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-btn.is-placeholder .qz-select-label { color: var(--qz-text-muted); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-chevron { transition: transform var(--qz-duration-fast) var(--qz-ease-standard); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-btn.is-open .qz-select-chevron { transform: rotate(180deg); }
+
+/* 浮层面板：贴在触发钮下方，浮起阴影；选项 sm 高（手机 40，可点）、高亮走弱强调底、选中加粗 + 对勾 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-panel {
+  position: absolute;
+  top: calc(100% + var(--qz-space-1));
+  right: 0;
+  left: 0;
+  z-index: 60;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: var(--qz-space-1);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-raised);
+  box-shadow: var(--qz-shadow-floating);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--qz-space-2);
+  min-height: var(--qz-control-sm);
+  padding: 0 var(--qz-space-3);
+  border-radius: calc(var(--qz-radius-control) - var(--qz-space-1));
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+  cursor: pointer;
+  transition: background-color var(--qz-duration-instant) var(--qz-ease-standard);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-opt.is-highlight { background: var(--qz-accent-subtle); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-opt.is-active { color: var(--qz-accent-strong); font-weight: 600; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-opt.is-disabled { opacity: .5; cursor: not-allowed; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-opt-text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-select-check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--qz-accent-strong);
+}
+
+/* 面板进出：淡入 + 自上方 space-1 落下 */
+.qz-select-pop-enter-active {
+  transition:
+    opacity var(--qz-duration-fast) var(--qz-ease-standard),
+    transform var(--qz-duration-standard) var(--qz-ease-enter);
+}
+.qz-select-pop-leave-active {
+  transition:
+    opacity var(--qz-duration-instant) var(--qz-ease-standard),
+    transform var(--qz-duration-instant) var(--qz-ease-standard);
+}
+.qz-select-pop-enter-from,
+.qz-select-pop-leave-to {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--qz-space-1)));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-select-chevron, .qz-select-opt) { transition: none; }
+  .qz-select-pop-enter-active,
+  .qz-select-pop-leave-active { transition: none; }
+}
+</style>

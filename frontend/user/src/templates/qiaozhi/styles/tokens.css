@@ -5,10 +5,12 @@
    Arc's semantic roles, neutral oklch scale, radii, control heights, type scale, shadows,
    easing curves and durations are carried over; every name is re-prefixed `--qz-`.
    Rule for every other qiaozhi sheet — base.css (primitives), layout.css (shell), the page
-   <style scoped> blocks: read these tokens, never raw values. legacy.css bridges its old
-   `--bg` / `--surface` / … variables onto them while the remaining pages migrate.
+   <style scoped> blocks: read these tokens, never raw values. The compat bridge at the end
+   re-exports the few classic `--ui-*` names that shared classic components still read, as
+   var() references onto these tokens.
 
-   Structure: light colours → dark colours → theme-independent sizes → ≤760px overrides.
+   Structure: light colours → dark colours → theme-independent sizes → ≤760px overrides →
+   compat bridge.
 
    Local deviations from Arc:
    - Scope: declared on `.qiaozhi-scope, body.qiaozhi-tokens` (and the `.dark …` pair) instead of
@@ -16,24 +18,36 @@
      notice modal, payment modal) inherit; dark mode is the site-wide `.dark` ancestor class.
    - Accent stays the template's black (`#0a0a0a` / `#27272a`, inverted to `#fafafa` / `#e4e4e7` in
      dark) rather than Arc's `oklch(33% 0 0)` + `data-accent` mechanism; `--qz-on-accent` is a fixed
-     colour, not `var(--background)`; `--qz-accent-subtle` keeps the legacy alpha (.1 light / .14 dark).
-   - Light page / surface / text keep the legacy values (`#fafafa` / `#ffffff` / `#0a0a0a`); only the
+     colour, not `var(--background)`; `--qz-accent-subtle` keeps the template's original alpha (.1 light / .14 dark).
+   - Light page / surface / text keep the template's original values (`#fafafa` / `#ffffff` / `#0a0a0a`); only the
      grey steps (muted surface, borders, secondary and muted text) move to Arc's neutral scale —
      except light `--qz-text-muted`, darkened from Arc's `oklch(59% 0 0)` (~4.1:1 on white) to
      `oklch(55% 0 0)` (~4.9:1) so muted labels, hints and footer small print clear WCAG AA.
      Dark takes Arc's dark values (`oklch(19% 0 0)` page etc.).
    - Added `--qz-brand-telegram` / `-whatsapp` / `-wechat` / `-qq`: third-party brand colours for the
      contact panel glyphs and their "open" buttons, plus `--qz-on-brand` (the dark ink on those fills —
-     `--qz-on-accent` is white in light mode and fails AA there). Same values in both themes (a brand
-     colour does not follow the theme); kept here so no other sheet carries a colour literal.
+     `--qz-on-accent` is white in light mode and fails AA there), and `--qz-brand-tron` / `-bsc` / `-sol`
+     (+ `-sol-2`, the gradient's second stop) / `-alipay` for the payment-network dots in PaymentModal.
+     Same values in both themes (a brand colour does not follow the theme); kept here so no other sheet
+     carries a colour literal.
+   - Added `--qz-art-*`: the featured-card illustration palette (QzFeaturedCard.vue). Not an Arc concept; the
+     values are the brand literals of the old sheet, declared on both scopes with dark overrides only for the
+     per-variant washes and text inks. Fills / shadows are composite values, like `--qz-shadow-*`.
    - Status hues are Arc's `--tone-*` colours mapped onto `--qz-success` / `-warning` / `-danger` / `-info`:
      light takes Arc's deepened light tones (`oklch(50% 0.12 162)` / `oklch(55% 0.12 68)` / `oklch(53% 0.18 10)` /
      `oklch(51% 0.11 240)`), each ≥ 4.5:1 on white (5.6 / 5.0 / 5.8 / 5.7) for the 11–12px badges, chips and
      field errors that use them — the template's old `#2f8f6f` / `#c68416` / `#d84a5a` were 4.0 / 3.1 / 4.2:1.
      Dark keeps Arc's pastels (`oklch(79% 0.14 162)` / `oklch(83% 0.12 78)` / `oklch(71% 0.155 8)` /
      `oklch(79% 0.095 236)`).
-   - Lengths are px, not rem (the legacy sheet is px-based). Added: `--qz-text-2xs: 11px` type floor,
+   - Lengths are px, not rem (the original sheet was px-based). Added: `--qz-text-2xs: 11px` type floor,
      `--qz-header-bg`, `--qz-container`, `--qz-header-h`; `--qz-control-sm` grows to 40px below 760px.
+   - Added `--qz-radius-sm: 12px` / `--qz-radius-xs: 6px` below Arc's control radius: inner tiles (order
+     rows, code blocks, thumbnails) and small media (channel logos) that pages used to size with literals.
+   - Added `--qz-font-body` / `--qz-font-mono`: the body stack (Inter Variable + CJK fallbacks, what
+     base.css sets on the template root) and the monospace stack for order numbers, card codes, secrets
+     and API keys. Theme-independent, declared once with the sizes.
+   - Added `--qz-qr-frame`: the quiet-zone frame behind QR codes. Fixed white in both themes — a QR code
+     rendered on a dark surface loses its light quiet zone and scans worse — written like `--qz-brand-*`.
    - Not carried over: `--control-on` / `--control-track` / `--control-thumb` / `--control-glyph` /
      `--control-fill` (form-control part colours; Arc's control heights are carried over as
      `--qz-control-*`), `--arc-gradient-*`, `--series-*`, `--font-*`,
@@ -75,10 +89,71 @@
   --qz-brand-wechat: #07c160;
   --qz-brand-qq: #1ebafc;
   --qz-on-brand: #0a0a0a;
+  /* Payment network / wallet brands (PaymentModal chain dots): TRON red, BNB Chain yellow, Solana purple→green, Alipay blue. */
+  --qz-brand-tron: #ff060a;
+  --qz-brand-bsc: #f0b90b;
+  --qz-brand-sol: #9945ff;
+  --qz-brand-sol-2: #14f195;
+  --qz-brand-alipay: #1677ff;
+  /* QR quiet-zone frame: fixed white in both themes so the code keeps a light margin on dark surfaces. */
+  --qz-qr-frame: #ffffff;
   /* Elevation */
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .035);
   --qz-shadow-raised: 0 6px 18px oklch(0% 0 0 / .065), 0 1px 3px oklch(0% 0 0 / .035);
   --qz-shadow-floating: 0 20px 48px oklch(0% 0 0 / .105), 0 3px 10px oklch(0% 0 0 / .045);
+  /* Featured-card artwork (QzFeaturedCard.vue, `.qz-fart` / `.fa-*`): the brand illustration palette, lifted
+     1:1 from the old sheet. `-wash` is the per-variant art background, `-ink` / `-num` are text colours, `-1..n`
+     are the flat brand colours the component color-mix()es its alpha variants from, `-shadow` values are complete
+     box-shadow / drop-shadow lists, and card / badge / chip fills are whole gradients. Brand colours do not follow
+     the theme (repeated unchanged on the dark scope); only the washes and the text inks have dark values. */
+  --qz-art-white: #ffffff;
+  --qz-art-icon-shadow: rgba(15, 23, 42, 0.2);
+  /* ChatGPT card stack: three pastel cards on dark teal ink */
+  --qz-art-gpt-1: linear-gradient(140deg, rgb(236, 252, 248), rgb(196, 238, 229));
+  --qz-art-gpt-2: linear-gradient(140deg, rgb(243, 240, 255), rgb(218, 211, 248));
+  --qz-art-gpt-3: linear-gradient(140deg, rgb(255, 246, 230), rgb(251, 223, 186));
+  --qz-art-gpt-ink: rgb(21, 52, 58);
+  --qz-art-gpt-shadow: rgba(20, 45, 60, 0.16) 0px 16px 34px, rgba(255, 255, 255, 0.65) 0px 0px 0px 1px inset;
+  /* Gemini star: -1 violet (orbit / glow / middle stop), -2 blue and -3 pink are the star's outer stops */
+  --qz-art-gemini-wash: linear-gradient(160deg, rgb(245, 243, 255), rgb(251, 249, 255));
+  --qz-art-gemini-1: rgb(141, 107, 255);
+  --qz-art-gemini-2: #4f8bff;
+  --qz-art-gemini-3: #d65fb4;
+  --qz-art-gemini-twinkle: rgb(160, 140, 255);
+  --qz-art-gemini-num: rgb(113, 88, 226);
+  --qz-art-gemini-shadow: rgba(108, 92, 231, 0.35) 0px 12px 24px;
+  /* X Premium card: near-black gradient stops, white ink */
+  --qz-art-x-wash: rgba(15, 23, 42, 0.09);
+  --qz-art-x-1: rgb(48, 52, 59);
+  --qz-art-x-2: rgb(12, 13, 16);
+  --qz-art-x-3: rgb(30, 32, 37);
+  --qz-art-x-shadow: rgba(0, 0, 0, 0.3) 0px 24px 44px, rgba(255, 255, 255, 0.14) 0px 1px inset;
+  /* Duolingo: -1 is the glow green, -ink the word pills, -num the day counter */
+  --qz-art-duo-wash: linear-gradient(160deg, rgb(239, 251, 228), rgb(248, 253, 242));
+  --qz-art-duo-1: rgb(88, 204, 2);
+  --qz-art-duo-ink: rgb(75, 154, 0);
+  --qz-art-duo-num: rgb(88, 167, 0);
+  --qz-art-duo-shadow: rgba(60, 120, 0, 0.14) 0px 8px 20px;
+  /* Muse: -1 orange / -2 pink (ring stroke, glow, number gradient), -3 glow centre; four ring badges; rising chips */
+  --qz-art-muse-wash: linear-gradient(160deg, rgb(255, 243, 228), rgb(255, 238, 246));
+  --qz-art-muse-1: rgb(224, 113, 29);
+  --qz-art-muse-2: rgb(232, 68, 122);
+  --qz-art-muse-3: rgb(255, 138, 76);
+  --qz-art-muse-twinkle: rgb(255, 159, 90);
+  --qz-art-muse-num: linear-gradient(120deg, rgb(224, 113, 29), rgb(232, 68, 122));
+  --qz-art-muse-badge-1: linear-gradient(135deg, rgb(255, 154, 98), rgb(255, 95, 143));
+  --qz-art-muse-badge-2: linear-gradient(135deg, rgb(124, 140, 255), rgb(165, 107, 255));
+  --qz-art-muse-badge-3: linear-gradient(135deg, rgb(63, 63, 70), rgb(10, 10, 10));
+  --qz-art-muse-badge-4: linear-gradient(135deg, rgb(247, 183, 51), rgb(252, 143, 58));
+  --qz-art-muse-badge-shadow: rgba(160, 60, 40, 0.2) 0px 5px 12px;
+  --qz-art-muse-chip: linear-gradient(135deg, rgb(255, 233, 210), rgb(255, 217, 230));
+  --qz-art-muse-chip-ink: rgb(185, 72, 15);
+  --qz-art-muse-chip-shadow: rgba(185, 72, 15, 0.16) 0px 6px 16px;
+  /* Tools strip (full-width card): -1 is the glow blue, -shadow sits under the price pills */
+  --qz-art-tools-wash: linear-gradient(120deg, rgb(238, 244, 255), rgb(236, 250, 244));
+  --qz-art-tools-1: rgb(31, 102, 245);
+  --qz-art-tools-twinkle: rgb(111, 156, 255);
+  --qz-art-tools-shadow: rgba(18, 35, 63, 0.08) 0px 3px 8px;
 }
 
 /* ---------- Dark (tuned separately, not inverted) ---------- */
@@ -107,9 +182,59 @@
   --qz-brand-wechat: #07c160;
   --qz-brand-qq: #1ebafc;
   --qz-on-brand: #0a0a0a;
+  --qz-brand-tron: #ff060a;
+  --qz-brand-bsc: #f0b90b;
+  --qz-brand-sol: #9945ff;
+  --qz-brand-sol-2: #14f195;
+  --qz-brand-alipay: #1677ff;
+  --qz-qr-frame: #ffffff;
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .18);
   --qz-shadow-raised: 0 8px 22px oklch(0% 0 0 / .22);
   --qz-shadow-floating: 0 22px 55px oklch(0% 0 0 / .34);
+  /* Featured-card artwork: washes turn into translucent tints of the brand colour, the text inks lighten;
+     everything else is the brand palette and repeats the light values. */
+  --qz-art-white: #ffffff;
+  --qz-art-icon-shadow: rgba(15, 23, 42, 0.2);
+  --qz-art-gpt-1: linear-gradient(140deg, rgb(236, 252, 248), rgb(196, 238, 229));
+  --qz-art-gpt-2: linear-gradient(140deg, rgb(243, 240, 255), rgb(218, 211, 248));
+  --qz-art-gpt-3: linear-gradient(140deg, rgb(255, 246, 230), rgb(251, 223, 186));
+  --qz-art-gpt-ink: rgb(21, 52, 58);
+  --qz-art-gpt-shadow: rgba(20, 45, 60, 0.16) 0px 16px 34px, rgba(255, 255, 255, 0.65) 0px 0px 0px 1px inset;
+  --qz-art-gemini-wash: linear-gradient(160deg, rgba(141, 107, 255, 0.14), rgba(141, 107, 255, 0.05));
+  --qz-art-gemini-1: rgb(141, 107, 255);
+  --qz-art-gemini-2: #4f8bff;
+  --qz-art-gemini-3: #d65fb4;
+  --qz-art-gemini-twinkle: rgb(160, 140, 255);
+  --qz-art-gemini-num: rgb(180, 164, 255);
+  --qz-art-gemini-shadow: rgba(108, 92, 231, 0.35) 0px 12px 24px;
+  --qz-art-x-wash: rgba(255, 255, 255, 0.07);
+  --qz-art-x-1: rgb(48, 52, 59);
+  --qz-art-x-2: rgb(12, 13, 16);
+  --qz-art-x-3: rgb(30, 32, 37);
+  --qz-art-x-shadow: rgba(0, 0, 0, 0.3) 0px 24px 44px, rgba(255, 255, 255, 0.14) 0px 1px inset;
+  --qz-art-duo-wash: linear-gradient(160deg, rgba(88, 204, 2, 0.13), rgba(88, 204, 2, 0.04));
+  --qz-art-duo-1: rgb(88, 204, 2);
+  --qz-art-duo-ink: rgb(142, 224, 74);
+  --qz-art-duo-num: rgb(142, 224, 74);
+  --qz-art-duo-shadow: rgba(60, 120, 0, 0.14) 0px 8px 20px;
+  --qz-art-muse-wash: linear-gradient(160deg, rgba(245, 158, 11, 0.15), rgba(232, 68, 122, 0.08));
+  --qz-art-muse-1: rgb(224, 113, 29);
+  --qz-art-muse-2: rgb(232, 68, 122);
+  --qz-art-muse-3: rgb(255, 138, 76);
+  --qz-art-muse-twinkle: rgb(255, 159, 90);
+  --qz-art-muse-num: linear-gradient(120deg, rgb(255, 176, 102), rgb(255, 134, 173));
+  --qz-art-muse-badge-1: linear-gradient(135deg, rgb(255, 154, 98), rgb(255, 95, 143));
+  --qz-art-muse-badge-2: linear-gradient(135deg, rgb(124, 140, 255), rgb(165, 107, 255));
+  --qz-art-muse-badge-3: linear-gradient(135deg, rgb(63, 63, 70), rgb(10, 10, 10));
+  --qz-art-muse-badge-4: linear-gradient(135deg, rgb(247, 183, 51), rgb(252, 143, 58));
+  --qz-art-muse-badge-shadow: rgba(160, 60, 40, 0.2) 0px 5px 12px;
+  --qz-art-muse-chip: linear-gradient(135deg, rgb(255, 233, 210), rgb(255, 217, 230));
+  --qz-art-muse-chip-ink: rgb(185, 72, 15);
+  --qz-art-muse-chip-shadow: rgba(185, 72, 15, 0.16) 0px 6px 16px;
+  --qz-art-tools-wash: linear-gradient(120deg, rgba(31, 102, 245, 0.14), rgba(19, 192, 142, 0.08));
+  --qz-art-tools-1: rgb(31, 102, 245);
+  --qz-art-tools-twinkle: rgb(111, 156, 255);
+  --qz-art-tools-shadow: rgba(18, 35, 63, 0.08) 0px 3px 8px;
 }
 
 /* ---------- Sizes, type, motion (theme-independent) ---------- */
@@ -118,18 +243,25 @@
   --qz-space-1: 4px; --qz-space-2: 8px; --qz-space-3: 12px; --qz-space-4: 16px;
   --qz-space-5: 20px; --qz-space-6: 24px; --qz-space-8: 32px; --qz-space-10: 40px;
   --qz-space-12: 48px; --qz-space-16: 64px; --qz-space-20: 80px; --qz-space-24: 96px;
-  /* Radii: controls / menus & cards / large surfaces / pills */
+  /* Radii: controls / menus & cards / large surfaces / pills; sm / xs for inner tiles and small media below the control step */
   --qz-radius-control: 18px; --qz-radius-panel: 26px; --qz-radius-surface: 34px; --qz-radius-pill: 9999px;
+  --qz-radius-sm: 12px; --qz-radius-xs: 6px;
   /* Control heights: sm for tool pills, icon buttons, chips; md for primary CTAs, inputs, SKUs; lg for payment */
   --qz-control-sm: 36px; --qz-control-md: 44px; --qz-control-lg: 50px;
   /* Type scale, 11px floor */
   --qz-text-2xs: 11px; --qz-text-xs: 12px; --qz-text-sm: 14px; --qz-text-base: 16px;
   --qz-text-lg: 18px; --qz-text-xl: 22px; --qz-text-2xl: 28px; --qz-text-3xl: 36px;
   --qz-leading-display: 1.1; --qz-leading-body: 1.4; --qz-tracking-display: -.03em;
-  /* Motion. --qz-ease-spring is a critically damped spring (never overshoots); pair it with --qz-duration-spring for transforms. */
+  /* Type stacks: the body stack base.css sets on the template root; the monospace stack for order numbers,
+     card codes, secrets, API keys (the CJK fallbacks keep mixed strings on one font height) */
+  --qz-font-body: 'Inter Variable', "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --qz-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+  /* Motion. --qz-ease-spring is a critically damped spring (never overshoots); pair it with --qz-duration-spring for transforms.
+     --qz-ease-linear is for uniform-rate semantics only (countdown / progress rings), never for UI motion. */
   --qz-ease-enter: cubic-bezier(.16,1,.3,1);
   --qz-ease-standard: cubic-bezier(.22,1,.36,1);
   --qz-ease-exit: cubic-bezier(.7,0,.84,0);
+  --qz-ease-linear: linear;
   --qz-ease-spring: linear(0, 0.0213, 0.0739, 0.1443, 0.2235, 0.305, 0.3849, 0.4606, 0.5305, 0.594, 0.6508, 0.7011, 0.7452, 0.7836, 0.8168, 0.8454, 0.8699, 0.8907, 0.9084, 0.9234, 0.9361, 0.9467, 0.9557, 0.9632, 0.9694, 0.9747, 0.979, 0.9826, 0.9857, 0.9882, 0.9902, 0.992, 0.9934, 0.9946, 0.9955, 0.9963, 1);
   --qz-duration-instant: 120ms; --qz-duration-fast: 160ms; --qz-duration-standard: 240ms; --qz-duration-considered: 480ms; --qz-duration-spring: 580ms;
   /* Keyboard focus outline colour (resolves per theme through --qz-accent-strong) */
@@ -145,4 +277,55 @@
     --qz-control-sm: 40px;
     --qz-header-h: 60px;
   }
+}
+
+/* ---------- Compat bridge: classic `--ui-*` names re-exported onto the tokens ----------
+   Classic components still render inside the template — Toast / ConfirmDialog / Loading / ErrorBoundary
+   from App.vue, AnnouncementModal, GoogleIdentityButton, the ImageCaptcha / TurnstileCaptcha widgets, the
+   shadcn Button / Card they compose, the two classic auth-callback views — and read `--ui-*` through the
+   Tailwind @theme map in src/style.css (`--color-card: var(--ui-bg-elevated)` …), its `.theme-prose` /
+   `.theme-overlay` classes and its `* { border-color }` / `body { background }` globals. Declared here on
+   the scope pair so those elements (teleported ones included) pick the template's colours instead of the
+   classic `:root` values; every alias is a var() reference, so it follows the theme on its own and is not
+   repeated on the dark scope. Only names with a live consumer are listed — add one here when a classic
+   component rendered in the template starts reading another `--ui-*`; never give an alias a literal.
+   The success / warning / danger / info aliases take the qz status tones (same hues as `.qz-badge.is-*`),
+   their `-soft` fills the 12% tint base.css uses for badges.
+   `--font-mono` is the one pre-token name a page still reads (PaymentModal.vue). */
+.qiaozhi-scope, body.qiaozhi-tokens {
+  --font-mono: var(--qz-font-mono);
+  /* Surfaces */
+  --ui-bg-page: var(--qz-bg);
+  --ui-bg-elevated: var(--qz-surface);
+  --ui-bg-soft: var(--qz-surface-muted);
+  --ui-bg-muted: color-mix(in oklab, var(--qz-surface-muted) 70%, var(--qz-border));
+  --ui-bg-overlay-strong: color-mix(in srgb, var(--qz-surface) 92%, transparent);
+  /* Text */
+  --ui-text-primary: var(--qz-text);
+  --ui-text-secondary: var(--qz-text-secondary);
+  --ui-text-muted: var(--qz-text-muted);
+  --ui-text-on-accent: var(--qz-on-accent);
+  /* Edges */
+  --ui-border: var(--qz-border);
+  --ui-border-strong: var(--qz-border-strong);
+  /* Accent & status */
+  --ui-accent: var(--qz-accent);
+  --ui-accent-hover: var(--qz-accent-strong);
+  --ui-accent-soft: var(--qz-accent-subtle);
+  --ui-success: var(--qz-success);
+  --ui-success-soft: color-mix(in oklab, var(--qz-success) 12%, transparent);
+  --ui-warning: var(--qz-warning);
+  --ui-warning-soft: color-mix(in oklab, var(--qz-warning) 12%, transparent);
+  --ui-danger: var(--qz-danger);
+  --ui-info: var(--qz-info);
+  --ui-info-soft: color-mix(in oklab, var(--qz-info) 12%, transparent);
+  /* Radii (classic steps snapped to the nearest token) & elevation */
+  --ui-radius-sm: var(--qz-radius-sm);
+  --ui-radius-md: var(--qz-radius-sm);
+  --ui-radius-lg: var(--qz-radius-panel);
+  --ui-radius-xl: var(--qz-radius-panel);
+  --ui-shadow-1: var(--qz-shadow-resting);
+  --ui-shadow-2: var(--qz-shadow-resting);
+  --ui-shadow-3: var(--qz-shadow-floating);
+  --ui-shadow-card: var(--qz-shadow-floating);
 }

@@ -305,8 +305,8 @@
             <p class="mt-1 text-sm text-muted-foreground">{{ t('home.latest.description') }}</p>
           </div>
           <div class="flex items-center gap-3 text-sm">
-            <router-link v-if="blogEnabled" to="/blog" class="text-muted-foreground transition-colors hover:text-foreground">{{ t('nav.blog') }}</router-link>
-            <router-link v-if="noticeEnabled" to="/notice" class="text-muted-foreground transition-colors hover:text-foreground">{{ t('nav.notice') }}</router-link>
+            <router-link v-if="blogLinkVisible" to="/blog" class="text-muted-foreground transition-colors hover:text-foreground">{{ t('nav.blog') }}</router-link>
+            <router-link v-if="noticeLinkVisible" to="/notice" class="text-muted-foreground transition-colors hover:text-foreground">{{ t('nav.notice') }}</router-link>
           </div>
         </div>
 
@@ -360,6 +360,7 @@ import { useProductList } from '../composables/useProductList'
 import { useProductListGroups } from '../composables/useProductListGroups'
 import { usePageSeo } from '../composables/usePageSeo'
 import { useAppStore } from '../stores/app'
+import { optionalFlagOn } from '../utils/configFlags'
 import ProductCard from '../components/ProductCard.vue'
 import ProductListItem from '../components/ProductListItem.vue'
 import ProductQuickBuy from '../components/ProductQuickBuy.vue'
@@ -379,9 +380,17 @@ const heroBadgeClass = 'inline-flex items-center gap-2 rounded-md border border-
 
 const templateMode = computed(() => appStore.config?.template_mode || 'card')
 const navBuiltin = computed(() => (appStore.config?.nav_config as { builtin?: Record<string, boolean> } | undefined)?.builtin)
+// 只供 loadLatestPosts 决定要不要拉、拉哪种类型，必须保持乐观读法（不要套 optionalFlagOn）：
+// 帖子只在 onMounted 拉一次，而内联的 window.__PUBLIC_CONFIG__ 不一定带 nav_config
+// （旧后端不带，此时 configComplete 为 false），若按关闭处理会直接跳过请求，
+// 完整配置到达后也不会补拉，区块显示出来就是空的。
 const blogEnabled = computed(() => navBuiltin.value?.blog !== false)
 const noticeEnabled = computed(() => navBuiltin.value?.notice !== false)
-const latestSectionVisible = computed(() => blogEnabled.value || noticeEnabled.value)
+// 显示用的门控读法：完整配置到达前按关闭处理，避免「最新动态」区块和博客 / 公告链接
+// 先闪现再消失，与顶栏 useNavConfig 的内置导航项保持一致（见 utils/configFlags.ts）
+const blogLinkVisible = computed(() => optionalFlagOn(appStore.configComplete, navBuiltin.value?.blog))
+const noticeLinkVisible = computed(() => optionalFlagOn(appStore.configComplete, navBuiltin.value?.notice))
+const latestSectionVisible = computed(() => blogLinkVisible.value || noticeLinkVisible.value)
 
 // ==================== Shared State ====================
 const products = ref<any[]>([])
@@ -486,7 +495,8 @@ const loadFeaturedProducts = async () => {
 }
 
 const loadLatestPosts = async () => {
-  if (!latestSectionVisible.value) return
+  // 乐观判断（见 blogEnabled 注释）：内联阶段两个开关都读成开启，照常发请求；真关闭时区块本就不渲染
+  if (!blogEnabled.value && !noticeEnabled.value) return
   try {
     const params: Record<string, unknown> = { page: 1, page_size: 3 }
     if (blogEnabled.value && !noticeEnabled.value) params.type = 'blog'

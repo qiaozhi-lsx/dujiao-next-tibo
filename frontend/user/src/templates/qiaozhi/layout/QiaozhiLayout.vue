@@ -1,5 +1,5 @@
 <template>
-  <div class="qiaozhi-scope" :class="{ 'is-product': isProductPage }">
+  <div class="qiaozhi-scope" :class="{ 'is-product': isProductPage, 'has-support': hasSupport }">
     <!-- 顶栏 -->
     <header class="qz-header">
       <RouterLink class="qz-brand" to="/" :title="brandName">
@@ -13,7 +13,7 @@
         </span>
       </RouterLink>
 
-      <nav class="qz-nav" :aria-label="t('qiaozhi.nav.primaryAria')">
+      <nav ref="navEl" class="qz-nav" :aria-label="t('qiaozhi.nav.primaryAria')">
         <RouterLink to="/" class="qz-pill" :class="{ 'is-active': section === 'shop' }">
           <ShoppingBag /><span>{{ t('qiaozhi.nav.shop') }}</span>
         </RouterLink>
@@ -168,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -183,11 +183,10 @@ import { useTheme } from '../../../utils/theme'
 import { getImageUrl } from '../../../utils/image'
 import { navSection } from '../utils/navSection'
 import '@fontsource-variable/inter'
-// 顺序即层叠顺序：token → 基类 → 布局壳 → 尚未迁移的 legacy 页面样式
+// 顺序即层叠顺序：token → 基类 → 布局壳；页面样式在各自的 <style scoped>
 import '../styles/tokens.css'
 import '../styles/base.css'
 import '../styles/layout.css'
-import '../styles/legacy.css'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -201,6 +200,7 @@ const langOpen = ref(false)
 const contactOpen = ref(false)
 const showBackTop = ref(false)
 const langEl = ref<HTMLElement | null>(null)
+const navEl = ref<HTMLElement | null>(null)
 const year = new Date().getFullYear()
 
 const brandName = computed(() => String(appStore.config?.brand?.site_name || '').trim() || 'Qiaozhi&Ai')
@@ -224,9 +224,10 @@ const ordersPath = computed(() => (userAuthStore.isAuthenticated ? '/me/orders' 
 // 顶栏胶囊与底部导航共用的高亮分区（/me/orders 归查订单，其余 /me/* 与 /auth 归个人中心）
 const section = computed(() => navSection(route.path))
 const accountPath = computed(() => (userAuthStore.isAuthenticated ? '/me' : '/auth/login'))
-// 底部导航第 4 格：公告开启时放公告，否则放 2FA。noticeEnabled 在内联配置阶段（configComplete 为 false，
-// 内联的 __PUBLIC_CONFIG__ 不含 nav_config）恒为 false，直接用它会让冷启动先显示 2FA、一个 RTT 后再换成公告；
-// 这里在完整配置到达前固定显示公告，只有完整配置明确关闭公告时才换成 2FA。
+// 底部导航第 4 格：公告开启时放公告，否则放 2FA。新后端内联的 __PUBLIC_CONFIG__ 已带 nav_config，首帧
+// configComplete 即为 true，直接按 noticeEnabled 取值；旧后端不带这个键时，完整配置到达前 configComplete 为
+// false、noticeEnabled 恒为 false，直接用它会让冷启动先显示 2FA、一个 RTT 后再换成公告——所以在那之前固定
+// 显示公告，只有完整配置明确关闭公告时才换成 2FA。
 const noticeSlot = computed(() => !appStore.configComplete || noticeEnabled.value)
 const cartCount = computed(() => cartStore.totalItems)
 
@@ -262,6 +263,8 @@ const contacts = computed(() => {
   }
   return out
 })
+// 悬浮客服钮（面板版或直链版）存在时根元素带 has-support：layout.css 据此给页脚让出右下角，避免盖住最后一个链接
+const hasSupport = computed(() => contacts.value.length > 0 || Boolean(supportHref.value))
 
 const languages = [
   { code: 'zh-CN', name: '简体中文' },
@@ -284,11 +287,64 @@ const onScroll = () => {
   showBackTop.value = window.scrollY > 400
 }
 
+// 顶栏导航是隐藏滚动条的横向滚动盒：只有胶囊真的放不下（scrollWidth 超出 clientWidth 1px 以上，
+// 容忍亚像素取整）时才给 data-overflow，值是仍被裁掉的那一侧（end / start / both），layout.css 只在
+// 对应边缘加渐隐遮罩——放得下时最后一枚胶囊与它的焦点环保持完全不透明，滚到尽头时露出的那一侧也不再被遮。
+// ResizeObserver 同时观察导航盒本身（视口变化）与其子元素（可选项 / 语言切换让胶囊增减或变宽）；
+// 滚动位置变化走 scroll 事件。
+let navObserver: ResizeObserver | null = null
+const syncNavOverflow = () => {
+  const el = navEl.value
+  if (!el) return
+  const max = el.scrollWidth - el.clientWidth
+  if (max <= 1) {
+    if (el.hasAttribute('data-overflow')) el.removeAttribute('data-overflow')
+    return
+  }
+  const atStart = el.scrollLeft <= 1
+  const atEnd = el.scrollLeft >= max - 1
+  const next = atStart ? 'end' : atEnd ? 'start' : 'both'
+  // 只在值变化时写属性，避免每个滚动帧都触发属性变更
+  if (el.getAttribute('data-overflow') !== next) el.setAttribute('data-overflow', next)
+}
+// 路由切换后把高亮胶囊滚进可视区（行放得下时无事发生；scroll-padding 让它避开渐隐边）
+const revealActivePill = () => {
+  const el = navEl.value?.querySelector<HTMLElement>('.qz-pill.is-active')
+  if (!el || typeof el.scrollIntoView !== 'function') return
+  el.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+  syncNavOverflow()
+}
+const observeNav = () => {
+  navObserver?.disconnect()
+  const el = navEl.value
+  if (!el || typeof ResizeObserver === 'undefined') return
+  navObserver = new ResizeObserver(syncNavOverflow)
+  navObserver.observe(el)
+  for (const child of Array.from(el.children)) navObserver.observe(child)
+  syncNavOverflow()
+}
+// 可选导航项（教程 / 公告 / 关于 / 客服）随配置出现或消失、语言切换换掉文案时，重新观察新的子元素
+watch([blogEnabled, noticeEnabled, aboutEnabled, supportHref, () => appStore.locale], () => {
+  if (!navObserver) return
+  void nextTick(observeNav)
+})
+watch(section, () => {
+  void nextTick(revealActivePill)
+})
+
 onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('scroll', onScroll, { passive: true })
-  // 浮层（Toast / ConfirmDialog / 公告弹窗）Teleport 到 body，靠这个 class 拿到 --qz-* token 与 legacy 配色变量
+  navEl.value?.addEventListener('scroll', syncNavOverflow, { passive: true })
+  // 浮层（Toast / ConfirmDialog / 公告弹窗）Teleport 到 body，靠这个 class 拿到 --qz-* token 与 --ui-* 兼容桥
   document.body.classList.add('qiaozhi-tokens')
+  observeNav()
+  revealActivePill()
+})
+onBeforeUnmount(() => {
+  navObserver?.disconnect()
+  navObserver = null
+  navEl.value?.removeEventListener('scroll', syncNavOverflow)
 })
 onUnmounted(() => {
   document.removeEventListener('click', onDocClick)

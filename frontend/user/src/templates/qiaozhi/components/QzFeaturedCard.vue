@@ -29,8 +29,9 @@
         <div class="fa-gem-star">
           <svg viewBox="0 0 160 160">
             <defs>
+              <!-- 三个色标的 stop-color 在 <style> 里走 --qz-art-gemini-2 / -1 / -3 -->
               <linearGradient id="qz-gem-grad" x1="0" y1="1" x2="1" y2="0">
-                <stop stop-color="#4f8bff" /><stop offset=".55" stop-color="#8d6bff" /><stop offset="1" stop-color="#d65fb4" />
+                <stop class="g1" /><stop class="g2" offset=".55" /><stop class="g3" offset="1" />
               </linearGradient>
             </defs>
             <path fill="url(#qz-gem-grad)" d="M80 5C91 48 112 69 155 80C112 91 91 112 80 155C69 112 48 91 5 80C48 69 69 48 80 5Z" />
@@ -141,6 +142,7 @@ import { useI18n } from 'vue-i18n'
 import { Bird, ChevronRight, Heart, Package, Smile, Sparkles, Star, Sun } from 'lucide-vue-next'
 import { useLocalized } from '../../../composables/useProduct'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
+import { artVariant, displayTags, type ArtVariant } from '../utils/featured'
 import { startingPrice, useQiaozhiPrice } from '../utils/price'
 
 const props = defineProps<{
@@ -160,11 +162,10 @@ const desc = computed(() => {
   const text = raw ? raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : getLocalizedText(props.product?.category?.name)
   return text.length > 40 ? `${text.slice(0, 40)}…` : text
 })
-const tag = computed(() => {
-  const tags = props.product?.tags
-  return Array.isArray(tags) && tags.length ? String(tags[0]).slice(0, 12) : ''
-})
-const chips = computed(() => (Array.isArray(props.product?.tags) ? props.product.tags.map((x: any) => String(x).slice(0, 10)).slice(0, 3) : []))
+// 展示用标签：art:<variant> 这类控制标签不上卡
+const visibleTags = computed(() => displayTags(props.product?.tags))
+const tag = computed(() => (visibleTags.value[0] || '').slice(0, 12))
+const chips = computed(() => visibleTags.value.slice(0, 3).map((x) => x.slice(0, 10)))
 
 const icon = computed(() => {
   const primary = getFirstImageUrl(props.product?.images)
@@ -183,16 +184,11 @@ const em = computed(() => {
 // 「起」价 = 启用 SKU 的最低价；无 SKU 回退商品价（C10：以前直接读 price_amount，多 SKU 时显示的不是最低档）
 const priceParts = computed(() => splitPrice(startingPrice(props.product)))
 
-// 变体判定：工具行优先，其余按 slug 关键词映射艺术区
-const variant = computed(() => {
+// 变体判定：工具行优先；其余先看 tags 里的 art:<variant>，没有再按 slug 关键词映射（utils/featured.ts）
+const variant = computed<ArtVariant>(() => {
   if (props.tools && props.tools.length) return 'tools'
-  const s = slug.value
-  if (/chatgpt|gpt/.test(s)) return 'chatgpt'
-  if (/gemini|bard|google/.test(s)) return 'gemini'
-  if (/^x-|x-premium|twitter|tweet/.test(s)) return 'x'
-  if (/duolingo|duo|lingo/.test(s)) return 'duo'
-  if (/muse/.test(s)) return 'muse'
-  return 'default'
+  const tags = props.product?.tags
+  return artVariant(slug.value, Array.isArray(tags) ? tags : [])
 })
 
 const wideClass = computed(() => (variant.value === 'tools' ? 'is-wide-full' : ''))
@@ -227,9 +223,9 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 
 <style scoped>
 /* 精选卡：表面 / 边框 / 圆角 / 内边距来自 .qz-panel，标签来自 .qz-chip，CTA 来自 .qz-btn--primary.qz-btn--sm。
-   这里放卡内布局、艺术区容器（.qz-fart）的尺寸与 hover / 按压联动。
-   艺术层本身（.fa-* 与 .qz-fart.is-<variant> 的品牌渐变）仍在 legacy.css：品牌色要等 --qz-brand-* token
-   （Task 10），本块不含颜色字面量。关键帧 fa-* 同样来自 legacy.css。 */
+   这里放卡内布局、艺术区容器（.qz-fart）的尺寸、艺术层本身（.qz-fart.is-<variant> 底色与 .fa-* 插画）以及
+   hover / 按压联动。品牌色全部走 tokens.css 的 --qz-art-* token（亮暗差异在 token 里切换，本块没有 .dark 规则，
+   也没有颜色字面量；字号只用 --qz-text-*）。艺术层的 fa-* 关键帧在本块底部。 */
 .qz-fcard {
   display: flex;
   flex-direction: column;
@@ -289,7 +285,7 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 }
 .qz-fcard-tag { flex: none; margin-top: var(--qz-space-1); }
 
-/* ---------- 艺术区容器（内容由 legacy.css 的 .fa-* 绘制） ---------- */
+/* ---------- 艺术区容器 ---------- */
 .qz-fart {
   position: relative;
   flex: 1 1 0%;
@@ -310,9 +306,362 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
   .qz-fcard:active .qz-fart { transform: scale(1.02); }
 }
 
-/* ---------- 底部：起价 + CTA ---------- */
+/* ---------- 艺术层：变体底色（亮暗在 --qz-art-*-wash 里切换） ---------- */
+.qz-fart.is-chatgpt { background: radial-gradient(ellipse at 50% 62%, var(--qz-accent-subtle), transparent 68%); }
+.qz-fart.is-gemini { background: var(--qz-art-gemini-wash); }
+.qz-fart.is-x { background: radial-gradient(at 50% 75%, var(--qz-art-x-wash), transparent 62%); }
+.qz-fart.is-duo { background: var(--qz-art-duo-wash); }
+.qz-fart.is-muse { background: var(--qz-art-muse-wash); }
+.qz-fart.is-tools { background: var(--qz-art-tools-wash); }
+
+/* ---------- 艺术层：通用件（光晕 / 大数字 / 浮动图标 / 星光） ---------- */
+.fa-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.fa-num {
+  position: absolute;
+  right: var(--qz-space-4);
+  bottom: var(--qz-space-3);
+  z-index: 3;
+  text-align: right;
+}
+.fa-num b {
+  display: block;
+  font-size: var(--qz-text-3xl);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+/* 数字由 --to（内联）经 counter 渲染；is-in 时 fa-count 关键帧从 0 起跳 */
+.fa-count { --fa-n: var(--to); counter-reset: fa-n var(--fa-n); }
+.fa-count::before { content: counter(fa-n); }
+.fa-num b small {
+  margin-left: 3px;
+  font-size: var(--qz-text-sm);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.fa-num > span {
+  display: block;
+  margin-top: 3px;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-2xs);
+}
+.fa-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 104px;
+  height: 104px;
+  transform: translate(-50%, -50%);
+  animation: fa-bob 5.2s ease-in-out infinite;
+}
+.fa-icon .qz-brand-icon,
+.fa-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.fa-icon::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -16px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--qz-art-icon-shadow), transparent);
+}
+/* 基础星光取 Gemini 的淡紫；Muse / 工具卡各自覆盖 */
+.fa-twinkle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  fill: var(--qz-art-gemini-twinkle);
+  animation: fa-twinkle 3.2s ease-in-out infinite;
+}
+.fa-twinkle.t1 { left: 18%; top: 30%; }
+.fa-twinkle.t2 { right: 22%; top: 18%; width: 10px; height: 10px; animation-delay: -1.1s; }
+.fa-twinkle.t3 { left: 30%; bottom: 16%; width: 12px; height: 12px; animation-delay: -2.1s; }
+
+/* ---------- 艺术层：ChatGPT 卡堆 ---------- */
+.fa-gpt {
+  display: grid;
+  place-items: center;
+  animation: fa-float 6s ease-in-out infinite;
+}
+.fa-gpt-card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 196px;
+  height: 122px;
+  padding: 14px var(--qz-space-4);
+  border-radius: var(--qz-radius-control);
+  color: var(--qz-art-gpt-ink);
+  box-shadow: var(--qz-art-gpt-shadow);
+  transition: transform var(--qz-duration-spring) var(--qz-ease-spring);
+}
+.fa-gpt-card small {
+  font-size: var(--qz-text-2xs);
+  font-weight: 600;
+  opacity: 0.62;
+}
+.fa-gpt-card b {
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: -0.02em;
+}
+.fa-gpt-card em {
+  align-self: flex-end;
+  font-size: var(--qz-text-lg);
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.fa-gpt-card.c1 { z-index: 3; background: var(--qz-art-gpt-1); transform: translate(-38px, 16px) rotate(-7deg); }
+.fa-gpt-card.c2 { z-index: 2; background: var(--qz-art-gpt-2); transform: translate(4px, -4px) rotate(2deg); }
+.fa-gpt-card.c3 { z-index: 1; background: var(--qz-art-gpt-3); transform: translate(46px, -22px) rotate(10deg); }
+
+/* ---------- 艺术层：Gemini 星轨 ---------- */
+.fa-gem .fa-glow { background: radial-gradient(circle, color-mix(in srgb, var(--qz-art-gemini-1) 30%, transparent), transparent 66%); }
+.fa-gem-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260px;
+  height: 112px;
+  border: 1px solid color-mix(in srgb, var(--qz-art-gemini-1) 28%, transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(-16deg);
+  animation: fa-orbit 16s linear infinite;
+}
+.fa-gem-orbit i {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--qz-art-gemini-1);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--qz-art-gemini-1) 80%, transparent);
+}
+.fa-gem-star {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 112px;
+  height: 112px;
+  filter: drop-shadow(var(--qz-art-gemini-shadow));
+  transform: translate(-50%, -50%);
+  animation: fa-gem-float 6s ease-in-out infinite;
+}
+/* 星形渐变的三个色标（模板里的 <stop class="g1/g2/g3">）：蓝 → 紫 → 粉 */
+.fa-gem-star .g1 { stop-color: var(--qz-art-gemini-2); }
+.fa-gem-star .g2 { stop-color: var(--qz-art-gemini-1); }
+.fa-gem-star .g3 { stop-color: var(--qz-art-gemini-3); }
+.fa-gem .fa-num b { color: var(--qz-art-gemini-num); }
+
+/* ---------- 艺术层：X Premium 3D 卡 ---------- */
+.fa-x {
+  display: grid;
+  place-items: center;
+}
+.fa-x-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 238px;
+  height: 146px;
+  padding: 18px var(--qz-space-5);
+  overflow: hidden;
+  border-radius: var(--qz-radius-control);
+  color: var(--qz-art-white);
+  background: linear-gradient(150deg, var(--qz-art-x-1), var(--qz-art-x-2) 58%, var(--qz-art-x-3));
+  box-shadow: var(--qz-art-x-shadow);
+  transform: rotate(-8deg);
+  animation: fa-x-float 5.4s ease-in-out infinite;
+}
+.fa-x-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fa-x-logo svg { width: 25px; height: 25px; }
+.fa-x-logo b {
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.fa-x-meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--qz-space-2);
+}
+.fa-x-meta small {
+  color: color-mix(in srgb, var(--qz-art-white) 50%, transparent);
+  font-size: var(--qz-text-2xs);
+  letter-spacing: 0.24em;
+}
+.fa-x-meta em {
+  color: color-mix(in srgb, var(--qz-art-white) 85%, transparent);
+  font-size: var(--qz-text-2xs);
+  font-style: normal;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.fa-x-sheen {
+  position: absolute;
+  inset: -40% -30%;
+  background: linear-gradient(105deg, transparent 42%, color-mix(in srgb, var(--qz-art-white) 20%, transparent) 50%, transparent 58%);
+  animation: fa-sheen 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ---------- 艺术层：多邻国 ---------- */
+.fa-duo .fa-glow { background: radial-gradient(circle, color-mix(in srgb, var(--qz-art-duo-1) 22%, transparent), transparent 66%); }
+.fa-word {
+  position: absolute;
+  z-index: 2;
+  padding: 6px var(--qz-space-3);
+  border-radius: var(--qz-radius-sm);
+  background: var(--qz-surface);
+  color: var(--qz-art-duo-ink);
+  font-size: var(--qz-text-sm);
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: var(--qz-art-duo-shadow);
+  animation: fa-word 4.6s ease-in-out infinite;
+}
+.fa-word.w1 { left: 9%; top: 18%; rotate: -8deg; }
+.fa-word.w2 { right: 9%; top: 24%; rotate: 7deg; animation-delay: -1.2s; }
+.fa-word.w3 { left: 14%; bottom: 16%; rotate: 5deg; font-size: var(--qz-text-xs); animation-delay: -2.4s; }
+.fa-word.w4 { left: 40%; top: 5%; rotate: -3deg; font-size: var(--qz-text-2xs); animation-delay: -3.3s; }
+.fa-duo .fa-num b { color: var(--qz-art-duo-num); }
+
+/* ---------- 艺术层：Muse ---------- */
+.fa-muse .fa-glow {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--qz-art-muse-3) 26%, transparent),
+    color-mix(in srgb, var(--qz-art-muse-2) 8%, transparent) 45%,
+    transparent 68%
+  );
+}
+.fa-muse-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 164px;
+  height: 164px;
+  border: 1.5px dashed color-mix(in srgb, var(--qz-art-muse-1) 35%, transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: fa-spin 18s linear infinite;
+}
+/* 徽章描边取表面色：亮色下就是白，暗色下随表面变深（原 .dark 覆盖） */
+.fa-muse-ring i {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--qz-surface);
+  border-radius: 50%;
+  color: var(--qz-art-white);
+  box-shadow: var(--qz-art-muse-badge-shadow);
+  animation: fa-unspin 18s linear infinite;
+}
+.fa-muse-ring .a1 { top: -13px; left: calc(50% - 13px); background: var(--qz-art-muse-badge-1); }
+.fa-muse-ring .a2 { right: -13px; top: calc(50% - 13px); background: var(--qz-art-muse-badge-2); }
+.fa-muse-ring .a3 { bottom: -13px; left: calc(50% - 13px); background: var(--qz-art-muse-badge-3); }
+.fa-muse-ring .a4 { left: -13px; top: calc(50% - 13px); background: var(--qz-art-muse-badge-4); }
+.fa-muse .fa-twinkle { fill: var(--qz-art-muse-twinkle); }
+.fa-muse .fa-twinkle.t1 { left: 14%; top: 16%; }
+.fa-muse .fa-twinkle.t2 { left: 70%; top: 12%; right: auto; }
+.fa-chip {
+  position: absolute;
+  bottom: 30%;
+  z-index: 2;
+  padding: 5px 10px;
+  border-radius: var(--qz-radius-pill);
+  opacity: 0;
+  background: var(--qz-art-muse-chip);
+  color: var(--qz-art-muse-chip-ink);
+  font-size: var(--qz-text-xs);
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: var(--qz-art-muse-chip-shadow);
+  animation: fa-rise 4.8s ease-out infinite;
+}
+.fa-chip.c1 { left: 8%; }
+.fa-chip.c2 { left: 60%; bottom: 46%; animation-delay: -1.6s; }
+.fa-chip.c3 { left: 28%; animation-delay: -3.2s; }
+.fa-muse .fa-num b {
+  background-image: var(--qz-art-muse-num);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- 艺术层：工具合集（通栏） ---------- */
+.fa-tools .fa-glow {
+  width: 320px;
+  background: radial-gradient(color-mix(in srgb, var(--qz-art-tools-1) 16%, transparent), transparent 66%);
+}
+.fa-tools .fa-twinkle { fill: var(--qz-art-tools-twinkle); }
+.fa-tools .fa-twinkle.t1 { left: 5%; top: 16%; }
+.fa-tools .fa-twinkle.t2 { right: 6%; top: auto; bottom: 18%; animation-delay: -1.6s; }
+.fa-tools-row {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 4vw, 46px);
+}
+.fa-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--qz-space-2);
+  animation: fa-float 3.6s ease-in-out infinite;
+}
+.fa-tool em {
+  padding: 2px 9px;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  font-size: var(--qz-text-xs);
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--qz-art-tools-shadow);
+}
+.fa-tool.is-out {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+/* ---------- 底部：起价 + CTA ----------
+   价格与「起」后缀钉在一行；一行放不下（en-US @1024 的「Choose a plan」）时整颗 CTA 换到下一行靠右，而不是把后缀挤到价格下面 */
 .qz-fcard-foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--qz-space-3);
@@ -334,12 +683,13 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 .qz-fcard-price small {
   color: var(--qz-text-muted);
   font-size: var(--qz-text-xs);
+  white-space: nowrap;
 }
-.qz-fcard-cta { flex: none; }
+.qz-fcard-cta { flex: none; margin-left: auto; }
 .qz-fcard-cta svg { transition: transform var(--qz-duration-standard) var(--qz-ease-standard); }
 .qz-fcard:hover .qz-fcard-cta svg { transform: translateX(3px); }
 
-/* ---------- 艺术区 hover 联动（元素由 legacy.css 的 .fa-* 定位） ---------- */
+/* ---------- 艺术区 hover 联动 ---------- */
 .qz-fcard:hover .fa-gpt-card.c1 { transform: translate(-70px, 18px) rotate(-11deg); }
 .qz-fcard:hover .fa-gpt-card.c2 { transform: translateY(-10px) rotate(0deg); }
 .qz-fcard:hover .fa-gpt-card.c3 { transform: translate(72px, -10px) rotate(12deg); }
@@ -400,10 +750,13 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
   object-fit: contain;
   box-shadow: var(--qz-shadow-raised);
 }
+/* 图标底始终是白瓷砖（品牌 logo 多为透明底，暗色下也要可辨），hover 位移走 transition */
 .tool-icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background: var(--qz-art-white);
+  transition: transform var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .tool-letter {
   color: var(--qz-accent-strong);
@@ -444,5 +797,25 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
     margin-top: auto;
   }
   .tool-icon { width: 52px; height: 52px; }
+
+  /* 艺术层：大数字降一档，工具行收紧 */
+  .fa-num b { font-size: var(--qz-text-2xl); }
+  .fa-num b small { font-size: var(--qz-text-xs); }
+  .fa-tools-row { gap: 10px; padding: 0 var(--qz-space-2); }
 }
+
+/* ---------- 艺术层关键帧（只有本组件用；scoped 编译会给名字加作用域后缀，与上面的 animation 一并改写） ----------
+   浮动 / 轨道 / 闪烁 / 扫光 / 字词起伏 / 芯片上升 / 数字计数。 */
+@keyframes fa-float { 0%, 100% { transform: translateY(4px); } 50% { transform: translateY(-5px); } }
+@keyframes fa-bob { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -57%); } }
+@keyframes fa-orbit { 0% { transform: translate(-50%, -50%) rotate(-16deg); } 100% { transform: translate(-50%, -50%) rotate(344deg); } }
+@keyframes fa-unspin { 100% { transform: rotate(-360deg); } }
+@keyframes fa-count { 0% { --fa-n: 0; } }
+@keyframes fa-spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes fa-gem-float { 0%, 100% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.97); } 50% { transform: translate(-50%, -57%) rotate(6deg) scale(1.04); } }
+@keyframes fa-twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes fa-x-float { 0%, 100% { transform: rotate(-8deg) translateY(4px); } 50% { transform: rotate(-5deg) translateY(-6px); } }
+@keyframes fa-sheen { 0%, 22% { opacity: 0; transform: translate(-60%); } 28% { opacity: 1; } 56% { opacity: 1; transform: translate(60%); } 62%, 100% { opacity: 0; transform: translate(60%); } }
+@keyframes fa-word { 0%, 100% { translate: 0; } 50% { translate: 0 -8px; } }
+@keyframes fa-rise { 0% { opacity: 0; transform: translateY(24px) scale(0.9); } 15%, 65% { opacity: 1; } 100% { opacity: 0; transform: translateY(-112px) scale(1); } }
 </style>

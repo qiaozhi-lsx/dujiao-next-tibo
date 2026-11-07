@@ -8,13 +8,13 @@
 //
 // The drawer's rules live in the component's own (unscoped) <style> block, written with
 // the same `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))` prefix base.css uses; the
-// primitives it composes (.qz-eyebrow, .qz-pill, .qz-badge, .qz-icon-btn) come from
-// styles/base.css and the shared bits (.qz-brand-icon) still from styles/legacy.css.
+// primitives it composes (.qz-eyebrow, .qz-pill, .qz-badge, .qz-icon-btn) and the shared
+// brand glyph (.qz-brand-icon) come from styles/base.css.
 //
 // Project uses node:test (no DOM, no vitest), so this is a static check: collect the
 // static classes used inside the Teleport block and assert each one has at least one
-// selector reachable from body scope in any of those three sources. Picked up by
-// pnpm run test via the shim at tests/qiaozhiDrawerScope.test.ts.
+// selector reachable from body scope in the component's own styles or base.css. Picked up
+// by pnpm run test via the shim at tests/qiaozhiDrawerScope.test.ts.
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -23,7 +23,7 @@ const read = (relative: string) => readFileSync(new URL(relative, import.meta.ur
 
 const BODY_SCOPE = 'body.qiaozhi-tokens'
 const PANEL_SFC = '../components/QzCategoryPanel.vue'
-const STYLE_SOURCES = ['../styles/base.css', '../styles/legacy.css']
+const STYLE_SOURCES = ['../styles/base.css']
 
 // Static `class="…"` attributes only; Vue `:class="{ … }"` bindings carry runtime state classes.
 const STATIC_CLASS_ATTR = /(?<![:\w-])class="([^"]+)"/g
@@ -100,7 +100,7 @@ test('teleported drawer markup is styled from body scope', () => {
 
   const bodyScoped = [componentCss, ...STYLE_SOURCES.map(read)].flatMap((css) => selectors(css)).filter(startsFromBodyScope)
   const unreachable = classes.filter((cls) => !bodyScoped.some((selector) => mentionsClass(selector, cls)))
-  assert.deepEqual(unreachable, [], `drawer classes with no body-scoped rule in QzCategoryPanel.vue / base.css / legacy.css: ${unreachable.join(', ')}`)
+  assert.deepEqual(unreachable, [], `drawer classes with no body-scoped rule in QzCategoryPanel.vue / base.css: ${unreachable.join(', ')}`)
 
   // The regression itself: a drawer rule rooted at `.qiaozhi-scope` alone can never match the teleported DOM.
   const drawerOnlyScoped = selectors(componentCss).filter(

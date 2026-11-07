@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -695,5 +696,183 @@ func TestBuildInitialConfigPayload_IncludesTemplateMode(t *testing.T) {
 	}
 	if _, ok := payload["payment_channels"]; ok {
 		t.Fatalf("payment_channels must not be inlined into first-screen payload, got %v", payload["payment_channels"])
+	}
+}
+
+// flagsConfigSource 同时实现 InitialConfigSource 与 InitialConfigFlagsSource，
+// 模拟生产里的 settings 适配器：站点配置之外还能给出 nav_config 与注册 / 邮箱验证开关。
+// flagCalls 统计两个开关方法被调用的总次数，用来验证它们和站点配置一起走 TTL 缓存。
+type flagsConfigSource struct {
+	data                     map[string]interface{}
+	navConfig                interface{}
+	registrationEnabled      bool
+	emailVerificationEnabled bool
+	flagCalls                atomic.Int32
+}
+
+func (s *flagsConfigSource) GetConfig(map[string]interface{}) (map[string]interface{}, error) {
+	return s.data, nil
+}
+
+func (s *flagsConfigSource) GetNavConfig() interface{} {
+	s.flagCalls.Add(1)
+	return s.navConfig
+}
+
+func (s *flagsConfigSource) GetRegistrationFlags() (bool, bool) {
+	s.flagCalls.Add(1)
+	return s.registrationEnabled, s.emailVerificationEnabled
+}
+
+// mustJSON 把值序列化成紧凑 JSON，便于按字符串比对嵌套 map（encoding/json 会对键排序）。
+func mustJSON(t *testing.T, v interface{}) string {
+	t.Helper()
+	raw, err := json.Marshal(v)
+	if err != nil {
+		t.Fatalf("json.Marshal(%v): %v", v, err)
+	}
+	return string(raw)
+}
+
+// TestBuildInitialConfigPayload_IncludesFlagsFromFlagsSource 实现了 InitialConfigFlagsSource 的来源
+// 要把 nav_config、registration_enabled、email_verification_enabled 一并放进首屏 payload：
+// 前端的导航项 / 注册与登录页的验证码字段都靠这些键决定是否渲染，缺了它们首帧只能等完整配置。
+func TestBuildInitialConfigPayload_IncludesFlagsFromFlagsSource(t *testing.T) {
+	nav := map[string]interface{}{
+		"builtin":      map[string]interface{}{"blog": true, "notice": false, "about": true},
+		"custom_items": []interface{}{map[string]interface{}{"label": "Docs", "url": "https://docs.example.test"}},
+	}
+	src := &flagsConfigSource{
+		data:                     map[string]interface{}{"brand": map[string]interface{}{"site_name": "Main Shop"}},
+		navConfig:                nav,
+		registrationEnabled:      true,
+		emailVerificationEnabled: false,
+	}
+
+	payload := buildInitialConfigPayload(context.Background(), src)
+
+	if got, want := mustJSON(t, payload["nav_config"]), mustJSON(t, nav); got != want {
+		t.Fatalf("payload[nav_config] = %s, want %s", got, want)
+	}
+	if got, ok := payload["registration_enabled"]; !ok || got != true {
+		t.Fatalf("payload[registration_enabled] = %v (present=%v), want true", got, ok)
+	}
+	if got, ok := payload["email_verification_enabled"]; !ok || got != false {
+		t.Fatalf("payload[email_verification_enabled] = %v (present=%v), want false", got, ok)
+	}
+	if got, ok := payload["brand"]; !ok || mustJSON(t, got) != `{"site_name":"Main Shop"}` {
+		t.Fatalf("payload[brand] = %v (present=%v), site_config fields must still be inlined", got, ok)
+	}
+}
+
+// TestBuildInitialConfigPayload_DefaultsNavConfigWhenUnset 站长从未保存过导航设置时 nav_config 为 nil，
+// 内联 payload 必须补上与 /api/v1/public/config 完全相同的默认结构（三个内置导航全开、无自定义项），
+// 否则首帧与完整配置不同形，前端会先按"无导航配置"渲染再翻转。
+func TestBuildInitialConfigPayload_DefaultsNavConfigWhenUnset(t *testing.T) {
+	src := &flagsConfigSource{
+		data:                     map[string]interface{}{"brand": map[string]interface{}{"site_name": "Main Shop"}},
+		navConfig:                nil,
+		registrationEnabled:      true,
+		emailVerificationEnabled: true,
+	}
+
+	payload := buildInitialConfigPayload(context.Background(), src)
+
+	const wantNav = `{"builtin":{"about":true,"blog":true,"notice":true},"custom_items":[]}`
+	if got := mustJSON(t, payload["nav_config"]); got != wantNav {
+		t.Fatalf("payload[nav_config] = %s, want default %s", got, wantNav)
+	}
+}
+
+// TestBuildInitialConfigPayload_OmitsFlagsWithoutFlagsSource 只实现 InitialConfigSource 的来源保持旧输出：
+// 不编造 nav_config / 注册开关（前端对缺键有 configComplete 兜底），也不把 site_config 里
+// 恰好同名的 nav_config 透传出去 —— nav_config 是独立的设置键，只能由 InitialConfigFlagsSource 提供。
+func TestBuildInitialConfigPayload_OmitsFlagsWithoutFlagsSource(t *testing.T) {
+	src := fakeInitialConfigSource{data: map[string]interface{}{
+		"brand":      map[string]interface{}{"site_name": "Main Shop"},
+		"nav_config": map[string]interface{}{"builtin": map[string]interface{}{"blog": false}},
+	}}
+
+	payload := buildInitialConfigPayload(context.Background(), src)
+
+	for _, key := range []string{"nav_config", "registration_enabled", "email_verification_enabled"} {
+		if got, ok := payload[key]; ok {
+			t.Fatalf("payload[%s] = %v, want absent for a source without InitialConfigFlagsSource", key, got)
+		}
+	}
+	if got, ok := payload["brand"]; !ok || mustJSON(t, got) != `{"site_name":"Main Shop"}` {
+		t.Fatalf("payload[brand] = %v (present=%v), want site_config field inlined as before", got, ok)
+	}
+}
+
+// TestRegisterUser_InlinesNavConfigAndRegistrationFlags 端到端：主站入口 HTML 的
+// window.__PUBLIC_CONFIG__ 要带 nav_config 与两个注册开关，布尔值按原值（false 也要写出）。
+func TestRegisterUser_InlinesNavConfigAndRegistrationFlags(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	settings := &flagsConfigSource{
+		data: map[string]interface{}{"brand": map[string]interface{}{"site_name": "Main Shop"}},
+		navConfig: map[string]interface{}{
+			"builtin":      map[string]interface{}{"blog": false, "notice": true, "about": true},
+			"custom_items": []interface{}{},
+		},
+		registrationEnabled:      true,
+		emailVerificationEnabled: false,
+	}
+	site := func(*http.Request) (bool, string) { return true, "shop.example.test" }
+	if err := RegisterUser(r, newInjectableUserFS(), settings, site); err != nil {
+		t.Fatalf("RegisterUser: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d", w.Code)
+	}
+	body := w.Body.String()
+	for _, want := range []string{
+		`"nav_config":{"builtin":{"about":true,"blog":false,"notice":true},"custom_items":[]}`,
+		`"registration_enabled":true`,
+		`"email_verification_enabled":false`,
+		`"tenant":{"host":"shop.example.test","mode":"main"}`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("expected %s in inline config, got: %s", want, body)
+		}
+	}
+}
+
+// TestRegisterUser_FlagsShareInitialConfigCache 开关和站点配置一起进 5s 缓存：
+// 连续入口请求只读一次 nav_config / 注册开关，不额外给 SQLite 增加每请求查库。
+func TestRegisterUser_FlagsShareInitialConfigCache(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	settings := &flagsConfigSource{
+		data:                     map[string]interface{}{"brand": map[string]interface{}{"site_name": "Main Shop"}},
+		registrationEnabled:      true,
+		emailVerificationEnabled: true,
+	}
+	site := func(*http.Request) (bool, string) { return true, "shop.example.test" }
+	if err := RegisterUser(r, newInjectableUserFS(), settings, site); err != nil {
+		t.Fatalf("RegisterUser: %v", err)
+	}
+
+	for _, p := range []string{"/", "/products", "/not-exist"} {
+		req := httptest.NewRequest(http.MethodGet, p, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("GET %s: status = %d", p, w.Code)
+		}
+		if !strings.Contains(w.Body.String(), `"registration_enabled":true`) {
+			t.Fatalf("GET %s: expected registration flag in inline config, got: %s", p, w.Body.String())
+		}
+	}
+	// GetNavConfig + GetRegistrationFlags 各一次。
+	if got := settings.flagCalls.Load(); got != 2 {
+		t.Fatalf("flag reads = %d, want 2 (one GetNavConfig + one GetRegistrationFlags per TTL)", got)
 	}
 }

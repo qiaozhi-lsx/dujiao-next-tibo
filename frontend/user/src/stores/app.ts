@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { configAPI } from '../api'
+import { inlineConfigHasOptionalFlags } from '../utils/configFlags'
 import { applyCustomScripts } from '../utils/customScripts'
 import { getImageUrl } from '../utils/image'
 import { getLocalizedText } from '../utils/resellerSiteConfig'
@@ -13,11 +14,12 @@ export const useAppStore = defineStore('app', () => {
     // UI 语言（vue-i18n）与商品多语言取值（appStore.locale）不一致
     const locale = ref(detectLocale())
     const config = ref<any>(null)
-    // 完整配置是否已就位。服务端内联的 window.__PUBLIC_CONFIG__ 只是 /public/config 的子集
-    // （brand / seo / 模板等首屏字段），nav_config、email_verification_enabled 这类可选开关键
-    // 不在其中：消费内联配置后为 false，任一次 configAPI.get() 成功赋值后为 true。
+    // 可选开关键（nav_config / registration_enabled / email_verification_enabled）是否已就位。
+    // 服务端内联的 window.__PUBLIC_CONFIG__ 只是 /public/config 的子集（brand / seo / 模板等首屏字段
+    // 加上这三把开关键）：消费内联配置时若三键齐全（inlineConfigHasOptionalFlags）立即为 true，
+    // 旧后端不带键则为 false，直到任一次 configAPI.get() 成功赋值后为 true。
     // 可选开关一律用 utils/configFlags.ts 的 optionalFlagOn(configComplete, value) 读取，
-    // 避免 `value !== false` 在内联阶段把缺失的键当成"开启"而闪一下。
+    // 避免 `value !== false` 在键尚未就位时把缺失的键当成"开启"而闪一下。
     const configComplete = ref(false)
     const loading = ref(false)
     // 服务器与客户端的时间偏移量（毫秒），serverTime = clientTime + offset
@@ -102,11 +104,12 @@ export const useAppStore = defineStore('app', () => {
         }
         // Fast path：服务端已经把 initial config 注入到 window.__PUBLIC_CONFIG__，
         // 首次直接同步使用，省掉首帧 /public/config RTT。
-        // 后台 refetch 一次拿完整响应（payment_channels / server_time / app_version 等
-        // 为了减小首屏 payload 没有被 inline 的字段）。
+        // 内联 payload 带齐可选开关键时 configComplete 立即为 true，导航 / 注册开关首帧即按真实值渲染；
+        // 旧后端不带键则保持 false，等后台完整配置。两种情况都照常后台 refetch 一次拿完整响应
+        // （payment_channels / server_time / app_version 等为了减小首屏 payload 没有被 inline 的字段）。
         if (!force && typeof window !== 'undefined' && (window as any).__PUBLIC_CONFIG__) {
             config.value = (window as any).__PUBLIC_CONFIG__
-            configComplete.value = false
+            configComplete.value = inlineConfigHasOptionalFlags(config.value)
             applySEO()
             applyCustomScripts(config.value?.scripts)
             void (async () => {

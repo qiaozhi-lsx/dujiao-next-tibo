@@ -22,6 +22,29 @@ type InitialConfigSource interface {
 	GetConfig(defaults map[string]interface{}) (map[string]interface{}, error)
 }
 
+// InitialConfigFlagsSource 是 InitialConfigSource 的可选扩展，补齐不在 site_config 里、
+// 但首帧渲染就要用到的开关：导航配置（nav_config 是独立的设置键）与注册 / 邮箱验证开关。
+// 前端对这几个键的读法是"缺键先按关闭、完整配置到达后再翻转"，内联它们才能消除冷启动时
+// 导航项、验证码字段晚一拍出现的闪烁。来源不实现本接口时，入口只注入 site_config 子集（旧行为）。
+type InitialConfigFlagsSource interface {
+	// GetNavConfig 返回 nav_config 设置原文（可 JSON 序列化）；未配置或读取失败时返回 nil，
+	// 由 web 包补上与 /api/v1/public/config 相同的默认结构。
+	GetNavConfig() interface{}
+	// GetRegistrationFlags 返回注册开关与邮箱验证开关；读取失败时应按默认开启处理，
+	// 与 /api/v1/public/config 的口径一致。
+	GetRegistrationFlags() (registrationEnabled, emailVerificationEnabled bool)
+}
+
+// defaultNavConfig 是 nav_config 未配置时的默认导航结构：三个内置导航全开、无自定义项。
+// 必须与 settings 模块 public handler 写进 /api/v1/public/config 的默认值保持同形，
+// 否则首帧与完整配置不一致，前端会先按一种导航渲染再翻转。每次返回新 map，避免缓存共享可变状态。
+func defaultNavConfig() map[string]interface{} {
+	return map[string]interface{}{
+		"builtin":      map[string]interface{}{"blog": true, "notice": true, "about": true},
+		"custom_items": make([]interface{}, 0),
+	}
+}
+
 // SiteResolver 判断一次入口请求落在主站还是分销白标站。
 // 只用标准库类型，由调用方把分销模块的域名解析器适配进来，避免 web 包依赖业务模块。
 // isMain 为 false 时入口不注入任何内联配置（分销站的品牌/脚本由 /public/config 的 overlay 决定）；
@@ -42,9 +65,12 @@ func isSafeTenantHost(host string) bool {
 	return safeTenantHost.MatchString(host)
 }
 
-// initialConfigFieldWhitelist 决定哪些字段会被嵌入到首屏 HTML。
+// initialConfigFieldWhitelist 决定 site_config 里哪些字段会被嵌入到首屏 HTML。
 // 只放首屏模板选择 + 品牌/SEO/多语言这些让骨架期不白屏的最小集，
 // payment_channels、server_time 之类让完整 /public/config 响应补齐。
+// nav_config 与注册开关不是 site_config 的 schema 字段（公共 /public/config 也总是用独立
+// setting key 覆盖它们，不读 site_config 里的同名值），故不走 whitelist，
+// 由 InitialConfigFlagsSource 单独提供，见 buildInitialConfigPayload。
 var initialConfigFieldWhitelist = []string{
 	constants.SettingFieldStorefrontTemplate,
 	"template_mode",
@@ -52,11 +78,12 @@ var initialConfigFieldWhitelist = []string{
 	"seo",
 	constants.SettingFieldSiteCurrency,
 	"languages",
-	"nav_config",
 	"scripts",
 }
 
-// buildInitialConfigPayload 从 settings 读站点基础字段，裁出 whitelist 返回。
+// buildInitialConfigPayload 从 settings 读站点基础字段，裁出 whitelist 返回；
+// settings 还实现 InitialConfigFlagsSource 时，额外写入 nav_config（未配置补默认结构）、
+// registration_enabled、email_verification_enabled，键名与 /api/v1/public/config 相同。
 // 任何错误都返回空 map 而非 nil，调用方可以无条件 JSON 序列化。
 func buildInitialConfigPayload(_ context.Context, settings InitialConfigSource) map[string]interface{} {
 	if settings == nil {
@@ -72,11 +99,21 @@ func buildInitialConfigPayload(_ context.Context, settings InitialConfigSource) 
 	if err != nil || data == nil {
 		return nil
 	}
-	out := make(map[string]interface{}, len(initialConfigFieldWhitelist))
+	out := make(map[string]interface{}, len(initialConfigFieldWhitelist)+3)
 	for _, k := range initialConfigFieldWhitelist {
 		if v, ok := data[k]; ok {
 			out[k] = v
 		}
+	}
+	if flags, ok := settings.(InitialConfigFlagsSource); ok {
+		navConfig := flags.GetNavConfig()
+		if navConfig == nil {
+			navConfig = defaultNavConfig()
+		}
+		out["nav_config"] = navConfig
+		registrationEnabled, emailVerificationEnabled := flags.GetRegistrationFlags()
+		out["registration_enabled"] = registrationEnabled
+		out["email_verification_enabled"] = emailVerificationEnabled
 	}
 	return out
 }
@@ -231,7 +268,8 @@ func RegisterAdmin(r *gin.Engine, prefix string, fsys fs.FS) error {
 //
 // settings 不为 nil 时，入口 index.html 会在 </head> 之前被注入
 // <script>window.__PUBLIC_CONFIG__=...;</script>，让 Vue 启动即拿到基础配置，
-// 省掉冷启动首帧 /api/v1/public/config 这次 RTT。注入失败（settings 调用出错、
+// 省掉冷启动首帧 /api/v1/public/config 这次 RTT；settings 还实现 InitialConfigFlagsSource 时，
+// 导航配置与注册 / 邮箱验证开关也一并内联（生产适配器实现了它）。注入失败（settings 调用出错、
 // HTML 没 </head>）时降级返回原始 index.html，不影响渲染。
 // 站点配置本体走进程内 5s 缓存（initialConfigCache），后台改动的设置最多 5s 后在首帧生效。
 //

@@ -1,61 +1,62 @@
 <template>
   <div class="qz-me-panel">
     <!-- 余额概览 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.wallet.title') }}</h2>
           <small>{{ t('personalCenter.wallet.subtitle') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill is-ok">{{ t('personalCenter.tabs.wallet') }}</span>
+        <div class="qz-me-acts">
+          <span class="qz-chip">{{ t('personalCenter.tabs.wallet') }}</span>
         </div>
       </div>
 
-      <p v-if="walletAlert" class="qz-ic-alert wallet-alert" :class="walletAlertClass" role="alert">
+      <p v-if="walletAlert" class="qz-alert" :class="walletAlertClass" role="alert">
         {{ walletAlert.message }}
       </p>
 
-      <div class="qz-me-stats is-3col">
-        <div class="qz-me-stat">
-          <b><span class="qz-me-stat-text">{{ balanceDisplay }}</span></b>
+      <div class="qz-stat-grid is-triple">
+        <div class="qz-stat">
+          <b>{{ balanceDisplay }}</b>
           <span>{{ t('personalCenter.wallet.balanceLabel') }}</span>
         </div>
-        <div class="qz-me-stat">
+        <div class="qz-stat">
           <b>{{ pagination.total }}</b>
           <span>{{ t('personalCenter.wallet.transactionsLabel') }}</span>
         </div>
-        <div class="qz-me-stat">
-          <b><span class="qz-me-stat-text">{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</span></b>
+        <div class="qz-stat">
+          <b>{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</b>
           <span>{{ t('personalCenter.wallet.currentPageLabel') }}</span>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- 充值 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.wallet.rechargeTitle') }}</h2>
           <small>{{ t('personalCenter.wallet.rechargeSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="qz-ic" novalidate @submit.prevent="handleRecharge">
-        <div class="qz-ic-row">
-          <div class="qz-ic-field">
-            <label for="qz-wallet-amount">{{ t('personalCenter.wallet.amountLabel') }}</label>
+      <form class="qz-me-form" novalidate @submit.prevent="handleRecharge">
+        <div class="qz-me-form-row">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-wallet-amount">{{ t('personalCenter.wallet.amountLabel') }}</label>
             <input
               id="qz-wallet-amount"
               v-model.trim="rechargeForm.amount"
+              class="qz-field-control"
               type="text"
               inputmode="decimal"
               autocomplete="off"
               :placeholder="t('personalCenter.wallet.amountPlaceholder')"
             />
           </div>
-          <div class="qz-ic-field">
-            <label for="qz-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-wallet-channel">{{ t('personalCenter.wallet.channelLabel') }}</label>
             <QzSelect
               id="qz-wallet-channel"
               :model-value="rechargeForm.channelId"
@@ -66,21 +67,22 @@
           </div>
         </div>
 
-        <div class="qz-ic-field">
-          <label for="qz-wallet-remark">{{ t('personalCenter.wallet.remarkLabel') }}</label>
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-wallet-remark">{{ t('personalCenter.wallet.remarkLabel') }}</label>
           <input
             id="qz-wallet-remark"
             v-model.trim="rechargeForm.remark"
+            class="qz-field-control"
             type="text"
             autocomplete="off"
             :placeholder="t('personalCenter.wallet.remarkPlaceholder')"
           />
         </div>
 
-        <p v-if="selectedChannelAmountHint" class="qz-ic-error" role="alert">{{ selectedChannelAmountHint }}</p>
+        <p v-if="selectedChannelAmountHint" class="qz-field-error" role="alert">{{ selectedChannelAmountHint }}</p>
 
         <!-- 手续费（通道向用户收取时展示） -->
-        <div v-if="selectedChannel?.fee_policy === 'customer_surcharge'" class="qz-ic-pay">
+        <div v-if="selectedChannel?.fee_policy === 'customer_surcharge'" class="qz-me-sub">
           <div class="qz-me-kv">
             <div class="qz-me-kv-row"><span>{{ t('payment.feeRateLabel') }}</span><b>{{ selectedChannelFeeRateDisplay }}</b></div>
             <div class="qz-me-kv-row"><span>{{ t('payment.fixedFeeLabel') }}</span><b>{{ selectedChannelFixedFeeDisplay }}</b></div>
@@ -88,8 +90,8 @@
           </div>
         </div>
 
-        <p v-if="channelLoading" class="qz-ic-hint">{{ t('common.loading') }}</p>
-        <p v-else-if="!hasChannels" class="qz-ic-hint wallet-warn">{{ t('payment.channelEmpty') }}</p>
+        <p v-if="channelLoading" class="qz-field-hint">{{ t('common.loading') }}</p>
+        <p v-else-if="!hasChannels" class="qz-field-hint is-warn">{{ t('payment.channelEmpty') }}</p>
 
         <QzButton
           type="submit"
@@ -102,16 +104,16 @@
           <span>{{ recharging ? t('personalCenter.wallet.recharging') : t('personalCenter.wallet.rechargeSubmit') }}</span>
         </QzButton>
       </form>
-    </div>
+    </section>
 
     <!-- 交易明细 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.wallet.detailTitle') }}</h2>
         </div>
-        <div class="qz-me-card-acts">
-          <button type="button" class="qz-me-act" :disabled="loading" @click="refreshCurrentPage">
+        <div class="qz-me-acts">
+          <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" :disabled="loading" @click="refreshCurrentPage">
             <RefreshCw />
             {{ t('orders.filters.refresh') }}
           </button>
@@ -119,16 +121,16 @@
       </div>
 
       <div v-if="loading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
-      <p v-else-if="transactions.length === 0" class="qz-me-hint">
+      <p v-else-if="transactions.length === 0" class="qz-field-hint">
         {{ t('personalCenter.wallet.empty') }}
       </p>
       <div v-else class="qz-me-rows">
-        <div v-for="item in transactions" :key="item.id" class="qz-me-row">
+        <div v-for="item in transactions" :key="item.id" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b
-              class="tx-amount"
+              class="qz-me-tx-amount"
               :class="item.direction === 'in' ? 'is-in' : item.direction === 'out' ? 'is-out' : ''"
             >{{ signedAmount(item.direction, item.amount, item.currency) }}</b>
             <small>{{ transactionTypeLabel(item.type) }} · {{ formatDate(item.created_at) }}</small>
@@ -136,16 +138,17 @@
             <small>{{ t('personalCenter.wallet.table.balanceAfter') }}：{{ formatMoney(item.balance_after, item.currency) }}</small>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="`is-${directionTone(item.direction)}`">
+            <span class="qz-badge" :class="badgeToneClass(directionTone(item.direction))">
               {{ directionLabel(item.direction) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="pagination.total_page > 1" class="qz-me-pager wallet-pager">
+      <nav v-if="pagination.total_page > 1" class="qz-me-pager" :aria-label="t('orders.pageInfo', { page: pagination.page, total: pagination.total_page })">
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="pagination.page <= 1 || loading"
           :aria-label="t('pagination.previous')"
           @click="changePage(pagination.page - 1)"
@@ -155,14 +158,15 @@
         <span>{{ pagination.page }} / {{ pagination.total_page }}</span>
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="pagination.page >= pagination.total_page || loading"
           :aria-label="t('pagination.next')"
           @click="changePage(pagination.page + 1)"
         >
           <ChevronRight />
         </button>
-      </div>
-    </div>
+      </nav>
+    </section>
   </div>
 </template>
 
@@ -183,7 +187,7 @@ import {
 } from '../../../utils/money'
 import QzButton from '../components/QzButton.vue'
 import QzSelect from '../components/QzSelect.vue'
-import { formatDate, formatMoney, type MePillTone } from './support'
+import { badgeToneClass, formatDate, formatMoney, type MeBadgeTone } from './support'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -213,11 +217,12 @@ const rechargeForm = reactive({
   remark: '',
 })
 
+// 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger
 const walletAlertClass = computed(() => {
   const level = walletAlert.value?.level
-  if (level === 'error') return 'is-error'
-  if (level === 'success') return 'is-ok'
-  return ''
+  if (level === 'error') return 'is-danger'
+  if (level === 'success') return 'is-success'
+  return 'is-warning'
 })
 
 const hasChannels = computed(() => {
@@ -414,10 +419,10 @@ const directionLabel = (direction?: string) => {
   return direction || '-'
 }
 
-const directionTone = (direction?: string): MePillTone => {
-  if (direction === 'in') return 'ok'
+const directionTone = (direction?: string): MeBadgeTone => {
+  if (direction === 'in') return 'success'
   if (direction === 'out') return 'danger'
-  return 'warn'
+  return 'warning'
 }
 
 const transactionTypeLabel = (type?: string) => {
@@ -588,38 +593,20 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.qz-me-panel .wallet-alert {
-  margin: 0 0 12px;
+/* 钱包面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、统计格 .qz-stat-grid.is-triple / .qz-stat、表单 .qz-field 三件套、
+   方向 .qz-badge、翻页 .qz-icon-btn--sm、骨架 .qz-skeleton 来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts /
+   .qz-me-form(-row) / .qz-me-sub / .qz-me-kv(-row) / .qz-me-rows / .qz-me-row-* / .qz-me-pager / .qz-me-sk 来自
+   PersonalCenter.vue 的 me 共享块；通道下拉来自 QzSelect。这里只剩无通道的警示提示与交易金额的方向色。
+   .qz-me-tx-amount.is-* 写成 (0,3,0)，压过共享块的 .qz-me-row-main b (0,2,1)。 */
+.qz-field-hint.is-warn {
+  color: var(--qz-warning);
 }
 
-.qz-me-panel .wallet-alert.is-ok {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+.qz-me-tx-amount.is-in {
+  color: var(--qz-success);
 }
 
-.qz-me-panel .qz-me-stats.is-3col {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (max-width: 760px) {
-  .qz-me-panel .qz-me-stats.is-3col {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.qz-me-panel .wallet-warn {
-  color: var(--amber);
-}
-
-.qz-me-panel .tx-amount.is-in {
-  color: var(--accent-strong);
-}
-
-.qz-me-panel .tx-amount.is-out {
-  color: var(--red);
-}
-
-.qz-me-panel .wallet-pager {
-  margin-top: 12px;
+.qz-me-tx-amount.is-out {
+  color: var(--qz-danger);
 }
 </style>

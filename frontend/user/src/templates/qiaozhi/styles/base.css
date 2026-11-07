@@ -6,22 +6,59 @@
    Arc variable is mapped to its `--qz-*` counterpart from tokens.css; this sheet consumes
    tokens only (no colour literals, no raw type sizes, no raw control heights — the
    style-conventions guard enforces it). Pages consume these classes and add layout on top.
+   Page head, alert, stat grid, skeleton, the accent badge and the small print under a section
+   head have no Arc source: they are the rules the first-wave pages each carried a copy of,
+   lifted here so a page keeps only its layout. The root block, the brand glyph, the reveal
+   motion and the native-button cursor are the template's own base rules, kept from its
+   original sheet.
 
-   Scope. Every rule starts with `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))`, the form
-   legacy.css already uses for body-reachable rules: `.qiaozhi-scope` is the layout root,
-   `body.qiaozhi-tokens` is what Teleport-ed overlays (drawer, modals, toasts) sit under.
-   `:where()` keeps the body branch at zero specificity, so a rule here weighs exactly
-   `.qiaozhi-scope .qz-x` (0,2,0) — legacy.css, imported after this sheet, still wins ties
-   while pages migrate, and page `<style scoped>` overrides stay cheap. State guards use
-   `:where(:not(…))` for the same reason.
+   Scope. Every class rule starts with `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))`:
+   `.qiaozhi-scope` is the layout root, `body.qiaozhi-tokens` is what Teleport-ed overlays
+   (drawer, modals, toasts) sit under. `:where()` keeps the body branch at zero specificity,
+   so a rule here weighs exactly `.qiaozhi-scope .qz-x` (0,2,0) and page `<style scoped>`
+   overrides stay cheap (chain a page class to out-rank one — see the specificity note in the
+   page files). State guards use `:where(:not(…))` for the same reason. The exceptions are the
+   root block (`html`, the `.qiaozhi-scope` element itself), the page-fade transition classes
+   (Vue <Transition> names carry no scope), the native-button cursor and the reduced-motion
+   kill switch, which address the layout root only.
 
    Press feedback: `.qz-btn` / `.qz-icon-btn` / `.qz-pill` scale by `--qz-press` on :active.
    QzButton.vue and QzQtyStepper.vue write it per button width (.985 wide / .97 / .96 icon);
    the CSS fallback is .97 for buttons and pills and .96 for icon buttons.
 
-   Order: button → icon button → pill → chip / badge → field → card / panel → eyebrow /
-   section head / empty state → visually hidden → focus → reduced motion.
+   Order: root → button → icon button → pill → chip / badge → field → card / panel → eyebrow /
+   section head → page head → alert → stat grid → empty state → skeleton → brand glyph →
+   reveal motion → page fade → visually hidden → focus → reduced motion.
    ========================================================================= */
+
+/* ---------- Root (the template's document-level rules) ----------
+   `html` keeps the scrollbar gutter so the fixed header does not shift when a page gets a
+   scrollbar (src/style.css sets the same pair globally; repeated here so the template does not
+   depend on it). The layout root paints the page colour, sets the body type and makes itself a
+   full-height column (header / main / footer); the 1.55 body leading is the template's own — the
+   `--qz-leading-*` steps are for components that set theirs explicitly. The background / colour
+   transition is what makes the theme toggle fade instead of flash. */
+html { scrollbar-gutter: stable; overflow-y: scroll; }
+.qiaozhi-scope {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--qz-bg);
+  color: var(--qz-text);
+  font-family: var(--qz-font-body);
+  font-size: var(--qz-text-sm);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--qz-duration-standard) var(--qz-ease-standard), color var(--qz-duration-standard) var(--qz-ease-standard);
+}
+.dark .qiaozhi-scope { color-scheme: dark; }
+
+/* Native buttons: the UA default is the arrow; the template reads every button as clickable. Layout
+   root only — teleported overlays and classic components style their own cursors. */
+.qiaozhi-scope button { cursor: pointer; }
+.qiaozhi-scope button:disabled { cursor: not-allowed; }
 
 /* ---------- Button (Arc Button: .button / .primary .secondary .ghost .danger / .sm .lg) ---------- */
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn {
@@ -206,6 +243,13 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-warning { color: var(--qz-warning); background: color-mix(in oklab, var(--qz-warning) 12%, transparent); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-danger { color: var(--qz-danger); background: color-mix(in oklab, var(--qz-danger) 12%, transparent); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-info { color: var(--qz-info); background: color-mix(in oklab, var(--qz-info) 12%, transparent); }
+/* Accent badge: the template's accent at its subtle alpha — "processing" order states, the member level. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge.is-accent { color: var(--qz-accent-strong); background: var(--qz-accent-subtle); }
+/* Glyphs inside a badge / chip (status icon, level mark): 12px, never squeezed by the label. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge svg,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge img,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-chip svg { flex: none; width: 12px; height: 12px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-badge img { object-fit: contain; }
 
 /* ---------- Field (Arc Input: .field / .label / .input / .description / .error) ---------- */
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field { display: grid; gap: var(--qz-space-2); min-width: 0; }
@@ -256,8 +300,9 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:has([aria-invalid="true"]) { border-color: var(--qz-danger); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:disabled,
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-control:has(:disabled) { opacity: .5; background: var(--qz-surface-muted); cursor: not-allowed; }
-:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-hint { color: var(--qz-text-muted); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
-:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-error { color: var(--qz-danger); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
+/* Hint / error are usually a <p>: the margin reset keeps the .qz-field grid gap as the only spacing. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-hint { margin: 0; color: var(--qz-text-muted); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-field-error { margin: 0; color: var(--qz-danger); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
 
 /* ---------- Card / Panel (Arc Card surface; card = control radius, panel = panel radius) ---------- */
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-card {
@@ -300,6 +345,111 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head > div { min-width: 0; }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head h2 { margin: 0; color: var(--qz-text); font-size: var(--qz-text-lg); font-weight: 700; line-height: var(--qz-leading-body); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head > span { flex: none; color: var(--qz-text-muted); font-size: var(--qz-text-xs); white-space: nowrap; }
+/* Small print under the h2 (inside the `> div`): same muted xs as the trailing `> span`, on its own line. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-section-head small { display: block; margin-top: var(--qz-space-1); color: var(--qz-text-muted); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
+
+/* ---------- Page head (the title block a list / detail page opens with) ----------
+   `.qz-page-head-copy` stacks `.qz-eyebrow` → h1 → p; the trailing `> .qz-btn` is the page action (back pill)
+   and sits on the copy's end line. The h1 is a wrapping flex row so a `.qz-chip` / `.qz-badge` can ride beside
+   the title (those drop the display tracking). ≤760 stacks column-reverse: the back pill stays on top at its
+   own width, the copy spans the column, the title steps down to xl. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--qz-space-4);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head-copy { min-width: 0; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2) var(--qz-space-3);
+  margin: var(--qz-space-1) 0 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-2xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head h1 :is(.qz-chip, .qz-badge) { letter-spacing: normal; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head p {
+  margin: var(--qz-space-2) 0 0;
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head > .qz-btn { flex: none; }
+@media (max-width: 760px) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head { flex-direction: column-reverse; align-items: stretch; gap: var(--qz-space-3); }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head > .qz-btn { align-self: flex-start; }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-page-head h1 { font-size: var(--qz-text-xl); }
+}
+
+/* ---------- Alert (inline notice strip: form blockers, wallet / security results, order hints) ----------
+   Neutral by default (muted surface + border). `.is-success / .is-warning / .is-danger / .is-info` tint 12% of
+   the status colour behind the text and 30% into the border; the text stays `--qz-text` so a long message keeps
+   body contrast — the tint carries the tone, the words carry the meaning. Usually a <p> (margin reset); <b>
+   for the lead, nested <p> for further lines. Announce it from markup (role="status" / role="alert"). */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert {
+  margin: 0;
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 500;
+  line-height: var(--qz-leading-body);
+  overflow-wrap: anywhere;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert b { font-weight: 700; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert p { margin: 0; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert.is-success { background: color-mix(in oklab, var(--qz-success) 12%, transparent); border-color: color-mix(in oklab, var(--qz-success) 30%, transparent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert.is-warning { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); border-color: color-mix(in oklab, var(--qz-warning) 30%, transparent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert.is-danger { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); border-color: color-mix(in oklab, var(--qz-danger) 30%, transparent); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-alert.is-info { background: color-mix(in oklab, var(--qz-info) 12%, transparent); border-color: color-mix(in oklab, var(--qz-info) 30%, transparent); }
+
+/* ---------- Stat grid (the figures strip above a list: order counts, wallet balance) ----------
+   Auto-fits 160px-minimum columns; `.is-triple` locks three equal columns from 900px up. `.qz-stat` is its
+   own card (same surface as .qz-card) and reads its children by element: `> b` value, `> span` label,
+   `> small` note — in DOM order. Values wrap anywhere rather than overflow (balances with long currency
+   strings); `b` is a flex row so an inner span / icon can sit beside the figure. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--qz-space-3);
+}
+@media (min-width: 900px) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-stat-grid.is-triple { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-1);
+  min-width: 0;
+  padding: var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  box-shadow: var(--qz-shadow-resting);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-stat > b {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  min-width: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+  overflow-wrap: anywhere;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-stat > span { color: var(--qz-text-muted); font-size: var(--qz-text-xs); font-weight: 500; line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-stat > small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); line-height: var(--qz-leading-body); }
 
 /* ---------- Empty state (Arc Empty State: icon → title → description → action, centred) ---------- */
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty {
@@ -314,6 +464,64 @@
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > span,
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty > p { margin: var(--qz-space-1) 0 0; font-size: var(--qz-text-sm); line-height: var(--qz-leading-body); }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-empty .qz-btn { margin-top: var(--qz-space-5); }
+
+/* ---------- Skeleton (loading placeholder; the template's one pulse keyframe) ----------
+   A bare `.qz-skeleton` is a free block: give it a height / aspect-ratio / grid area for a card or image.
+   The line variants take their height from a line box — font-size × line-height, held open by a zero-width
+   space — so each matches the text it stands in for with no raw height: `.is-line` one body line (sm),
+   `.is-lg` an h1 line (2xl, xl ≤760) at 80% width, `.is-sm` a small-print line (xs) at 45% width.
+   Mark the group aria-hidden. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton {
+  display: block;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  animation: qz-pulse 1.4s ease-in-out infinite;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton:is(.is-line, .is-lg, .is-sm) { font-size: var(--qz-text-sm); line-height: var(--qz-leading-body); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton:is(.is-line, .is-lg, .is-sm)::before { content: "\200b"; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton.is-lg { width: 80%; font-size: var(--qz-text-2xl); line-height: var(--qz-leading-display); }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton.is-sm { width: 45%; font-size: var(--qz-text-xs); }
+@media (max-width: 760px) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton.is-lg { font-size: var(--qz-text-xl); }
+}
+@keyframes qz-pulse { 50% { opacity: .45; } }
+
+/* ---------- Brand glyph (product / category / featured-card logo slot) ----------
+   Fills its box: an `<img>` is contained, a fallback letter in `<b>` sits centred in the accent
+   colour. The host (card icon, category row, art layer) gives the box its size and shape; it may
+   also size the inner `> b` / `> svg` — see QzProductCard.vue, QzCategoryPanel.vue. Declared on
+   both scopes: the category drawer that uses it is teleported to <body>. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--qz-accent-strong);
+  font-weight: 800;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon > img { width: 100%; height: 100%; object-fit: contain; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon > b { font-size: var(--qz-text-sm); }
+
+/* ---------- Reveal motion (utils/reveal.ts) ----------
+   Markup starts as `.qz-reveal.is-pending` (hidden); the IntersectionObserver swaps it to `.is-in`
+   as it scrolls into view and sets `--d` per element for the stagger. The rise is the template's
+   own curve and length, not a `--qz-duration-*` step. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-reveal.is-pending { opacity: 0; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-reveal.is-in {
+  animation: qz-rise .75s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes qz-rise {
+  0% { opacity: 0; transform: translateY(22px) scale(.97); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* ---------- Page fade (<Transition name="page-fade">: the back-to-top button in the layout) ----------
+   App.vue declares the same pair for the RouterView; kept here so the template's own transition does
+   not depend on it. Transition classes land on the element itself, hence no scope prefix. */
+.page-fade-enter-active, .page-fade-leave-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard); }
+.page-fade-enter-from, .page-fade-leave-to { opacity: 0; }
 
 /* ---------- Visually hidden (screen-reader only text: live regions, sr-only headings) ----------
    The 1px box (not 0) keeps every screen reader announcing it. Declared on both scopes: the
@@ -347,8 +555,13 @@
   outline-offset: 2px;
 }
 
-/* ---------- Reduced motion: no transitions, no press scale ---------- */
+/* ---------- Reduced motion: no transitions, no press scale, no skeleton pulse ----------
+   The primitives opt out individually on both scopes; the kill switch below then stops every
+   animation and transition under the layout root (reveal rise, hero text, featured-card art,
+   page fade …) in one go — `!important` so page-level motion cannot opt back in. */
 @media (prefers-reduced-motion: reduce) {
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill, .qz-field-control) { transition: none; }
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill):active { transform: none; transition: none; }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton { animation: none; }
+  .qiaozhi-scope *, .qiaozhi-scope ::before, .qiaozhi-scope ::after { animation: none !important; transition: none !important; }
 }

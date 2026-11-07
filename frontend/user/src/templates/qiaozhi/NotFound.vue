@@ -1,7 +1,7 @@
 <template>
   <div class="qz-container qz-404">
     <section class="qz-panel qz-404-card">
-      <span class="qz-chip qz-404-brand">
+      <span class="qz-chip">
         <Info />
         <span>{{ brandSiteName }}</span>
       </span>
@@ -22,9 +22,9 @@
       <nav class="qz-404-quick" :aria-label="t('notFoundPage.quickLinksTitle')">
         <p class="qz-eyebrow">{{ t('notFoundPage.quickLinksTitle') }}</p>
         <div class="qz-404-chips">
-          <RouterLink class="qz-chip qz-404-chip" to="/products"><ShoppingBag /><span>{{ t('nav.products') }}</span></RouterLink>
-          <RouterLink class="qz-chip qz-404-chip" to="/notice"><Bell /><span>{{ t('nav.notice') }}</span></RouterLink>
-          <RouterLink v-if="blogEnabled" class="qz-chip qz-404-chip" to="/blog"><BookOpen /><span>{{ t('nav.blog') }}</span></RouterLink>
+          <RouterLink class="qz-btn qz-btn--secondary qz-btn--sm" to="/products"><ShoppingBag /><span>{{ t('nav.products') }}</span></RouterLink>
+          <RouterLink class="qz-btn qz-btn--secondary qz-btn--sm" to="/notice"><Bell /><span>{{ t('nav.notice') }}</span></RouterLink>
+          <RouterLink v-if="blogEnabled" class="qz-btn qz-btn--secondary qz-btn--sm" to="/blog"><BookOpen /><span>{{ t('nav.blog') }}</span></RouterLink>
         </div>
       </nav>
     </section>
@@ -44,14 +44,14 @@ const { blogEnabled } = useNavConfig()
 
 <style scoped>
 /* 404 是所有未知路由的回落点：只依赖 tokens.css / base.css（.qz-panel / .qz-eyebrow / .qz-btn / .qz-chip），
-   页面自己只补版式。 */
+   页面自己只补版式。像素画的 3px 圆角是艺术层，不计入控件圆角。 */
 .qz-404 {
   display: grid;
   place-items: center;
 }
 
-/* .qz-panel.qz-404-card 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（sticky、≤760 隐藏、overflow hidden）
-   在它被删掉之前不能影响这张卡。 */
+/* .qz-panel.qz-404-card 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
 .qz-panel.qz-404-card {
   position: static;
   display: flex;
@@ -62,11 +62,6 @@ const { blogEnabled } = useNavConfig()
   padding: var(--qz-space-10) var(--qz-space-8);
   overflow: visible;
   text-align: center;
-}
-
-.qz-404-brand svg {
-  width: 12px;
-  height: 12px;
 }
 
 /* 像素块：4×4 网格，主色描出一圈 */
@@ -137,37 +132,12 @@ const { blogEnabled } = useNavConfig()
   margin: 0;
 }
 
+/* 快捷链接是 base.css 的 .qz-btn--secondary --sm（36 高、14/500、16px 图标），这里只排行 */
 .qz-404-chips {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--qz-space-2);
-}
-
-/* 快捷链接沿用 chip 的外观，抬到 sm 控件高度做可点目标 */
-.qz-chip.qz-404-chip {
-  min-height: var(--qz-control-sm);
-  padding: 0 var(--qz-space-3);
-  color: var(--qz-text);
-  font-size: var(--qz-text-xs);
-  text-decoration: none;
-  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard);
-}
-
-.qz-chip.qz-404-chip svg {
-  width: 14px;
-  height: 14px;
-  color: var(--qz-text-muted);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .qz-chip.qz-404-chip:hover {
-    background: var(--qz-accent-subtle);
-  }
-}
-
-.qz-chip.qz-404-chip:active {
-  background: var(--qz-accent-subtle);
 }
 
 @media (max-width: 760px) {

@@ -50,12 +50,12 @@
 
         <div v-if="loading" class="qz-grid">
           <div v-for="i in 8" :key="i" class="qz-skeleton-card" aria-hidden="true">
-            <span class="qz-skeleton-art"><span></span></span>
-            <span class="qz-skeleton-title"></span>
-            <span class="qz-skeleton-spec"></span>
+            <span class="qz-skeleton-art"><span class="qz-skeleton"></span></span>
+            <span class="qz-skeleton qz-skeleton-title"></span>
+            <span class="qz-skeleton qz-skeleton-spec"></span>
             <div class="qz-skeleton-bottom">
-              <span class="qz-skeleton-price"></span>
-              <span class="qz-skeleton-action"></span>
+              <span class="qz-skeleton qz-skeleton-price"></span>
+              <span class="qz-skeleton qz-skeleton-action"></span>
             </div>
           </div>
         </div>
@@ -259,8 +259,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 列表页专属版式：hero（页 h1 用 2xl）、搜索框（.qz-field-control 上的宽度与清除钮）与商品网格。
-   `.qz-catalog` 两栏与骨架屏仍在 legacy.css。关键帧 qz-text-in 来自 legacy.css。 */
+/* 列表页专属版式：hero（页 h1 用 2xl）、搜索框（.qz-field-control 上的宽度与清除钮）、目录两栏
+   （.qz-catalog：分类面板 + 列表）、商品网格与加载骨架。骨架占位块是 base.css 的 .qz-skeleton（qz-pulse），
+   这里只给卡片外形与各占位块的尺寸。标题入场关键帧 qz-text-in 在本块底部（Home.vue 同款）。 */
 
 /* ---------- Hero ---------- */
 .qz-hero {
@@ -327,6 +328,15 @@ onUnmounted(() => {
 }
 .qz-search-clear:active { color: var(--qz-text); background: var(--qz-accent-subtle); }
 
+/* ---------- 目录两栏：分类面板 + 列表（≤1120 窄面板，≤760 单列、面板收成抽屉） ---------- */
+.qz-catalog {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: var(--qz-space-4);
+  align-items: start;
+}
+.qz-catalog > div { min-width: 0; }
+
 /* ---------- 商品网格 ---------- */
 .qz-grid {
   display: grid;
@@ -334,7 +344,36 @@ onUnmounted(() => {
   gap: var(--qz-space-4);
 }
 
+/* ---------- 加载骨架：商品卡外形 + base .qz-skeleton 占位块（艺术区 / 标题 / 规格 / 价格 / 按钮） ---------- */
+.qz-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 280px;
+  padding: var(--qz-space-5);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+}
+.qz-skeleton-card .qz-skeleton { border-radius: var(--qz-radius-xs); }
+.qz-skeleton-art { display: grid; place-items: center; height: 160px; margin-top: 6px; }
+.qz-skeleton-art > .qz-skeleton { width: 54%; height: 92px; opacity: .6; border-radius: var(--qz-radius-sm); }
+.qz-skeleton-title { width: 48%; height: 24px; }
+.qz-skeleton-spec { width: 62%; height: 12px; margin-top: 2px; }
+.qz-skeleton-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.qz-skeleton-price { width: 28%; height: 22px; }
+.qz-skeleton-card .qz-skeleton-action { width: 86px; height: 36px; border-radius: var(--qz-radius-pill); }
+
+@media (max-width: 1120px) {
+  .qz-catalog { grid-template-columns: 220px minmax(0, 1fr); }
+}
+
 @media (max-width: 760px) {
+  .qz-catalog { display: block; }
+  .qz-skeleton-card { min-height: 220px; padding: var(--qz-space-4); }
+  .qz-skeleton-art { height: 110px; }
+  .qz-skeleton-art > .qz-skeleton { height: 70px; }
+
   .qz-hero {
     display: grid;
     gap: var(--qz-space-4);
@@ -346,5 +385,11 @@ onUnmounted(() => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--qz-space-2);
   }
+}
+
+/* 标题入场：上浮 + 去模糊 */
+@keyframes qz-text-in {
+  0% { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  100% { opacity: 1; transform: none; filter: none; }
 }
 </style>

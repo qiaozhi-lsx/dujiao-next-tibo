@@ -36,6 +36,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocalized, useProductLabels } from '../../../composables/useProduct'
 import { getFirstImageUrl, getImageUrl } from '../../../utils/image'
+import { displayTags } from '../utils/featured'
 import { useQiaozhiPrice } from '../utils/price'
 
 const props = defineProps<{ product: any }>()
@@ -60,10 +61,10 @@ const image = computed(() => {
 })
 const cover = computed(() => getFirstImageUrl(props.product?.images))
 
+// 角标取第一个可展示标签；art:* 这类控制标签只给程序看，不上卡片（utils/featured.ts displayTags）
 const badge = computed(() => {
-  const tags = props.product?.tags
-  if (Array.isArray(tags) && tags.length) return String(tags[0]).slice(0, 8)
-  return ''
+  const [first] = displayTags(props.product?.tags)
+  return first ? first.slice(0, 8) : ''
 })
 
 const fulfillmentLabel = computed(() => getFulfillmentTypeLabel(props.product?.fulfillment_type))

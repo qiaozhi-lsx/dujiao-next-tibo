@@ -1,14 +1,14 @@
 <template>
   <div class="qz-me-panel">
     <!-- 开通 / 数据总览 -->
-    <div class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.affiliate.title') }}</h2>
           <small>{{ t('personalCenter.affiliate.subtitle') }}</small>
         </div>
-        <div class="qz-me-card-acts">
-          <span class="qz-me-pill is-ok">
+        <div class="qz-me-acts">
+          <span class="qz-chip">
             <Megaphone aria-hidden="true" />
             {{ t('personalCenter.tabs.affiliate') }}
           </span>
@@ -17,7 +17,7 @@
 
       <p
         v-if="panelAlert"
-        class="qz-me-alert"
+        class="qz-alert"
         :class="alertToneClass(panelAlert.level)"
         :role="panelAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -25,40 +25,40 @@
       </p>
 
       <div v-if="loading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
 
       <div v-else-if="dashboard?.opened" class="qz-me-opened">
         <div class="qz-me-rows">
-          <div class="qz-me-row">
+          <div class="qz-card qz-me-row">
             <div class="qz-me-row-main">
               <small>{{ t('personalCenter.affiliate.affiliateCode') }}</small>
               <b><code>{{ dashboard?.affiliate_code || '-' }}</code></b>
             </div>
             <div class="qz-me-row-side">
-              <button type="button" class="qz-me-act" @click="copyPromotionUrl">
+              <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" @click="copyPromotionUrl">
                 {{ t('personalCenter.affiliate.copyPromotionUrl') }}
               </button>
             </div>
           </div>
         </div>
-        <p class="qz-me-hint qz-me-url">{{ promotionUrl }}</p>
+        <p class="qz-field-hint qz-me-url">{{ promotionUrl }}</p>
 
-        <div class="qz-me-stats">
-          <div class="qz-me-stat">
+        <div class="qz-stat-grid">
+          <div class="qz-stat">
             <b>{{ conversionRateText }}</b>
             <span>{{ t('personalCenter.affiliate.conversionRate') }}</span>
             <small>{{ t('personalCenter.affiliate.conversionDetail', { clicks: dashboard?.click_count || 0, orders: dashboard?.valid_order_count || 0 }) }}</small>
           </div>
-          <div class="qz-me-stat">
+          <div class="qz-stat">
             <b>{{ dashboard?.pending_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.pendingCommission') }}</span>
           </div>
-          <div class="qz-me-stat">
+          <div class="qz-stat">
             <b>{{ dashboard?.available_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.availableCommission') }}</span>
           </div>
-          <div class="qz-me-stat">
+          <div class="qz-stat">
             <b>{{ dashboard?.withdrawn_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.withdrawnCommission') }}</span>
           </div>
@@ -66,36 +66,37 @@
       </div>
 
       <div v-else class="qz-me-cta">
-        <p class="qz-me-hint">{{ t('personalCenter.affiliate.notOpened') }}</p>
+        <p class="qz-field-hint">{{ t('personalCenter.affiliate.notOpened') }}</p>
         <QzButton :loading="opening" @click="openAffiliate">
           {{ opening ? t('personalCenter.affiliate.opening') : t('personalCenter.affiliate.openButton') }}
         </QzButton>
       </div>
-    </div>
+    </section>
 
     <!-- 申请提现 -->
-    <div v-if="dashboard?.opened" class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section v-if="dashboard?.opened" class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.affiliate.withdrawTitle') }}</h2>
           <small>{{ t('personalCenter.affiliate.withdrawSubtitle') }}</small>
         </div>
       </div>
 
-      <form class="qz-ic" novalidate @submit.prevent="handleApplyWithdraw">
-        <div class="qz-ic-field">
-          <label for="qz-aff-amount">{{ t('personalCenter.affiliate.withdrawAmountLabel') }}</label>
+      <form class="qz-me-form" novalidate @submit.prevent="handleApplyWithdraw">
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-aff-amount">{{ t('personalCenter.affiliate.withdrawAmountLabel') }}</label>
           <input
             id="qz-aff-amount"
             v-model="withdrawForm.amount"
+            class="qz-field-control"
             type="text"
             inputmode="decimal"
             :placeholder="t('personalCenter.affiliate.withdrawAmountPlaceholder')"
           />
         </div>
-        <div class="qz-ic-row">
-          <div class="qz-ic-field">
-            <label for="qz-aff-channel">{{ t('personalCenter.affiliate.withdrawChannelLabel') }}</label>
+        <div class="qz-me-form-row">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-aff-channel">{{ t('personalCenter.affiliate.withdrawChannelLabel') }}</label>
             <QzSelect
               v-if="channelOptions.length > 0"
               id="qz-aff-channel"
@@ -108,15 +109,17 @@
               v-else
               id="qz-aff-channel"
               v-model="withdrawForm.channel"
+              class="qz-field-control"
               type="text"
               :placeholder="t('personalCenter.affiliate.withdrawChannelPlaceholder')"
             />
           </div>
-          <div class="qz-ic-field">
-            <label for="qz-aff-account">{{ t('personalCenter.affiliate.withdrawAccountLabel') }}</label>
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-aff-account">{{ t('personalCenter.affiliate.withdrawAccountLabel') }}</label>
             <input
               id="qz-aff-account"
               v-model="withdrawForm.account"
+              class="qz-field-control"
               type="text"
               :placeholder="t('personalCenter.affiliate.withdrawAccountPlaceholder')"
             />
@@ -126,16 +129,16 @@
           {{ submittingWithdraw ? t('personalCenter.affiliate.withdrawing') : t('personalCenter.affiliate.withdrawSubmit') }}
         </QzButton>
       </form>
-    </div>
+    </section>
 
     <!-- 佣金记录 -->
-    <div v-if="dashboard?.opened" class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section v-if="dashboard?.opened" class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div><h2>{{ t('personalCenter.affiliate.commissionTitle') }}</h2></div>
-        <div class="qz-me-card-acts">
+        <div class="qz-me-acts">
           <button
             type="button"
-            class="qz-me-act"
+            class="qz-btn qz-btn--secondary qz-btn--sm"
             :disabled="commissionsLoading"
             @click="loadCommissions(commissionsPagination.page)"
           >
@@ -145,28 +148,29 @@
       </div>
 
       <div v-if="commissionsLoading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
-      <p v-else-if="commissions.length === 0" class="qz-me-hint">
+      <p v-else-if="commissions.length === 0" class="qz-field-hint">
         {{ t('personalCenter.affiliate.commissionEmpty') }}
       </p>
       <div v-else class="qz-me-rows">
-        <div v-for="item in commissions" :key="item.id" class="qz-me-row">
+        <div v-for="item in commissions" :key="item.id" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b>{{ item.commission_amount }}</b>
             <small>{{ formatDate(item.created_at) }}</small>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="`is-${commissionTone(item.status)}`">
+            <span class="qz-badge" :class="badgeToneClass(commissionTone(item.status))">
               {{ commissionStatusLabel(item.status) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="commissionsPagination.total_page > 1" class="qz-me-pager">
+      <nav v-if="commissionsPagination.total_page > 1" class="qz-me-pager" :aria-label="t('orders.pageInfo', { page: commissionsPagination.page, total: commissionsPagination.total_page })">
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="commissionsPagination.page <= 1 || commissionsLoading"
           :aria-label="t('pagination.previous')"
           @click="loadCommissions(commissionsPagination.page - 1)"
@@ -176,23 +180,24 @@
         <span>{{ commissionsPagination.page }} / {{ commissionsPagination.total_page }}</span>
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="commissionsPagination.page >= commissionsPagination.total_page || commissionsLoading"
           :aria-label="t('pagination.next')"
           @click="loadCommissions(commissionsPagination.page + 1)"
         >
           <ChevronRight />
         </button>
-      </div>
-    </div>
+      </nav>
+    </section>
 
     <!-- 提现记录 -->
-    <div v-if="dashboard?.opened" class="qz-me-card">
-      <div class="qz-me-card-head">
+    <section v-if="dashboard?.opened" class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div><h2>{{ t('personalCenter.affiliate.withdrawRecordTitle') }}</h2></div>
-        <div class="qz-me-card-acts">
+        <div class="qz-me-acts">
           <button
             type="button"
-            class="qz-me-act"
+            class="qz-btn qz-btn--secondary qz-btn--sm"
             :disabled="withdrawsLoading"
             @click="loadWithdraws(withdrawsPagination.page)"
           >
@@ -202,29 +207,30 @@
       </div>
 
       <div v-if="withdrawsLoading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
-      <p v-else-if="withdraws.length === 0" class="qz-me-hint">
+      <p v-else-if="withdraws.length === 0" class="qz-field-hint">
         {{ t('personalCenter.affiliate.withdrawEmpty') }}
       </p>
       <div v-else class="qz-me-rows">
-        <div v-for="item in withdraws" :key="item.id" class="qz-me-row">
+        <div v-for="item in withdraws" :key="item.id" class="qz-card qz-me-row">
           <div class="qz-me-row-main">
             <b>{{ item.amount }}</b>
             <small>{{ item.channel }}</small>
             <small>{{ formatDate(item.created_at) }}</small>
           </div>
           <div class="qz-me-row-side">
-            <span class="qz-me-pill" :class="`is-${withdrawTone(item.status)}`">
+            <span class="qz-badge" :class="badgeToneClass(withdrawTone(item.status))">
               {{ withdrawStatusLabel(item.status) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div v-if="withdrawsPagination.total_page > 1" class="qz-me-pager">
+      <nav v-if="withdrawsPagination.total_page > 1" class="qz-me-pager" :aria-label="t('orders.pageInfo', { page: withdrawsPagination.page, total: withdrawsPagination.total_page })">
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="withdrawsPagination.page <= 1 || withdrawsLoading"
           :aria-label="t('pagination.previous')"
           @click="loadWithdraws(withdrawsPagination.page - 1)"
@@ -234,14 +240,15 @@
         <span>{{ withdrawsPagination.page }} / {{ withdrawsPagination.total_page }}</span>
         <button
           type="button"
+          class="qz-icon-btn qz-icon-btn--sm"
           :disabled="withdrawsPagination.page >= withdrawsPagination.total_page || withdrawsLoading"
           :aria-label="t('pagination.next')"
           @click="loadWithdraws(withdrawsPagination.page + 1)"
         >
           <ChevronRight />
         </button>
-      </div>
-    </div>
+      </nav>
+    </section>
   </div>
 </template>
 
@@ -263,7 +270,7 @@ import { useAppStore } from '../../../stores/app'
 import type { PageAlert } from '../../../utils/alerts'
 import QzButton from '../components/QzButton.vue'
 import QzSelect from '../components/QzSelect.vue'
-import { formatDate, type MePillTone } from './support'
+import { badgeToneClass, formatDate, type MeBadgeTone } from './support'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -318,10 +325,11 @@ const conversionRateText = computed(() => {
   return `${value.toFixed(2)}%`
 })
 
+/** 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger */
 const alertToneClass = (level: PageAlert['level']) => {
-  if (level === 'success') return 'is-ok'
-  if (level === 'warning') return 'is-warn'
-  return ''
+  if (level === 'success') return 'is-success'
+  if (level === 'error') return 'is-danger'
+  return 'is-warning'
 }
 
 const loadDashboard = async () => {
@@ -475,9 +483,9 @@ const commissionStatusLabel = (status?: string) => {
   return status || '-'
 }
 
-const commissionTone = (status?: string): MePillTone => {
-  if (status === AFFILIATE_COMMISSION_STATUS_PENDING_CONFIRM) return 'warn'
-  if (status === AFFILIATE_COMMISSION_STATUS_AVAILABLE) return 'ok'
+const commissionTone = (status?: string): MeBadgeTone => {
+  if (status === AFFILIATE_COMMISSION_STATUS_PENDING_CONFIRM) return 'warning'
+  if (status === AFFILIATE_COMMISSION_STATUS_AVAILABLE) return 'success'
   if (status === AFFILIATE_COMMISSION_STATUS_WITHDRAWN) return 'info'
   return 'neutral'
 }
@@ -489,9 +497,9 @@ const withdrawStatusLabel = (status?: string) => {
   return status || '-'
 }
 
-const withdrawTone = (status?: string): MePillTone => {
-  if (status === AFFILIATE_WITHDRAW_STATUS_PENDING_REVIEW) return 'warn'
-  if (status === AFFILIATE_WITHDRAW_STATUS_PAID) return 'ok'
+const withdrawTone = (status?: string): MeBadgeTone => {
+  if (status === AFFILIATE_WITHDRAW_STATUS_PENDING_REVIEW) return 'warning'
+  if (status === AFFILIATE_WITHDRAW_STATUS_PAID) return 'success'
   return 'neutral'
 }
 
@@ -501,48 +509,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 分销面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、统计格 .qz-stat-grid / .qz-stat、表单 .qz-field 三件套、
+   状态 .qz-badge、翻页 .qz-icon-btn--sm、按钮 .qz-btn / QzButton、骨架 .qz-skeleton 来自 styles/base.css；
+   .qz-me-panel / .qz-me-sec / .qz-me-acts / .qz-me-cta / .qz-me-rows / .qz-me-row-*（含 code 等宽）/ .qz-me-form(-row) /
+   .qz-me-pager / .qz-me-sk 来自 PersonalCenter.vue 的 me 共享块；渠道下拉来自 QzSelect。这里只剩已开通区块的纵向流与推广链接。 */
+
+/* ---------- 已开通：推广码行 + 链接 + 统计 ---------- */
 .qz-me-opened {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.qz-me-cta {
-  display: grid;
-  gap: 12px;
-  justify-items: start;
-}
-
-.qz-me-card .qz-me-alert {
-  margin-bottom: 12px;
-}
-
-.qz-me-alert.is-ok {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-}
-
-.qz-me-alert.is-warn {
-  background: var(--amber-soft);
-  color: var(--amber);
+  gap: var(--qz-space-3);
 }
 
 .qz-me-url {
   overflow-wrap: anywhere;
-}
-
-.qz-me-stat small {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.qz-me-row-main code {
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-size: 12.5px;
-}
-
-.qz-me-card .qz-me-pager {
-  margin-top: 10px;
 }
 </style>

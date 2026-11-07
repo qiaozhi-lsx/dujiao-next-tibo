@@ -180,7 +180,7 @@
             </span>
           </label>
 
-          <p v-if="error" class="qz-auth-alert is-error" role="alert">{{ error }}</p>
+          <p v-if="error" class="qz-alert is-danger" role="alert">{{ error }}</p>
 
           <QzButton
             type="submit"
@@ -279,8 +279,8 @@ onUnmounted(() => {
   align-self: flex-start;
 }
 
-/* .qz-panel.qz-auth-card 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（sticky、≤760 隐藏、overflow hidden）
-   在它被删掉之前不能影响这张卡。 */
+/* .qz-panel.qz-auth-card 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
 .qz-panel.qz-auth-card {
   position: static;
   display: flex;
@@ -290,7 +290,7 @@ onUnmounted(() => {
   overflow: visible;
 }
 
-/* ---------- 页头（同样压过 legacy 的 .qz-panel > header 内边距 / 底线） ---------- */
+/* ---------- 页头（同样串上 .qz-panel 提到 (0,3,0)） ---------- */
 .qz-panel > .qz-auth-hero {
   display: flex;
   flex-direction: column;
@@ -462,21 +462,7 @@ onUnmounted(() => {
   text-underline-offset: 3px;
 }
 
-/* 错误提示条 */
-.qz-auth-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-auth-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
+/* 错误提示条用 base.css 的 .qz-alert.is-danger */
 
 /* ---------- 页脚 ---------- */
 .qz-auth-foot {
@@ -503,6 +489,10 @@ onUnmounted(() => {
   .qz-panel.qz-auth-card {
     gap: var(--qz-space-5);
     padding: var(--qz-space-6) var(--qz-space-5);
+  }
+  /* 与 base.css 的 .qz-page-head h1 同步降一档：手机端全站页 h1 统一为 xl */
+  .qz-auth-hero h1 {
+    font-size: var(--qz-text-xl);
   }
 }
 

@@ -65,12 +65,12 @@
 
         <div v-if="loading" class="qz-grid">
           <div v-for="i in 6" :key="i" class="qz-skeleton-card" aria-hidden="true">
-            <span class="qz-skeleton-art"><span></span></span>
-            <span class="qz-skeleton-title"></span>
-            <span class="qz-skeleton-spec"></span>
+            <span class="qz-skeleton-art"><span class="qz-skeleton"></span></span>
+            <span class="qz-skeleton qz-skeleton-title"></span>
+            <span class="qz-skeleton qz-skeleton-spec"></span>
             <div class="qz-skeleton-bottom">
-              <span class="qz-skeleton-price"></span>
-              <span class="qz-skeleton-action"></span>
+              <span class="qz-skeleton qz-skeleton-price"></span>
+              <span class="qz-skeleton qz-skeleton-action"></span>
             </div>
           </div>
         </div>
@@ -114,6 +114,7 @@ import QzProductCard from './components/QzProductCard.vue'
 import QzCategoryPanel, { type PanelCategory } from './components/QzCategoryPanel.vue'
 import QzSearch from './components/QzSearch.vue'
 import type { SearchableItem } from './utils/searchRank'
+import { pickFeatured } from './utils/featured'
 import { setupReveal } from './utils/reveal'
 import { useQiaozhiPrice } from './utils/price'
 
@@ -192,14 +193,8 @@ const activeCategoryName = computed(() => {
 })
 
 // ==================== 精选拆分 ====================
-const FEATURED_PATTERN = /chatgpt|gpt|gemini|bard|google|^x-|x-premium|twitter|duolingo|duo|muse/i
-
-const featuredProducts = computed(() => {
-  const matched = allProducts.value.filter((p) => FEATURED_PATTERN.test(String(p.slug || '')))
-  if (matched.length) return matched.slice(0, 5)
-  // 没有任何匹配变体的商品时，用前 4 个产品做默认卡
-  return allProducts.value.slice(0, 4)
-})
+// 后台给商品打 featured / 精选 标签即入选（前 5）；一个都没打时沿用 slug 品牌正则，再回退前 4 做默认卡。
+const featuredProducts = computed(() => pickFeatured(allProducts.value))
 
 const toolsCard = computed(() => {
   if (!allProducts.value.length) return null
@@ -307,8 +302,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 首页专属版式：hero、精选区与商品网格。卡片 / 面板 / 搜索 / 分类面板各自在组件内取样式；
-   `.qz-catalog`（侧栏 + 列表两栏）与骨架屏仍在 legacy.css。关键帧 qz-text-in 来自 legacy.css。 */
+/* 首页专属版式：hero、精选区、目录两栏（.qz-catalog：分类面板 + 列表）、商品网格与加载骨架。
+   卡片 / 面板 / 搜索 / 分类面板各自在组件内取样式；骨架占位块是 base.css 的 .qz-skeleton（qz-pulse），
+   这里只给卡片外形与各占位块的尺寸。hero 文案入场关键帧 qz-text-in 在本块底部（Products.vue 同款）。 */
 
 /* ---------- Hero ---------- */
 .qz-hero {
@@ -380,11 +376,44 @@ onUnmounted(() => {
 }
 .qz-featured-grid > .is-wide-full { grid-column: 1 / -1; }
 
+/* ---------- 目录两栏：分类面板 + 列表（≤1120 窄面板，≤760 单列、面板收成抽屉） ---------- */
+.qz-catalog {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: var(--qz-space-4);
+  align-items: start;
+}
+.qz-catalog > div { min-width: 0; }
+
 /* ---------- 商品网格 ---------- */
 .qz-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--qz-space-4);
+}
+
+/* ---------- 加载骨架：商品卡外形 + base .qz-skeleton 占位块（艺术区 / 标题 / 规格 / 价格 / 按钮） ---------- */
+.qz-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 280px;
+  padding: var(--qz-space-5);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+}
+.qz-skeleton-card .qz-skeleton { border-radius: var(--qz-radius-xs); }
+.qz-skeleton-art { display: grid; place-items: center; height: 160px; margin-top: 6px; }
+.qz-skeleton-art > .qz-skeleton { width: 54%; height: 92px; opacity: .6; border-radius: var(--qz-radius-sm); }
+.qz-skeleton-title { width: 48%; height: 24px; }
+.qz-skeleton-spec { width: 62%; height: 12px; margin-top: 2px; }
+.qz-skeleton-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.qz-skeleton-price { width: 28%; height: 22px; }
+.qz-skeleton-card .qz-skeleton-action { width: 86px; height: 36px; border-radius: var(--qz-radius-pill); }
+
+@media (max-width: 1120px) {
+  .qz-catalog { grid-template-columns: 220px minmax(0, 1fr); }
 }
 
 @media (max-width: 1023.98px) {
@@ -395,6 +424,11 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
+  .qz-catalog { display: block; }
+  .qz-skeleton-card { min-height: 220px; padding: var(--qz-space-4); }
+  .qz-skeleton-art { height: 110px; }
+  .qz-skeleton-art > .qz-skeleton { height: 70px; }
+
   .qz-hero {
     display: grid;
     gap: var(--qz-space-4);
@@ -432,5 +466,11 @@ onUnmounted(() => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--qz-space-2);
   }
+}
+
+/* hero 文案入场：上浮 + 去模糊 */
+@keyframes qz-text-in {
+  0% { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  100% { opacity: 1; transform: none; filter: none; }
 }
 </style>

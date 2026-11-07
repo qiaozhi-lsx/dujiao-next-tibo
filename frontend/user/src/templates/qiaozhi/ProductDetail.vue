@@ -8,11 +8,11 @@
 
     <!-- 骨架 -->
     <div v-if="loading" class="qz-pd-skeleton" aria-hidden="true">
-      <div class="qz-pd-sk-block"></div>
-      <div class="qz-pd-sk-line is-lg"></div>
-      <div class="qz-pd-sk-line"></div>
-      <div class="qz-pd-sk-line is-sm"></div>
-      <div class="qz-pd-sk-line is-btn"></div>
+      <div class="qz-skeleton qz-pd-sk-media"></div>
+      <div class="qz-skeleton is-lg"></div>
+      <div class="qz-skeleton is-line"></div>
+      <div class="qz-skeleton is-sm"></div>
+      <div class="qz-skeleton qz-pd-sk-cta"></div>
     </div>
 
     <template v-else-if="product">
@@ -63,15 +63,16 @@
           <!-- 规格 -->
           <div v-if="plans.length" class="qz-field">
             <span id="qz-pd-sku-label" class="qz-field-label">{{ t('qiaozhi.detail.spec') }}</span>
-            <div class="qz-pd-sku-list" role="group" aria-labelledby="qz-pd-sku-label">
+            <div class="qz-pd-sku-list" role="radiogroup" aria-labelledby="qz-pd-sku-label" @keydown="onRadioArrow">
               <button
                 v-for="plan in plans"
                 :key="plan.id"
                 type="button"
+                role="radio"
                 class="qz-pill"
                 :class="{ 'is-active': plan.selected }"
                 :disabled="plan.disabled"
-                :aria-pressed="plan.selected"
+                :aria-checked="plan.selected"
                 @click="selectPlan(plan.id, plan.disabled)"
               >
                 <b>{{ plan.name }}</b>
@@ -90,8 +91,8 @@
           </div>
 
           <template v-if="pitchLine">
-            <p id="qz-pd-desc" class="qz-pd-desc" :class="{ 'qz-pd-desc--clamp': !descExpanded }">
-              <span class="qz-pd-desc-text">{{ pitchLine }}</span>
+            <p id="qz-pd-desc" class="qz-pd-desc">
+              <span class="qz-pd-desc-text" :class="{ 'qz-pd-desc-text--clamp': !descExpanded }">{{ pitchLine }}</span>
             </p>
             <button
               type="button"
@@ -157,20 +158,23 @@
               <!-- 支付方式 -->
               <div v-if="channels.length" class="qz-pd-pay">
                 <h3 id="qz-pd-pay-label" class="qz-field-label"><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
-                <div class="qz-pd-pay-options" role="group" aria-labelledby="qz-pd-pay-label">
+                <div class="qz-pd-pay-options" role="radiogroup" aria-labelledby="qz-pd-pay-label" @keydown="onRadioArrow">
                   <button
                     v-for="ch in channels"
                     :key="ch.id"
                     type="button"
+                    role="radio"
                     class="qz-pd-pay-option"
                     :class="{ 'is-active': selectedChannelId === ch.id }"
-                    :aria-pressed="selectedChannelId === ch.id"
+                    :aria-checked="selectedChannelId === ch.id"
                     @click="selectedChannelId = ch.id"
                   >
                     <i aria-hidden="true"></i>
+                    <!-- 左侧标识：有上传 icon 用之；USDT 渠道没传图时用通用币种徽标占位（标签已含 USDT，徽标对读屏隐藏） -->
                     <img v-if="ch.icon" :src="ch.icon" alt="" />
+                    <span v-else-if="ch.isUsdt" class="qz-badge" aria-hidden="true">USDT</span>
                     <span>
-                      <b>{{ ch.name }}</b>
+                      <b>{{ ch.label }}</b>
                       <small v-if="ch.feeText">{{ ch.feeText }}</small>
                     </span>
                   </button>
@@ -182,8 +186,8 @@
                 <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
               </div>
 
-              <p v-if="formError" class="qz-pd-alert is-error" role="alert">{{ formError }}</p>
-              <p v-else-if="cannotPurchaseReason" class="qz-pd-alert" role="status">{{ cannotPurchaseReason }}</p>
+              <p v-if="formError" class="qz-alert is-danger" role="alert">{{ formError }}</p>
+              <p v-else-if="cannotPurchaseReason" class="qz-alert is-warning" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="qz-pd-buttons">
                 <button
@@ -270,6 +274,7 @@ import { getFirstImageUrl, getImageUrl } from '../../utils/image'
 import { normalizeSkuId } from '../../utils/sku'
 import { saveGuestOrderAuth } from '../../utils/guestOrderAuth'
 import { getAffiliateCode, getAffiliateVisitorKey } from '../../utils/affiliate'
+import { hasUsdtToken, usdtDisplayLabel } from '../../utils/cryptoChain'
 import { useTheme } from '../../utils/theme'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
@@ -344,6 +349,21 @@ const selectPlan = (id: number, disabled: boolean) => {
   selectedSkuId.value = id
 }
 
+// 单选组方向键（规格 / 支付方式共用）：←/↑ 上一项、→/↓ 下一项，循环且跳过不可选项；
+// 走 click() 复用各组自己的选中逻辑，焦点与选中一起移动。
+const onRadioArrow = (event: KeyboardEvent) => {
+  if (event.altKey || event.ctrlKey || event.metaKey) return // Alt+← 等浏览器快捷键放行
+  const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[event.key]
+  if (!step) return
+  const radios = Array.from((event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="radio"]:not(:disabled)'))
+  const index = radios.indexOf(event.target as HTMLButtonElement)
+  const next = radios[(index + step + radios.length) % radios.length]
+  if (index < 0 || radios.length < 2 || !next) return
+  event.preventDefault()
+  next.focus()
+  next.click()
+}
+
 // ==================== 价格 ====================
 const unitPrice = computed(() => {
   const sku = selectedSku.value
@@ -414,9 +434,16 @@ const channels = computed(() => {
     })
     .map((ch: any) => {
       const feeBps = Number(ch?.fee_bps ?? ch?.feeBps ?? 0)
+      const name = String(ch.name || ch.channel_type || ch.provider_type || '')
+      const channelType = String(ch?.channel_type || '')
       return {
         id: Number(ch.id),
-        name: String(ch.name || ch.channel_type || ch.provider_type || ''),
+        // name 原样保留给支付弹窗 / 支付记录回填；label 只用于本页支付方式行：
+        // 渠道名纯粹是「USDT + 单一链」时统一成「USDT · 链名」，其余一律显示管理端原名（只看名字，不信 channel_type）。
+        name,
+        label: usdtDisplayLabel(name) || name,
+        // 无上传 icon 时的通用币种徽标：名字或 channel_type 里有独立的 usdt 即可（epusdt / bepusdt 不算）
+        isUsdt: hasUsdtToken(name) || hasUsdtToken(channelType),
         providerType: String(ch?.provider_type || '').toLowerCase(),
         icon: ch.icon || ch.logo ? getImageUrl(String(ch.icon || ch.logo)) : '',
         feeText: feeBps > 0 ? t('qiaozhi.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
@@ -767,10 +794,9 @@ onMounted(() => {
 /* 商品详情页：控件全部来自 styles/base.css（.qz-btn / .qz-icon-btn / .qz-pill / .qz-chip / .qz-badge /
    .qz-field*），这里只放页面布局与详情页专属元素，只读 --qz-* token（无色值字面量、无 px 字号）。
 
-   选择器一律挂在页面根 .qz-pd-page 下：legacy.css 里 Cart / Payment / Checkout / 订单页仍在用的
-   .qz-pd-* 共享规则（-card / -media / -stage / -info / -price* / -desc / -detail / -skeleton…）
-   与本页元素同名且特指度同为 (0,2,0)，多一层根类让本页规则在特指度上稳赢，不依赖加载顺序；
-   凡 legacy 对这些元素声明过的属性，这里都显式声明了一遍，共享规则日后删掉时本页不会变样。 */
+   选择器一律挂在页面根 .qz-pd-page 下：多一层根类让本页规则对 base.css 的 (0,2,0) 基类在特指度上稳赢，
+   不依赖加载顺序；本页用到的每个 .qz-pd-* 元素的全部属性都在这里显式声明（支付页的同类元素已改名
+   qz-pay-*，两页互不共享规则）。 */
 
 /* ---------- 页面骨架 ---------- */
 .qz-pd-page {
@@ -781,19 +807,13 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-return { align-self: flex-start; }
 
+/* 骨架块都是 base.css 的 .qz-skeleton（标题 / 正文 / 小字行由 .is-lg / .is-line / .is-sm 定高，≤760 跟着 h1 换 xl）；
+   主图台与购买钮占位（.qz-pd-sk-media / .qz-pd-sk-cta）只在这里给尺寸。 */
 .qz-pd-page .qz-pd-skeleton { display: grid; gap: var(--qz-space-4); }
-.qz-pd-page .qz-pd-sk-block,
-.qz-pd-page .qz-pd-sk-line {
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-  animation: qz-pd-pulse 1.4s ease-in-out infinite;
-}
-.qz-pd-page .qz-pd-sk-block { aspect-ratio: 4 / 3; max-height: 420px; }
-.qz-pd-page .qz-pd-sk-line { height: 18px; }
-.qz-pd-page .qz-pd-sk-line.is-lg { width: 80%; height: 32px; }
-.qz-pd-page .qz-pd-sk-line.is-sm { width: 45%; }
-.qz-pd-page .qz-pd-sk-line.is-btn { height: var(--qz-control-lg); margin-top: auto; }
-@keyframes qz-pd-pulse { 50% { opacity: .55; } }
+.qz-pd-page .qz-pd-sk-media { aspect-ratio: 4 / 3; max-height: 420px; }
+/* 标题骨架 = h1 行盒：页面 h1 用 body 行高（base .is-lg 默认 display 行高），首屏到真实标题不跳高 */
+.qz-pd-page .qz-skeleton.is-lg { line-height: var(--qz-leading-body); }
+.qz-pd-page .qz-pd-sk-cta { height: var(--qz-control-lg); margin-top: auto; }
 
 /* ---------- 左图右单 ---------- */
 .qz-pd-page .qz-pd-card {
@@ -903,8 +923,8 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-title-row .qz-btn { flex: none; margin-right: calc(-1 * var(--qz-space-3)); }
 
-/* 信息 chips。legacy.css 的 .qz-chip（首页卡片段，待该车道删除）与 base 同特指度且后加载，
-   ≤760 会把字号压到 9px：这里钉住 base 的尺寸与字色，等 legacy 段删掉后这条即是无害重复。 */
+/* 信息 chips：钉住 base.css .qz-chip 的尺寸与字色（与 base 同值），页面根类把它提到 (0,3,0)，
+   任何同名共享规则都压不过它。 */
 .qz-pd-page .qz-pd-chip-row { display: flex; flex-wrap: wrap; gap: var(--qz-space-2); margin-top: calc(-1 * var(--qz-space-1)); }
 .qz-pd-page .qz-chip {
   min-height: 24px;
@@ -980,7 +1000,8 @@ onMounted(() => {
   white-space: normal;
 }
 .qz-pd-page .qz-pd-desc-text { display: block; white-space: pre-line; }
-.qz-pd-page .qz-pd-desc--clamp .qz-pd-desc-text {
+/* 链上基类名：(0,4,0) 压过 .qz-pd-desc-text 的 display/white-space，不依赖源顺序 */
+.qz-pd-page .qz-pd-desc-text.qz-pd-desc-text--clamp {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1061,9 +1082,12 @@ onMounted(() => {
   transition: border var(--qz-duration-fast) var(--qz-ease-standard);
 }
 .qz-pd-page .qz-pd-pay-option.is-active > i { border: 5px solid var(--qz-accent); }
-.qz-pd-page .qz-pd-pay-option img { flex: none; width: 24px; height: 24px; border-radius: 6px; object-fit: contain; }
-.qz-pd-page .qz-pd-pay-option > span { display: grid; min-width: 0; }
-.qz-pd-page .qz-pd-pay-option b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.qz-pd-page .qz-pd-pay-option img { flex: none; width: 24px; height: 24px; border-radius: var(--qz-radius-xs); object-fit: contain; }
+/* 无 icon 的 USDT 渠道：通用币种徽标占 icon 位，不参与伸缩 */
+.qz-pd-page .qz-pd-pay-option > .qz-badge { flex: none; }
+.qz-pd-page .qz-pd-pay-option > span:not(.qz-badge) { display: grid; min-width: 0; }
+/* 标签最多两行再截断（两列格里「USDT · Ethereum」一行放不下时折行而不是省略号） */
+.qz-pd-page .qz-pd-pay-option b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600; overflow-wrap: anywhere; }
 .qz-pd-page .qz-pd-pay-option small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); }
 
 .qz-pd-page .qz-pd-total {
@@ -1082,18 +1106,7 @@ onMounted(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* 表单提示条：默认为警示色（不可购买原因），is-error 为错误色 */
-.qz-pd-page .qz-pd-alert {
-  margin: 0;
-  padding: var(--qz-space-2) var(--qz-space-3);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-}
-.qz-pd-page .qz-pd-alert.is-error { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
+/* 表单提示条（不可购买原因 / 校验错误）用 base.css 的 .qz-alert.is-warning / .is-danger */
 
 /* 购物车图标钮（lg 圆钮）+ lg 主按钮：同为 --qz-control-lg 高，一行等高 */
 .qz-pd-page .qz-pd-buttons {
@@ -1162,8 +1175,9 @@ onMounted(() => {
   .qz-pd-page .qz-pd-card { grid-template-columns: minmax(0, 1fr); }
   .qz-pd-page .qz-pd-media { border-radius: calc(var(--qz-radius-panel) - 1px) calc(var(--qz-radius-panel) - 1px) 0 0; }
   .qz-pd-page .qz-pd-media-sticky { position: static; }
-  .qz-pd-page .qz-pd-stage { max-height: 320px; }
-  .qz-pd-page .qz-pd-sk-block { max-height: 260px; }
+  /* 单列时主图台上限随视口走（最高 480），不再被 320 硬顶压扁 4/3；骨架图块同高，加载前后不跳 */
+  .qz-pd-page .qz-pd-stage,
+  .qz-pd-page .qz-pd-sk-media { max-height: min(60vh, 480px); }
 }
 @media (max-width: 760px) {
   /* 手机端返回钮吸在顶栏下方；桌面保持静态 */
@@ -1172,7 +1186,7 @@ onMounted(() => {
     top: calc(var(--qz-header-h) + var(--qz-space-2));
     z-index: 5;
   }
-  /* 页面 h1：桌面 2xl（28），手机 xl（22） */
+  /* 页面 h1：桌面 2xl（28），手机 xl（22）；标题骨架（.qz-skeleton.is-lg）由 base 同步换挡 */
   .qz-pd-page .qz-pd-title-row h1 { font-size: var(--qz-text-xl); }
 }
 @media (max-width: 640px) {
@@ -1181,12 +1195,12 @@ onMounted(() => {
   .qz-pd-page .qz-pd-info { padding: var(--qz-space-4) var(--qz-space-3); }
   .qz-pd-page .qz-pd-price strong { font-size: var(--qz-text-2xl); }
   .qz-pd-page .qz-pd-form-row { grid-template-columns: 1fr; }
+  /* 手机两列支付格里徽标会把标签挤到省略号，收起徽标（标签本身已含 USDT） */
+  .qz-pd-page .qz-pd-pay-option > .qz-badge { display: none; }
   .qz-pd-page .qz-pd-detail { padding: var(--qz-space-4) var(--qz-space-3) var(--qz-space-5); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .qz-pd-page .qz-pd-sk-block,
-  .qz-pd-page .qz-pd-sk-line { animation: none; }
   .qz-pd-page .qz-pd-thumbs button,
   .qz-pd-page .qz-pd-sku-list .qz-pill,
   .qz-pd-page .qz-pd-pay-option,

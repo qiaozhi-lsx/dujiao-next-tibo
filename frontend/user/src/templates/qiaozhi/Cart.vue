@@ -1,8 +1,8 @@
 <template>
   <div ref="rootEl" class="qz-container qz-cart">
     <!-- 页头：eyebrow + h1 + 说明 + 返回 -->
-    <header class="qz-cart-head">
-      <div class="qz-cart-head-copy">
+    <header class="qz-page-head">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ t('qiaozhi.cart.eyebrow') }}</span>
         <h1>
           <span>{{ t('cart.title') }}</span>
@@ -18,9 +18,9 @@
 
     <!-- 骨架 -->
     <div v-if="loading" class="qz-cart-skeleton" aria-hidden="true">
-      <div class="qz-cart-sk-line is-lg"></div>
-      <div class="qz-cart-sk-line"></div>
-      <div class="qz-cart-sk-line is-sm"></div>
+      <div class="qz-skeleton is-lg"></div>
+      <div class="qz-skeleton is-line"></div>
+      <div class="qz-skeleton is-sm"></div>
     </div>
 
     <!-- 空态 -->
@@ -226,72 +226,10 @@ onUnmounted(() => {
   gap: var(--qz-space-5);
 }
 
-/* ---------- 页头 ---------- */
-.qz-cart-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-cart-head-copy {
-  min-width: 0;
-}
-
-.qz-cart-head h1 {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-cart-head h1 .qz-chip {
-  letter-spacing: normal;
-}
-
-.qz-cart-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-cart-head > .qz-btn {
-  flex: none;
-}
-
-/* ---------- 骨架 ---------- */
+/* 页头与骨架行用 base.css 的 .qz-page-head / .qz-skeleton，这里只留骨架的排布 */
 .qz-cart-skeleton {
   display: grid;
   gap: var(--qz-space-4);
-}
-
-.qz-cart-sk-line {
-  height: 18px;
-  border-radius: var(--qz-radius-pill);
-  background: var(--qz-surface-muted);
-  animation: qz-cart-pulse 1.4s ease-in-out infinite;
-}
-
-.qz-cart-sk-line.is-lg {
-  width: 80%;
-  height: 32px;
-}
-
-.qz-cart-sk-line.is-sm {
-  width: 45%;
-}
-
-@keyframes qz-cart-pulse {
-  50% {
-    opacity: 0.55;
-  }
 }
 
 /* ---------- 桌面双栏：左商品卡列表 + 右竖排结算卡 ---------- */
@@ -310,8 +248,8 @@ onUnmounted(() => {
 }
 
 /* 商品卡：图占左列三行，右列依次是标题行 / chips / 数量与价格
-   .qz-card.qz-cart-item 写成 (0,3,0)：legacy.css 里旧商品卡的 .qz-card 规则（min-height 270、hover 上浮、::before 圆斑、pointer）
-   在它被删掉之前不能影响购物车卡。 */
+   .qz-card.qz-cart-item 写成 (0,3,0)：base.css 的 .qz-card 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
 .qz-card.qz-cart-item {
   display: grid;
   grid-template-columns: 148px minmax(0, 1fr);
@@ -342,7 +280,7 @@ onUnmounted(() => {
   place-items: center;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
 }
 
@@ -411,12 +349,8 @@ onUnmounted(() => {
   justify-items: start;
 }
 
-.qz-cart-qty .qz-field-hint,
 .qz-cart-warn {
   margin: 0;
-}
-
-.qz-cart-warn {
   color: var(--qz-warning);
   font-size: var(--qz-text-xs);
   font-weight: 500;
@@ -459,6 +393,11 @@ onUnmounted(() => {
   line-height: var(--qz-leading-body);
 }
 
+/* <small> 不能继承 UA 的 `smaller`（12 × 0.8 = 9.6px，跌破 11px 地板），显式钉在 xs */
+.qz-cart-subtotal small {
+  font-size: var(--qz-text-xs);
+}
+
 .qz-cart-subtotal b {
   color: var(--qz-text);
   font-size: var(--qz-text-sm);
@@ -467,8 +406,8 @@ onUnmounted(() => {
 }
 
 /* ---------- 结算卡：桌面 sticky 跟随滚动（列表短于一屏时页面不滚，天然不浮动）
-   .qz-panel.qz-cart-summary 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（≤760 隐藏、overflow hidden）
-   在它被删掉之前不能影响结算卡。 */
+   .qz-panel.qz-cart-summary 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它，
+   不依赖样式注入顺序。 */
 .qz-panel.qz-cart-summary {
   position: sticky;
   top: calc(var(--qz-header-h) + var(--qz-space-4));
@@ -560,12 +499,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
-  .qz-cart-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: var(--qz-space-3);
-  }
-
   /* 手机：图缩到 88px 只陪标题行，chips 与数量/价格整行铺开 */
   .qz-card.qz-cart-item {
     grid-template-columns: 88px minmax(0, 1fr);

@@ -7,7 +7,7 @@
     <button
       v-if="isHorizontal && edges.overflow"
       type="button"
-      class="qz-tabs-arrow is-left"
+      class="qz-icon-btn qz-icon-btn--sm is-left"
       :disabled="!edges.left"
       :aria-label="scrollLeftLabel"
       @click="scrollByPage(-1)"
@@ -22,7 +22,7 @@
           :ref="(el) => setTabRef(item.key, el as HTMLButtonElement | null)"
           type="button"
           role="tab"
-          class="qz-tabs-tab"
+          class="qz-pill qz-tabs-tab"
           :class="{ 'is-active': item.key === modelValue }"
           :aria-selected="item.key === modelValue"
           :tabindex="item.key === modelValue ? 0 : -1"
@@ -38,7 +38,7 @@
     <button
       v-if="isHorizontal && edges.overflow"
       type="button"
-      class="qz-tabs-arrow is-right"
+      class="qz-icon-btn qz-icon-btn--sm is-right"
       :disabled="!edges.right"
       :aria-label="scrollRightLabel"
       @click="scrollByPage(1)"
@@ -201,3 +201,72 @@ onBeforeUnmount(() => {
   listObserver?.disconnect()
 })
 </script>
+
+<style>
+/* Tabs 导航：条目是 base.css 的 .qz-pill（sm 高、14px/500、hover 弱强调底、按压缩放、.is-active 白字），
+   溢出箭头是 .qz-icon-btn--sm；只有滑块（.qz-tabs-glow）与排布在这里。选中项的黑底由滑块提供，
+   所以 .is-active 的 .qz-pill 底色压回透明，滑块按 offsetLeft/offsetTop 测量摆位（脚本不变）。
+   不用 scoped、沿用 base.css 的作用域前缀：覆盖基类属性的选择器都带上 .qz-pill，靠特指度而不是加载顺序赢。
+   全部取值走 --qz-* token；键盘焦点环是全局规则，视口留 space-1 的出血位让环不被 overflow 裁掉。 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-1);
+  min-width: 0;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: calc(-1 * var(--qz-space-1));
+  padding: var(--qz-space-1);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-viewport::-webkit-scrollbar { display: none; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-list {
+  position: relative;
+  display: flex;
+  gap: var(--qz-space-1);
+  width: 100%;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs[data-orientation="vertical"] .qz-tabs-list { flex-direction: column; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs[data-orientation="horizontal"] .qz-tabs-list { width: max-content; }
+
+/* 条目：竖排占满一行、内容靠左；横排按内容宽 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill.qz-tabs-tab {
+  position: relative;
+  z-index: 1;
+  flex: 1 0 auto;
+  justify-content: flex-start;
+  text-align: left;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs[data-orientation="horizontal"] .qz-pill.qz-tabs-tab { flex: 0 0 auto; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill.qz-tabs-tab.is-active { background: transparent; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 滑块：尺寸与位移由脚本写入，首帧 .is-instant 直接摆位，之后弹簧滑动 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  height: 0;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent);
+  transition:
+    transform var(--qz-duration-spring) var(--qz-ease-spring),
+    width var(--qz-duration-spring) var(--qz-ease-spring),
+    height var(--qz-duration-spring) var(--qz-ease-spring);
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-glow.is-instant { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-tabs-glow { transition: none; }
+}
+</style>
