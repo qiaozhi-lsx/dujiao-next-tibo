@@ -434,7 +434,8 @@ const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
 // 「已转账但未到账 → 提交交易哈希」只有 epusdt 网关实现了（GatewayTxHashSubmitter）；
 // 其他加密渠道（bepusdt / dujiaopay）同样有收款地址，但后端会直接回"不支持"，不给入口。
-const txHashSupported = computed(() => props.order?.providerType === 'epusdt')
+// providerType 后端有时下发 'Epusdt' / 'EPUSDT'，大小写不敏感比较。
+const txHashSupported = computed(() => (props.order?.providerType || '').toLowerCase() === 'epusdt')
 
 const cryptoChainLabel = computed(() => (props.order?.chain ? chainLabel(props.order.chain) : ''))
 
@@ -687,6 +688,8 @@ const pollOnce = async () => {
 
 const startPolling = () => {
   stopPolling()
+  // 起轮询即刻跑一次：轮询间隔 5s，不即时首发时用户要白等 5 秒才看到「已支付」反馈。
+  void pollOnce()
   // 5s 一次，与 classic usePayment 一致；游客订单详情按 IP 限流 120 次/分钟，
   // 2s 轮询在多标签页或同一出口 IP 下容易触顶被封 60s。
   pollTimer.value = setInterval(() => {
