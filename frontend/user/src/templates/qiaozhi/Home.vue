@@ -148,6 +148,8 @@ const onSearchSelect = (item: SearchableItem) => {
 
 let cleanupReveal: (() => void) | null = null
 let shareTimer: ReturnType<typeof setTimeout> | null = null
+// 与 Products.vue 对齐：首屏数据未就绪时屏蔽 reveal / 筛选副作用，避免首次渲染竞态把卡片卡在 is-pending。
+let initializing = true
 
 const siteDomain = computed(() => {
   try {
@@ -276,6 +278,7 @@ const armReveal = () => {
 
 // 搜索 / 分类切换后重新武装：新渲染的卡片带 is-pending，不重新观察会一直停在 opacity: 0
 watch([searchQuery, selectedCategory], () => {
+  if (initializing || loading.value) return
   armReveal()
 })
 
@@ -291,6 +294,7 @@ onMounted(async () => {
     console.error('Failed to load catalog:', err)
   } finally {
     loading.value = false
+    initializing = false
     armReveal()
   }
 })
