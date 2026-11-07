@@ -154,11 +154,14 @@
 /* Primary nav: a row of `.qz-pill`s. The row is a hidden-scrollbar scroll box so that, when
    every optional item is enabled and the viewport is narrow, pills scroll instead of
    overlapping the brand or the actions; `safe center` keeps them centred while they fit.
-   QiaozhiLayout.vue watches the row with a ResizeObserver and sets `data-overflow` only while
-   scrollWidth exceeds clientWidth; then the inline-end mask fades the last 24px of the box, so
+   QiaozhiLayout.vue watches the row with a ResizeObserver (and its scroll position) and sets
+   `data-overflow` only while scrollWidth exceeds clientWidth, valued by the side(s) still cut
+   off — "end" / "start" / "both"; the matching edge mask fades the last 24px on that side, so
    the pill that is cut off dissolves instead of ending in a hard edge (only alpha matters:
-   --qz-text is opaque in both themes, `transparent` is the fade). While everything fits there
-   is no mask at all, so the last pill — and its focus ring — stays fully opaque. */
+   --qz-text is opaque in both themes, `transparent` is the fade). On route change the layout
+   scrolls the active pill into view; `scroll-padding-inline` keeps it clear of the fade. While
+   everything fits there is no mask at all, so the last pill — and its focus ring — stays
+   fully opaque. */
 .qiaozhi-scope .qz-nav {
   display: flex;
   align-items: center;
@@ -168,10 +171,17 @@
   min-width: 0;
   padding: var(--qz-space-1); /* room for focus rings inside the scroll box */
   overflow-x: auto;
+  scroll-padding-inline: var(--qz-space-6);
   scrollbar-width: none;
 }
-.qiaozhi-scope .qz-nav[data-overflow] {
+.qiaozhi-scope .qz-nav[data-overflow="end"] {
   mask-image: linear-gradient(to right, var(--qz-text) calc(100% - var(--qz-space-6)), transparent);
+}
+.qiaozhi-scope .qz-nav[data-overflow="start"] {
+  mask-image: linear-gradient(to right, transparent, var(--qz-text) var(--qz-space-6));
+}
+.qiaozhi-scope .qz-nav[data-overflow="both"] {
+  mask-image: linear-gradient(to right, transparent, var(--qz-text) var(--qz-space-6), var(--qz-text) calc(100% - var(--qz-space-6)), transparent);
 }
 .qiaozhi-scope .qz-nav::-webkit-scrollbar {
   display: none;
@@ -308,6 +318,12 @@
   white-space: nowrap;
   text-decoration: none;
   transition: color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+/* With the floating support button (QiaozhiLayout.vue sets `has-support` on the root) the footer keeps the
+   FAB column clear on the right — `--qz-fab-right` + `--qz-fab-size` + `--qz-fab-gap` — so the fixed button
+   never covers the last footer link when the page is scrolled to the end. */
+.qiaozhi-scope.has-support .qz-footer {
+  padding-right: max(4vw, calc(var(--qz-fab-right) + var(--qz-fab-size) + var(--qz-fab-gap)));
 }
 
 /* ---------- Mobile footer links (≤760 only; the desktop footer is hidden there) ---------- */
@@ -600,6 +616,11 @@
     white-space: nowrap;
     text-decoration: none;
   }
+  /* Same clearance as the desktop footer for the round FAB (which sits above the bottom nav here); symmetric so
+     the centred link row stays centred — links wrap onto another line instead of running under the button. */
+  .qiaozhi-scope.has-support .qz-footer-mobile {
+    padding-inline: calc(var(--qz-fab-right) + var(--qz-fab-size) + var(--qz-fab-gap));
+  }
 
   .qiaozhi-scope .qz-bottom-nav {
     position: fixed;
@@ -623,8 +644,9 @@
     place-items: center;
     gap: var(--qz-space-1);
     min-width: 0;
+    min-height: var(--qz-control-md);
     padding: var(--qz-space-1) 0;
-    border-radius: calc(var(--qz-radius-control) - var(--qz-space-1));
+    border-radius: var(--qz-radius-pill);
     color: var(--qz-text-muted);
     font-size: var(--qz-text-2xs);
     font-weight: 500;

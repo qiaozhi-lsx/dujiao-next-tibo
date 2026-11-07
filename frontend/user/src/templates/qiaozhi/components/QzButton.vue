@@ -154,21 +154,22 @@ watch(() => props.loading, (value) => {
 .qz-arc-content { display: inline-flex; align-items: center; gap: inherit; white-space: nowrap; }
 .qz-arc-label { display: inline-flex; align-items: center; gap: inherit; }
 
-/* 文案切换：新字从下方轻微上浮（带模糊）进场，旧字加速上移退场 */
-.qz-arc-label-text-enter-active { transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease; }
-.qz-arc-label-text-leave-active { transition: opacity 0.13s ease, transform 0.13s ease, filter 0.13s ease; }
+/* 文案切换：新字从下方轻微上浮（带模糊）进场，旧字加速上移退场。时长 / 缓动全部读 --qz-duration-* / --qz-ease-*：
+   进场 standard + enter 曲线，退场 instant，图标弹入走 --qz-ease-spring（临界阻尼，不过冲）配 --qz-duration-spring */
+.qz-arc-label-text-enter-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-standard) var(--qz-ease-enter), filter var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-arc-label-text-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard), filter var(--qz-duration-instant) var(--qz-ease-standard); }
 .qz-arc-label-text-enter-from { opacity: 0; transform: translateY(4px); filter: blur(4px); }
 .qz-arc-label-text-leave-to { opacity: 0; transform: translateY(-3px); filter: blur(4px); }
 
 /* 图标切换：缩放弹入 */
-.qz-arc-label-icon-enter-active { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.34, 1.45, 0.64, 1), filter 0.2s ease; }
-.qz-arc-label-icon-leave-active { transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease; }
+.qz-arc-label-icon-enter-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring), filter var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-arc-label-icon-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard), filter var(--qz-duration-instant) var(--qz-ease-standard); }
 .qz-arc-label-icon-enter-from,
 .qz-arc-label-icon-leave-to { opacity: 0; transform: scale(0.6); filter: blur(2px); }
 
 /* 低动态：纯淡入淡出 */
 .qz-arc-label-fade-enter-active,
-.qz-arc-label-fade-leave-active { transition: opacity 0.15s ease; }
+.qz-arc-label-fade-leave-active { transition: opacity var(--qz-duration-fast) var(--qz-ease-standard); }
 .qz-arc-label-fade-enter-from,
 .qz-arc-label-fade-leave-to { opacity: 0; }
 
@@ -183,8 +184,8 @@ watch(() => props.loading, (value) => {
   animation: qz-arc-spin 0.7s linear infinite;
 }
 @keyframes qz-arc-spin { to { transform: rotate(360deg); } }
-.qz-arc-loader-enter-active { transition: opacity 0.18s ease, transform 0.3s cubic-bezier(0.34, 1.45, 0.64, 1); }
-.qz-arc-loader-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.qz-arc-loader-enter-active { transition: opacity var(--qz-duration-fast) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring); }
+.qz-arc-loader-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard); }
 .qz-arc-loader-enter-from,
 .qz-arc-loader-leave-to { opacity: 0; transform: scale(0.6); }
 

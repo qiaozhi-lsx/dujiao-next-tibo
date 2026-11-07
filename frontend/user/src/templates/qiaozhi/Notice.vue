@@ -140,7 +140,7 @@ const {
   height: 56px;
   overflow: hidden;
   border: 1px solid var(--qz-border);
-  border-radius: 16px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
   color: var(--qz-text-secondary);
 }
@@ -229,7 +229,7 @@ const {
   flex: none;
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: var(--qz-radius-sm);
 }
 
 .qz-notice-skeleton-lines {

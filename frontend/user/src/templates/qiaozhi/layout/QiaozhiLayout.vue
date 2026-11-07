@@ -1,5 +1,5 @@
 <template>
-  <div class="qiaozhi-scope" :class="{ 'is-product': isProductPage }">
+  <div class="qiaozhi-scope" :class="{ 'is-product': isProductPage, 'has-support': hasSupport }">
     <!-- 顶栏 -->
     <header class="qz-header">
       <RouterLink class="qz-brand" to="/" :title="brandName">
@@ -263,6 +263,8 @@ const contacts = computed(() => {
   }
   return out
 })
+// 悬浮客服钮（面板版或直链版）存在时根元素带 has-support：layout.css 据此给页脚让出右下角，避免盖住最后一个链接
+const hasSupport = computed(() => contacts.value.length > 0 || Boolean(supportHref.value))
 
 const languages = [
   { code: 'zh-CN', name: '简体中文' },
@@ -286,15 +288,31 @@ const onScroll = () => {
 }
 
 // 顶栏导航是隐藏滚动条的横向滚动盒：只有胶囊真的放不下（scrollWidth 超出 clientWidth 1px 以上，
-// 容忍亚像素取整）时才给 data-overflow，layout.css 的右缘渐隐遮罩只在该属性存在时生效——
-// 放得下时最后一枚胶囊与它的焦点环保持完全不透明。
-// ResizeObserver 同时观察导航盒本身（视口变化）与其子元素（可选项 / 语言切换让胶囊增减或变宽）。
+// 容忍亚像素取整）时才给 data-overflow，值是仍被裁掉的那一侧（end / start / both），layout.css 只在
+// 对应边缘加渐隐遮罩——放得下时最后一枚胶囊与它的焦点环保持完全不透明，滚到尽头时露出的那一侧也不再被遮。
+// ResizeObserver 同时观察导航盒本身（视口变化）与其子元素（可选项 / 语言切换让胶囊增减或变宽）；
+// 滚动位置变化走 scroll 事件。
 let navObserver: ResizeObserver | null = null
 const syncNavOverflow = () => {
   const el = navEl.value
   if (!el) return
-  if (el.scrollWidth > el.clientWidth + 1) el.setAttribute('data-overflow', '')
-  else el.removeAttribute('data-overflow')
+  const max = el.scrollWidth - el.clientWidth
+  if (max <= 1) {
+    if (el.hasAttribute('data-overflow')) el.removeAttribute('data-overflow')
+    return
+  }
+  const atStart = el.scrollLeft <= 1
+  const atEnd = el.scrollLeft >= max - 1
+  const next = atStart ? 'end' : atEnd ? 'start' : 'both'
+  // 只在值变化时写属性，避免每个滚动帧都触发属性变更
+  if (el.getAttribute('data-overflow') !== next) el.setAttribute('data-overflow', next)
+}
+// 路由切换后把高亮胶囊滚进可视区（行放得下时无事发生；scroll-padding 让它避开渐隐边）
+const revealActivePill = () => {
+  const el = navEl.value?.querySelector<HTMLElement>('.qz-pill.is-active')
+  if (!el || typeof el.scrollIntoView !== 'function') return
+  el.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+  syncNavOverflow()
 }
 const observeNav = () => {
   navObserver?.disconnect()
@@ -310,17 +328,23 @@ watch([blogEnabled, noticeEnabled, aboutEnabled, supportHref, () => appStore.loc
   if (!navObserver) return
   void nextTick(observeNav)
 })
+watch(section, () => {
+  void nextTick(revealActivePill)
+})
 
 onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('scroll', onScroll, { passive: true })
+  navEl.value?.addEventListener('scroll', syncNavOverflow, { passive: true })
   // 浮层（Toast / ConfirmDialog / 公告弹窗）Teleport 到 body，靠这个 class 拿到 --qz-* token 与 --ui-* 兼容桥
   document.body.classList.add('qiaozhi-tokens')
   observeNav()
+  revealActivePill()
 })
 onBeforeUnmount(() => {
   navObserver?.disconnect()
   navObserver = null
+  navEl.value?.removeEventListener('scroll', syncNavOverflow)
 })
 onUnmounted(() => {
   document.removeEventListener('click', onDocClick)

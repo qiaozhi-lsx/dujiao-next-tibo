@@ -105,7 +105,11 @@ const MOBILE_MEDIA = '@media (max-width: 760px)'
 // Third-party brand colours (contact panel glyphs / open buttons) plus the ink that sits on
 // those saturated fills. Declared on both scopes like every colour token, but identical in
 // dark: a brand colour does not follow the theme, and only the dark ink clears 4.5:1 on it.
-const QZ_BRAND_TOKENS = ['--qz-brand-telegram', '--qz-brand-whatsapp', '--qz-brand-wechat', '--qz-brand-qq', '--qz-on-brand']
+const QZ_BRAND_TOKENS = [
+  '--qz-brand-telegram', '--qz-brand-whatsapp', '--qz-brand-wechat', '--qz-brand-qq', '--qz-on-brand',
+  // Payment-network dots in PaymentModal (TRON / BNB Chain / Solana gradient stops / Alipay).
+  '--qz-brand-tron', '--qz-brand-bsc', '--qz-brand-sol', '--qz-brand-sol-2', '--qz-brand-alipay',
+]
 // Same contract for the QR quiet-zone frame: white in both themes so a code on a dark surface keeps its light margin.
 const QZ_FIXED_TOKENS = [...QZ_BRAND_TOKENS, '--qz-qr-frame']
 // Status tones: always paired with a label or icon; light values are ≥ 4.5:1 on the white surface, dark are Arc's pastels.
@@ -126,7 +130,7 @@ const QZ_SIZE_TOKENS = [
   '--qz-control-sm', '--qz-control-md', '--qz-control-lg',
   '--qz-text-2xs', '--qz-text-xs', '--qz-text-sm', '--qz-text-base', '--qz-text-lg', '--qz-text-xl', '--qz-text-2xl', '--qz-text-3xl',
   '--qz-leading-display', '--qz-leading-body', '--qz-tracking-display', '--qz-font-body', '--qz-font-mono',
-  '--qz-ease-enter', '--qz-ease-standard', '--qz-ease-exit', '--qz-ease-spring',
+  '--qz-ease-enter', '--qz-ease-standard', '--qz-ease-exit', '--qz-ease-spring', '--qz-ease-linear',
   '--qz-duration-instant', '--qz-duration-fast', '--qz-duration-standard', '--qz-duration-considered', '--qz-duration-spring',
   '--qz-focus-outline',
   '--qz-container', '--qz-header-h',

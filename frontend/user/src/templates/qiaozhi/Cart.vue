@@ -393,6 +393,11 @@ onUnmounted(() => {
   line-height: var(--qz-leading-body);
 }
 
+/* <small> 不能继承 UA 的 `smaller`（12 × 0.8 = 9.6px，跌破 11px 地板），显式钉在 xs */
+.qz-cart-subtotal small {
+  font-size: var(--qz-text-xs);
+}
+
 .qz-cart-subtotal b {
   color: var(--qz-text);
   font-size: var(--qz-text-sm);
