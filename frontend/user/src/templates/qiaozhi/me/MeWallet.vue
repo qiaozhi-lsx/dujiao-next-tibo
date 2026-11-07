@@ -12,21 +12,21 @@
         </div>
       </div>
 
-      <p v-if="walletAlert" class="qz-me-alert" :class="walletAlertClass" role="alert">
+      <p v-if="walletAlert" class="qz-alert" :class="walletAlertClass" role="alert">
         {{ walletAlert.message }}
       </p>
 
-      <div class="qz-me-stats is-triple">
-        <div class="qz-card qz-me-stat">
-          <b><span class="qz-me-stat-text">{{ balanceDisplay }}</span></b>
+      <div class="qz-stat-grid is-triple">
+        <div class="qz-stat">
+          <b>{{ balanceDisplay }}</b>
           <span>{{ t('personalCenter.wallet.balanceLabel') }}</span>
         </div>
-        <div class="qz-card qz-me-stat">
+        <div class="qz-stat">
           <b>{{ pagination.total }}</b>
           <span>{{ t('personalCenter.wallet.transactionsLabel') }}</span>
         </div>
-        <div class="qz-card qz-me-stat">
-          <b><span class="qz-me-stat-text">{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</span></b>
+        <div class="qz-stat">
+          <b>{{ t('orders.pageInfo', { page: pagination.page, total: pagination.total_page }) }}</b>
           <span>{{ t('personalCenter.wallet.currentPageLabel') }}</span>
         </div>
       </div>
@@ -121,7 +121,7 @@
       </div>
 
       <div v-if="loading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
       <p v-else-if="transactions.length === 0" class="qz-field-hint">
         {{ t('personalCenter.wallet.empty') }}
@@ -217,11 +217,12 @@ const rechargeForm = reactive({
   remark: '',
 })
 
+// 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger
 const walletAlertClass = computed(() => {
   const level = walletAlert.value?.level
-  if (level === 'error') return 'is-error'
+  if (level === 'error') return 'is-danger'
   if (level === 'success') return 'is-success'
-  return ''
+  return 'is-warning'
 })
 
 const hasChannels = computed(() => {
@@ -592,199 +593,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 钱包面板：区块 .qz-panel + .qz-section-head、统计卡 .qz-card、表单 .qz-field 三件套、交易行 .qz-card、
-   方向 .qz-badge、翻页 .qz-icon-btn--sm（styles/base.css）；通道下拉来自 QzSelect。 */
-.qz-me-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-/* ---------- 区块面板 ---------- */
-.qz-panel.qz-me-sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-sec > .qz-section-head {
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.qz-section-head small {
-  display: block;
-  margin-top: var(--qz-space-1);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-acts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--qz-space-2);
-}
-
-/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
-.qz-me-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-me-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
-
-.qz-me-alert.is-success {
-  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
-  color: var(--qz-success);
-}
-
-/* ---------- 统计卡（三格） ---------- */
-.qz-me-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--qz-space-3);
-}
-
-.qz-card.qz-me-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-1);
-}
-
-.qz-me-stat b {
-  display: flex;
-  align-items: center;
-  gap: var(--qz-space-2);
-  min-width: 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.qz-me-stat-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.qz-me-stat > span {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-}
-
-/* ---------- 充值表单 ---------- */
-.qz-me-form {
-  display: grid;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--qz-space-4);
-}
-
-.qz-me-form .qz-field-error,
-.qz-me-sec .qz-field-hint {
-  margin: 0;
-}
-
+/* 钱包面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、统计格 .qz-stat-grid.is-triple / .qz-stat、表单 .qz-field 三件套、
+   方向 .qz-badge、翻页 .qz-icon-btn--sm、骨架 .qz-skeleton 来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts /
+   .qz-me-form(-row) / .qz-me-sub / .qz-me-kv(-row) / .qz-me-rows / .qz-me-row-* / .qz-me-pager / .qz-me-sk 来自
+   PersonalCenter.vue 的 me 共享块；通道下拉来自 QzSelect。这里只剩无通道的警示提示与交易金额的方向色。
+   .qz-me-tx-amount.is-* 写成 (0,3,0)，压过共享块的 .qz-me-row-main b (0,2,1)。 */
 .qz-field-hint.is-warn {
   color: var(--qz-warning);
-}
-
-/* 手续费说明：浅底子面板 + 键值行 */
-.qz-me-sub {
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border: 1px solid var(--qz-border);
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-}
-
-.qz-me-kv {
-  display: grid;
-  gap: var(--qz-space-2);
-}
-
-.qz-me-kv-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--qz-space-3);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-kv-row > span {
-  color: var(--qz-text-muted);
-  white-space: nowrap;
-}
-
-.qz-me-kv-row > b {
-  min-width: 0;
-  color: var(--qz-text);
-  font-weight: 600;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-/* ---------- 交易行 ---------- */
-.qz-me-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-2);
-}
-
-.qz-card.qz-me-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2) var(--qz-space-4);
-}
-
-.qz-me-row-main {
-  display: flex;
-  flex: 1 1 220px;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.qz-me-row-main b {
-  color: var(--qz-text);
-  font-size: var(--qz-text-sm);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main small {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
 }
 
 .qz-me-tx-amount.is-in {
@@ -793,63 +608,5 @@ onUnmounted(() => {
 
 .qz-me-tx-amount.is-out {
   color: var(--qz-danger);
-}
-
-.qz-me-row-side {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin-left: auto;
-}
-
-/* ---------- 分页 ---------- */
-.qz-me-pager {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--qz-space-3);
-  padding-top: var(--qz-space-1);
-}
-
-.qz-me-pager span {
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-xs);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- 骨架 ---------- */
-.qz-me-sk {
-  height: 64px;
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-  animation: qz-me-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes qz-me-pulse {
-  50% {
-    opacity: 0.55;
-  }
-}
-
-@media (max-width: 760px) {
-  .qz-panel.qz-me-sec {
-    padding: var(--qz-space-4);
-  }
-
-  .qz-me-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .qz-me-form-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .qz-me-sk {
-    animation: none;
-  }
 }
 </style>

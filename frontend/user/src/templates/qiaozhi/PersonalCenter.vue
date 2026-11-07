@@ -44,7 +44,7 @@
 
       <!-- 面板内容 -->
       <section class="qz-me-content">
-        <p v-if="globalAlert" class="qz-me-alert" role="alert">{{ globalAlert.message }}</p>
+        <p v-if="globalAlert" class="qz-alert is-danger" role="alert">{{ globalAlert.message }}</p>
         <Transition :name="transitionName" mode="out-in">
           <component :is="panelComponent" :key="currentSection" />
         </Transition>
@@ -129,7 +129,8 @@ onUnmounted(() => {
 
 <style scoped>
 /* 个人中心壳：头卡 + 两栏（侧栏 Tabs / 面板）。控件全部来自 styles/base.css
-   （.qz-panel / .qz-badge / .qz-eyebrow），面板内部样式在各 me/*.vue 自己的 <style scoped>。 */
+   （.qz-panel / .qz-badge(.is-accent) / .qz-eyebrow / .qz-alert），八个面板共用的 .qz-me-* 结构词汇在下面的非 scoped
+   <style> 块里只写一份，各 me/*.vue 的 <style scoped> 只剩面板专属样式。 */
 .qz-me {
   display: flex;
   flex-direction: column;
@@ -200,20 +201,6 @@ onUnmounted(() => {
   gap: var(--qz-space-2);
 }
 
-.qz-me-badges .qz-badge svg,
-.qz-me-badges .qz-badge img {
-  flex: none;
-  width: 12px;
-  height: 12px;
-  object-fit: contain;
-}
-
-/* 会员等级用主色底的 badge（基类只带四种状态色） */
-.qz-badge.is-accent {
-  color: var(--qz-accent-strong);
-  background: var(--qz-accent-subtle);
-}
-
 /* ---------- 两栏：侧栏 Tabs（桌面 sticky）+ 面板 ---------- */
 .qz-me-layout {
   display: grid;
@@ -233,19 +220,6 @@ onUnmounted(() => {
   flex-direction: column;
   gap: var(--qz-space-4);
   min-width: 0;
-}
-
-/* 全局加载失败提示（usePersonalCenter 只产生 error 级别） */
-.qz-me-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
 }
 
 /* ---------- 面板切换过渡（方向滑动；子组件根元素带本组件 scope） ---------- */
@@ -319,6 +293,196 @@ onUnmounted(() => {
   .qz-me-back-enter-from,
   .qz-me-back-leave-to {
     transform: none;
+  }
+}
+</style>
+
+<style>
+/* me/* 面板共享词汇（.qz-me-*）：八个面板的模板共用同一套结构类，规则只在这里写一份。
+   不用 scoped（子组件内部元素不带本组件的 scope id），沿用 base.css 的作用域前缀
+   `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))`，单类 (0,2,0)、复合类 (0,3,0)。
+   通用件已是 base.css 基类，这里不再重复：提示条 .qz-alert.is-*、统计格 .qz-stat-grid(.is-triple) / .qz-stat、
+   骨架 .qz-skeleton（qz-pulse）、.qz-badge.is-accent、徽标 / chip 内 12px 图标、.qz-section-head small、
+   .qz-field-hint / .qz-field-error 零外边距。面板专属样式（开关、弹窗、礼品卡结果、升级进度、筛选工具条、
+   .qz-sec-*）留在各自的 <style scoped>；面板要覆盖这里的规则时串上页面类提到 (0,3,0)，不要依赖注入顺序。 */
+
+/* ---------- 面板根：区块纵向堆叠 ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
+}
+
+/* ---------- 区块面板：.qz-panel 内纵向流；区块头相对基类 .qz-section-head 改为居中对齐、外边距交给 gap ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-panel.qz-me-sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-sec > .qz-section-head {
+  align-items: center;
+  margin-bottom: 0;
+}
+
+/* ---------- 区块头右侧动作组；-start / form-acts 修饰符改为左对齐（表单提交行、安全面板操作行） ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-acts {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--qz-space-2);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-acts.qz-me-acts-start,
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-acts.qz-me-form-acts {
+  justify-content: flex-start;
+}
+
+/* ---------- 记录行：.qz-card 横排 = 主体（金额 / 标题 + 小字）+ 右侧动作；骨架按行高 64px 占位 ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-2);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-card.qz-me-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2) var(--qz-space-4);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-row-main {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-row-main b {
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-row-main small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* 推广码 / API Key / Secret */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-row-main code {
+  font-family: var(--qz-font-mono);
+  font-size: var(--qz-text-sm);
+  letter-spacing: 0.04em;
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-row-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2);
+  margin-left: auto;
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton.qz-me-sk {
+  height: 64px;
+}
+
+/* ---------- 表单：单列栅格 + 两列行 ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-form {
+  display: grid;
+  gap: var(--qz-space-4);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+
+/* ---------- 翻页：两枚 .qz-icon-btn--sm 夹页码 ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-space-3);
+  padding-top: var(--qz-space-1);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-pager span {
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 浅底子面板 + 键值行（手续费说明、礼品卡兑换结果） ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-sub {
+  display: grid;
+  gap: var(--qz-space-3);
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-kv {
+  display: grid;
+  gap: var(--qz-space-2);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-kv-row > span {
+  color: var(--qz-text-muted);
+  white-space: nowrap;
+}
+
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-kv-row > b {
+  min-width: 0;
+  color: var(--qz-text);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 引导块（未开通分销 / 无 API 凭证）：提示 + 按钮 ---------- */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-cta {
+  display: grid;
+  gap: var(--qz-space-3);
+  justify-items: start;
+}
+
+@media (max-width: 760px) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-panel.qz-me-sec {
+    padding: var(--qz-space-4);
+  }
+
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-me-row-side {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+    margin-left: 0;
   }
 }
 </style>

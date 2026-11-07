@@ -16,7 +16,7 @@
 
       <p
         v-if="panelAlert"
-        class="qz-me-alert"
+        class="qz-alert"
         :class="alertToneClass(panelAlert.level)"
         :role="panelAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -25,7 +25,7 @@
 
       <!-- Loading -->
       <div v-if="loading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
 
       <!-- 无凭证 -->
@@ -216,11 +216,11 @@ const maskedSecret = computed(() => {
 
 const secretViewedKey = 'api_secret_viewed'
 
-/** 提示条 tone：success → 成功色、warning → 警示色（默认）、error → 错误色 */
+/** 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger */
 const alertToneClass = (level: PageAlert['level']) => {
   if (level === 'success') return 'is-success'
-  if (level === 'error') return 'is-error'
-  return ''
+  if (level === 'error') return 'is-danger'
+  return 'is-warning'
 }
 
 const loadCredential = async () => {
@@ -383,132 +383,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* API 面板：区块 .qz-panel + .qz-section-head、凭证行 .qz-card、状态 .qz-badge、按钮 .qz-btn / QzButton（styles/base.css）。
+/* API 面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、状态 .qz-badge、按钮 .qz-btn / QzButton、骨架 .qz-skeleton
+   来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts / .qz-me-cta / .qz-me-rows / .qz-me-row-*（含 code 等宽）/
+   .qz-me-sk 来自 PersonalCenter.vue 的 me 共享块。这里只剩新 Secret 入场、启用开关与确认弹窗。
    确认弹窗 Teleport 到 body：scoped 规则跟随元素生效，token 由 body.qiaozhi-tokens 提供，弹窗盒子复用 .qz-panel。 */
-.qz-me-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-/* ---------- 区块面板 ---------- */
-.qz-panel.qz-me-sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-sec > .qz-section-head {
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.qz-section-head small {
-  display: block;
-  margin-top: var(--qz-space-1);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-acts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--qz-space-2);
-}
-
-.qz-chip svg,
-.qz-badge svg {
-  flex: none;
-  width: 12px;
-  height: 12px;
-}
-
-.qz-me-sec .qz-field-hint {
-  margin: 0;
-}
-
-.qz-me-cta {
-  display: grid;
-  gap: var(--qz-space-3);
-  justify-items: start;
-}
-
-/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
-.qz-me-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-me-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
-
-.qz-me-alert.is-success {
-  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
-  color: var(--qz-success);
-}
-
-/* ---------- 凭证行 ---------- */
-.qz-me-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-2);
-}
-
-.qz-card.qz-me-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2) var(--qz-space-4);
-}
-
-.qz-me-row-main {
-  display: flex;
-  flex: 1 1 220px;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.qz-me-row-main b {
-  color: var(--qz-text);
-  font-size: var(--qz-text-sm);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main small {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: var(--qz-text-sm);
-  letter-spacing: 0.04em;
-}
-
-.qz-me-row-side {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin-left: auto;
-}
 
 /* 新 Secret 一次性展示的入场 */
 .qz-me-fresh {
@@ -630,34 +508,7 @@ onMounted(() => {
   margin-top: var(--qz-space-5);
 }
 
-/* ---------- 骨架 ---------- */
-.qz-me-sk {
-  height: 64px;
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-  animation: qz-me-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes qz-me-pulse {
-  50% {
-    opacity: 0.55;
-  }
-}
-
-@media (max-width: 760px) {
-  .qz-panel.qz-me-sec {
-    padding: var(--qz-space-4);
-  }
-
-  .qz-me-row-side {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .qz-me-sk,
   .qz-me-fresh,
   .qz-me-modal-mask,
   .qz-panel.qz-me-modal {

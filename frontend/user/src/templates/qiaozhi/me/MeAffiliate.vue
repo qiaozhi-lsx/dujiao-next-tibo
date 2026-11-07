@@ -17,7 +17,7 @@
 
       <p
         v-if="panelAlert"
-        class="qz-me-alert"
+        class="qz-alert"
         :class="alertToneClass(panelAlert.level)"
         :role="panelAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -25,7 +25,7 @@
       </p>
 
       <div v-if="loading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
 
       <div v-else-if="dashboard?.opened" class="qz-me-opened">
@@ -44,21 +44,21 @@
         </div>
         <p class="qz-field-hint qz-me-url">{{ promotionUrl }}</p>
 
-        <div class="qz-me-stats">
-          <div class="qz-card qz-me-stat">
+        <div class="qz-stat-grid">
+          <div class="qz-stat">
             <b>{{ conversionRateText }}</b>
             <span>{{ t('personalCenter.affiliate.conversionRate') }}</span>
             <small>{{ t('personalCenter.affiliate.conversionDetail', { clicks: dashboard?.click_count || 0, orders: dashboard?.valid_order_count || 0 }) }}</small>
           </div>
-          <div class="qz-card qz-me-stat">
+          <div class="qz-stat">
             <b>{{ dashboard?.pending_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.pendingCommission') }}</span>
           </div>
-          <div class="qz-card qz-me-stat">
+          <div class="qz-stat">
             <b>{{ dashboard?.available_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.availableCommission') }}</span>
           </div>
-          <div class="qz-card qz-me-stat">
+          <div class="qz-stat">
             <b>{{ dashboard?.withdrawn_commission || '0.00' }}</b>
             <span>{{ t('personalCenter.affiliate.withdrawnCommission') }}</span>
           </div>
@@ -148,7 +148,7 @@
       </div>
 
       <div v-if="commissionsLoading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
       <p v-else-if="commissions.length === 0" class="qz-field-hint">
         {{ t('personalCenter.affiliate.commissionEmpty') }}
@@ -207,7 +207,7 @@
       </div>
 
       <div v-if="withdrawsLoading" class="qz-me-rows" aria-hidden="true">
-        <div v-for="idx in 3" :key="idx" class="qz-me-sk"></div>
+        <div v-for="idx in 3" :key="idx" class="qz-skeleton qz-me-sk"></div>
       </div>
       <p v-else-if="withdraws.length === 0" class="qz-field-hint">
         {{ t('personalCenter.affiliate.withdrawEmpty') }}
@@ -325,11 +325,11 @@ const conversionRateText = computed(() => {
   return `${value.toFixed(2)}%`
 })
 
-/** 提示条 tone：success → 成功色、warning → 警示色（默认）、error → 错误色 */
+/** 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger */
 const alertToneClass = (level: PageAlert['level']) => {
   if (level === 'success') return 'is-success'
-  if (level === 'error') return 'is-error'
-  return ''
+  if (level === 'error') return 'is-danger'
+  return 'is-warning'
 }
 
 const loadDashboard = async () => {
@@ -509,77 +509,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 分销面板：区块 .qz-panel + .qz-section-head、统计卡 / 记录行 .qz-card、表单 .qz-field 三件套、
-   状态 .qz-badge、翻页 .qz-icon-btn--sm、按钮 .qz-btn / QzButton（styles/base.css）；渠道下拉来自 QzSelect。 */
-.qz-me-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
+/* 分销面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、统计格 .qz-stat-grid / .qz-stat、表单 .qz-field 三件套、
+   状态 .qz-badge、翻页 .qz-icon-btn--sm、按钮 .qz-btn / QzButton、骨架 .qz-skeleton 来自 styles/base.css；
+   .qz-me-panel / .qz-me-sec / .qz-me-acts / .qz-me-cta / .qz-me-rows / .qz-me-row-*（含 code 等宽）/ .qz-me-form(-row) /
+   .qz-me-pager / .qz-me-sk 来自 PersonalCenter.vue 的 me 共享块；渠道下拉来自 QzSelect。这里只剩已开通区块的纵向流与推广链接。 */
 
-/* ---------- 区块面板 ---------- */
-.qz-panel.qz-me-sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-sec > .qz-section-head {
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.qz-section-head small {
-  display: block;
-  margin-top: var(--qz-space-1);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-acts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--qz-space-2);
-}
-
-.qz-chip svg {
-  flex: none;
-  width: 12px;
-  height: 12px;
-}
-
-.qz-me-sec .qz-field-hint {
-  margin: 0;
-}
-
-/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
-.qz-me-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-me-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
-
-.qz-me-alert.is-success {
-  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
-  color: var(--qz-success);
-}
-
-/* ---------- 已开通：推广码 + 链接 + 统计 ---------- */
+/* ---------- 已开通：推广码行 + 链接 + 统计 ---------- */
 .qz-me-opened {
   display: flex;
   flex-direction: column;
@@ -588,173 +523,5 @@ onMounted(() => {
 
 .qz-me-url {
   overflow-wrap: anywhere;
-}
-
-.qz-me-cta {
-  display: grid;
-  gap: var(--qz-space-3);
-  justify-items: start;
-}
-
-/* ---------- 统计卡 ---------- */
-.qz-me-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--qz-space-3);
-}
-
-.qz-card.qz-me-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-1);
-}
-
-.qz-me-stat b {
-  display: flex;
-  align-items: center;
-  gap: var(--qz-space-2);
-  min-width: 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-stat > span {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-stat > small {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-2xs);
-  line-height: var(--qz-leading-body);
-}
-
-/* ---------- 记录行 ---------- */
-.qz-me-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-2);
-}
-
-.qz-card.qz-me-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2) var(--qz-space-4);
-}
-
-.qz-me-row-main {
-  display: flex;
-  flex: 1 1 220px;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.qz-me-row-main b {
-  color: var(--qz-text);
-  font-size: var(--qz-text-sm);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main small {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: var(--qz-text-sm);
-  letter-spacing: 0.04em;
-}
-
-.qz-me-row-side {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin-left: auto;
-}
-
-/* ---------- 提现表单 ---------- */
-.qz-me-form {
-  display: grid;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--qz-space-4);
-}
-
-/* ---------- 分页 ---------- */
-.qz-me-pager {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--qz-space-3);
-  padding-top: var(--qz-space-1);
-}
-
-.qz-me-pager span {
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-xs);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- 骨架 ---------- */
-.qz-me-sk {
-  height: 64px;
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-  animation: qz-me-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes qz-me-pulse {
-  50% {
-    opacity: 0.55;
-  }
-}
-
-@media (max-width: 900px) {
-  .qz-me-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .qz-panel.qz-me-sec {
-    padding: var(--qz-space-4);
-  }
-
-  .qz-me-form-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .qz-me-row-side {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .qz-me-sk {
-    animation: none;
-  }
 }
 </style>

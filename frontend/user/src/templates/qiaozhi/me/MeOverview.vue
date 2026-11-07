@@ -1,21 +1,21 @@
 <template>
   <div class="qz-me-panel">
     <!-- 数据一览 -->
-    <div class="qz-me-stats">
-      <div class="qz-card qz-me-stat">
+    <div class="qz-stat-grid">
+      <div class="qz-stat">
         <b>{{ userProfileStore.loadingOrders ? '—' : userProfileStore.ordersTotal }}</b>
         <span>{{ t('personalCenter.tabs.orders') }}</span>
       </div>
-      <div class="qz-card qz-me-stat">
-        <b><span class="qz-me-stat-text">{{ currentLevelName }}</span></b>
+      <div class="qz-stat">
+        <b>{{ currentLevelName }}</b>
         <span>{{ t('personalCenter.memberLevel.currentLevel') }}</span>
       </div>
-      <div class="qz-card qz-me-stat">
-        <b><span class="qz-me-stat-text">{{ discountText }}</span></b>
+      <div class="qz-stat">
+        <b>{{ discountText }}</b>
         <span>{{ t('personalCenter.memberLevel.discountRate') }}</span>
       </div>
-      <div class="qz-card qz-me-stat">
-        <b><span class="qz-me-stat-text">{{ emailVerifiedLabel }}</span></b>
+      <div class="qz-stat">
+        <b>{{ emailVerifiedLabel }}</b>
         <span>{{ t('personalCenter.overview.accountLabel') }}</span>
       </div>
     </div>
@@ -78,7 +78,7 @@
       </div>
 
       <div v-if="userProfileStore.loadingOrders" class="qz-me-rows" aria-hidden="true">
-        <div v-for="i in 3" :key="i" class="qz-me-sk"></div>
+        <div v-for="i in 3" :key="i" class="qz-skeleton qz-me-sk"></div>
       </div>
       <p v-else-if="userProfileStore.recentOrders.length === 0" class="qz-field-hint">
         {{ t('personalCenter.overview.emptyOrders') }}
@@ -138,86 +138,9 @@ const nextLevelDiscount = computed(() => {
 </script>
 
 <style scoped>
-/* 概览面板：统计卡 .qz-card、区块 .qz-panel + .qz-section-head、订单行 .qz-card、状态 .qz-badge（styles/base.css） */
-.qz-me-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-/* ---------- 统计卡 ---------- */
-.qz-me-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--qz-space-3);
-}
-
-.qz-card.qz-me-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-1);
-}
-
-.qz-me-stat b {
-  display: flex;
-  align-items: center;
-  gap: var(--qz-space-2);
-  min-width: 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-  font-variant-numeric: tabular-nums;
-}
-
-.qz-me-stat-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.qz-me-stat > span {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-}
-
-/* ---------- 区块面板 ---------- */
-.qz-panel.qz-me-sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-sec > .qz-section-head {
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.qz-section-head small {
-  display: block;
-  margin-top: var(--qz-space-1);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-acts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--qz-space-2);
-}
-
-.qz-me-sec .qz-field-hint {
-  margin: 0;
-}
-
+/* 概览面板：统计格 .qz-stat-grid / .qz-stat、区块 .qz-panel + .qz-section-head、状态 .qz-badge(.is-accent)、骨架 .qz-skeleton
+   来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts / .qz-me-rows / .qz-me-row-* / .qz-me-sk 来自
+   PersonalCenter.vue 的 me 共享块。这里只剩会员升级进度。 */
 .qz-field-hint b {
   color: var(--qz-text);
   font-weight: 600;
@@ -273,95 +196,7 @@ const nextLevelDiscount = computed(() => {
   transition: width var(--qz-duration-considered) var(--qz-ease-standard);
 }
 
-/* ---------- 订单行 ---------- */
-.qz-me-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-2);
-}
-
-.qz-card.qz-me-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2) var(--qz-space-4);
-}
-
-.qz-me-row-main {
-  display: flex;
-  flex: 1 1 220px;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.qz-me-row-main b {
-  color: var(--qz-text);
-  font-size: var(--qz-text-sm);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main small {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-side {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin-left: auto;
-}
-
-/* 「处理中」用主色底的 badge，基类只带四种状态色 */
-.qz-badge.is-accent {
-  color: var(--qz-accent-strong);
-  background: var(--qz-accent-subtle);
-}
-
-/* ---------- 骨架 ---------- */
-.qz-me-sk {
-  height: 64px;
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-  animation: qz-me-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes qz-me-pulse {
-  50% {
-    opacity: 0.55;
-  }
-}
-
-@media (max-width: 900px) {
-  .qz-me-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .qz-panel.qz-me-sec {
-    padding: var(--qz-space-4);
-  }
-
-  .qz-me-row-side {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .qz-me-sk {
-    animation: none;
-  }
-
   .qz-me-progress-fill {
     transition: none;
   }

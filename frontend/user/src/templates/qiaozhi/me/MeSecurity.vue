@@ -13,7 +13,7 @@
       </div>
       <p
         v-if="securityAlert"
-        class="qz-me-alert"
+        class="qz-alert"
         :class="alertClass(securityAlert.level)"
         :role="securityAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -382,7 +382,7 @@
 
       <p
         v-if="twofaAlert"
-        class="qz-me-alert"
+        class="qz-alert"
         :class="alertClass(twofaAlert.level)"
         :role="twofaAlert.level === 'error' ? 'alert' : 'status'"
       >
@@ -600,11 +600,11 @@ const telegramWidgetRef = ref<HTMLDivElement | null>(null)
 let cooldownTimer: number | null = null
 const telegramCallbackName = '__dujiaoSecurityTelegramBind'
 
-/** 警示条 tone：success → 成功色、warning → 警示色（默认）、error → 错误色 */
+/** 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger */
 const alertClass = (level: PageAlertLevel) => {
-  if (level === 'error') return 'is-error'
+  if (level === 'error') return 'is-danger'
   if (level === 'success') return 'is-success'
-  return ''
+  return 'is-warning'
 }
 
 /* ==================== 平台配置 / 绑定状态 ==================== */
@@ -1332,81 +1332,16 @@ watch([showTelegramWidget, telegramBotUsername], () => {
 </script>
 
 <style scoped>
-/* 安全面板：区块 .qz-panel + .qz-section-head、表单 .qz-field 三件套、登录记录行 .qz-card、状态 .qz-badge、
-   按钮 .qz-btn / QzButton（styles/base.css）；关闭 2FA 的方式切换来自 QzSegment。
+/* 安全面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、表单 .qz-field 三件套、状态 .qz-badge、按钮 .qz-btn / QzButton
+   来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts(.qz-me-acts-start) / .qz-me-form(-row) / .qz-me-rows / .qz-me-row-*
+   来自 PersonalCenter.vue 的 me 共享块；关闭 2FA 的方式切换来自 QzSegment。这里只剩已绑定身份块、验证码同排、2FA 子面板与恢复码弹窗。
    恢复码弹窗 Teleport 到 body：scoped 规则跟随元素生效，token 由 body.qiaozhi-tokens 提供，弹窗盒子复用 .qz-panel。 */
-.qz-me-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-/* ---------- 区块面板 ---------- */
-.qz-panel.qz-me-sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-sec > .qz-section-head {
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.qz-section-head small {
-  display: block;
-  margin-top: var(--qz-space-1);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-acts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--qz-space-2);
-}
-
-.qz-me-acts-start {
-  justify-content: flex-start;
-}
 
 /* 纵向内容流（绑定信息 / 提示 / 操作） */
 .qz-me-stack {
   display: flex;
   flex-direction: column;
   gap: var(--qz-space-3);
-}
-
-.qz-me-sec .qz-field-hint,
-.qz-sec-modal .qz-field-hint {
-  margin: 0;
-}
-
-/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
-.qz-me-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-me-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
-
-.qz-me-alert.is-success {
-  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
-  color: var(--qz-success);
 }
 
 /* ---------- 已绑定身份：头像 + 文本 ---------- */
@@ -1466,18 +1401,6 @@ watch([showTelegramWidget, telegramBotUsername], () => {
   min-height: var(--qz-control-md);
 }
 
-/* ---------- 表单 ---------- */
-.qz-me-form {
-  display: grid;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--qz-space-4);
-}
-
 /* 输入框 + 发送验证码按钮同排（按钮与输入同为 md 高） */
 .qz-sec-inline {
   display: flex;
@@ -1501,52 +1424,6 @@ watch([showTelegramWidget, telegramBotUsername], () => {
   text-align: center;
 }
 
-/* ---------- 登录记录行 ---------- */
-.qz-me-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-2);
-}
-
-.qz-card.qz-me-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2) var(--qz-space-4);
-}
-
-.qz-me-row-main {
-  display: flex;
-  flex: 1 1 220px;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.qz-me-row-main b {
-  color: var(--qz-text);
-  font-size: var(--qz-text-sm);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-main small {
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.qz-me-row-side {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin-left: auto;
-}
-
 /* ---------- 2FA：浅底子面板（状态信息 / 关闭 / 重新生成 / 绑定流程） ---------- */
 .qz-sec-sub {
   display: grid;
@@ -1557,7 +1434,7 @@ watch([showTelegramWidget, telegramBotUsername], () => {
   background: var(--qz-surface-muted);
 }
 
-/* 二维码 + 密钥 */
+/* 二维码 + 密钥；二维码外框固定白底（--qz-qr-frame），暗色下保住静区 */
 .qz-sec-qr {
   display: flex;
   justify-content: center;
@@ -1569,7 +1446,7 @@ watch([showTelegramWidget, telegramBotUsername], () => {
   padding: var(--qz-space-2);
   border: 1px solid var(--qz-border-strong);
   border-radius: var(--qz-radius-control);
-  background: var(--qz-surface);
+  background: var(--qz-qr-frame);
 }
 
 .qz-sec-secret {
@@ -1579,7 +1456,7 @@ watch([showTelegramWidget, telegramBotUsername], () => {
   border-radius: var(--qz-radius-control);
   background: var(--qz-surface);
   color: var(--qz-text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-sm);
   letter-spacing: 0.06em;
   text-align: center;
@@ -1633,7 +1510,7 @@ watch([showTelegramWidget, telegramBotUsername], () => {
   border-radius: var(--qz-radius-control);
   background: var(--qz-surface-muted);
   color: var(--qz-text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-xs);
   text-align: center;
   overflow-wrap: anywhere;
@@ -1647,21 +1524,5 @@ watch([showTelegramWidget, telegramBotUsername], () => {
 
 .qz-sec-modal-acts > * {
   flex: 1 1 0;
-}
-
-@media (max-width: 760px) {
-  .qz-panel.qz-me-sec {
-    padding: var(--qz-space-4);
-  }
-
-  .qz-me-form-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .qz-me-row-side {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-  }
 }
 </style>
