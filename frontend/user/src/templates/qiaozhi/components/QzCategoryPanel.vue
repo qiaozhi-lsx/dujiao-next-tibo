@@ -154,6 +154,7 @@ const pick = (id: number | null) => {
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-cat-list {
   display: grid;
   gap: var(--qz-space-1);
+  align-content: start;
 }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-pill.qz-cat-item {
   display: grid;
