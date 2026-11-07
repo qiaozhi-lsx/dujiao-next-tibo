@@ -1740,7 +1740,15 @@
       "support": "線上客服",
       "notice": "公告",
       "about": "關於",
-      "account": "個人中心"
+      "account": "個人中心",
+      "primaryAria": "主導航",
+      "footerAria": "頁尾導航",
+      "bottomAria": "底部導航",
+      "backTop": "回到頂部"
+    },
+    "qty": {
+      "decrease": "減少數量",
+      "increase": "增加數量"
     },
     "hero": {
       "eyebrow": "DIGITAL SERVICES",
@@ -1750,6 +1758,10 @@
       "searchPlaceholder": "搜尋商品名稱或關鍵詞...",
       "share": "分享",
       "shared": "已複製"
+    },
+    "home": {
+      "featuredEyebrow": "FEATURED",
+      "storeEyebrow": "STORE"
     },
     "search": {
       "label": "搜尋商品",
@@ -1764,11 +1776,15 @@
       "title": "為你精選",
       "unit": "個商品",
       "months": "個月",
-      "days": "天"
+      "days": "天",
+      "membershipEyebrow": "MEMBERSHIP"
     },
     "catalog": {
       "title": "商品分類",
       "unit": "件"
+    },
+    "categories": {
+      "eyebrow": "CATEGORIES"
     },
     "products": {
       "hero": {
@@ -1794,7 +1810,8 @@
       "hint": "訂單問題請帶上訂單號聯繫，處理更高效。"
     },
     "footer": {
-      "rights": "保留所有權利"
+      "rights": "保留所有權利",
+      "mobileLinksAria": "頁尾連結"
     },
     "login": {
       "eyebrow": "SIGN IN",
@@ -1808,10 +1825,29 @@
       "hasAccountPrefix": "已有帳號？",
       "goLogin": "直接登入"
     },
+    "forgot": {
+      "eyebrow": "ACCOUNT RECOVERY"
+    },
+    "notice": {
+      "eyebrow": "NOTICE"
+    },
+    "blog": {
+      "eyebrow": "BLOG"
+    },
+    "about": {
+      "eyebrow": "ABOUT"
+    },
+    "legal": {
+      "eyebrow": "LEGAL"
+    },
     "cart": {
       "eyebrow": "CART",
       "back": "返回首頁",
       "emptyHint": "挑一件心儀的，放進購物車再來結算吧。"
+    },
+    "guestOrders": {
+      "eyebrow": "ORDERS",
+      "emptyBeforeQuery": "輸入郵箱與訂單密碼後查看訂單"
     },
     "checkout": {
       "eyebrow": "CHECKOUT",
@@ -1845,11 +1881,13 @@
       "errPassword": "訂單查詢密碼至少 6 位",
       "errChannel": "請選擇付款方式",
       "errSubmit": "下單失敗，請稍後重試",
+      "renewNeedsCaptcha": "支付已過期，請重新完成驗證碼後再次提交",
       "descExpand": "展開",
       "descCollapse": "收起"
     },
     "payment": {
       "eyebrow": "PAYMENT",
+      "pageEyebrow": "PAYMENT",
       "summaryTitle": "訂單摘要",
       "scanEyebrow": "SCAN TO PAY",
       "modal": {
@@ -1898,7 +1936,8 @@
         "amountLabel": "合計",
         "timeLabel": "時間",
         "notQrCapable": "暫未獲取到付款資訊，請稍後重試或聯絡客服",
-        "closeAria": "關閉付款彈窗"
+        "closeAria": "關閉付款彈窗",
+        "qrAlt": "支付二維碼"
       }
     },
     "orderDetail": {
@@ -1919,6 +1958,7 @@
       "helpOrderNo": "並提供訂單號"
     },
     "tfa": {
+      "eyebrow": "TWO-FACTOR AUTHENTICATOR",
       "title": "動態驗證碼",
       "desc": "貼上商品資料裡的 2FA 密鑰或 otpauth 連結，立即顯示動態驗證碼（完全本地計算，不會上傳）。",
       "placeholder": "例如：JBSWY3DPEHPK3PXP",

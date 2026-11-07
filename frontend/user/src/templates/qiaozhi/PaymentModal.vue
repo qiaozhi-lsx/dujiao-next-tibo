@@ -17,22 +17,25 @@
       >
         <!-- 金额卡 -->
         <div class="pay-modal__amount-card">
-          <button
-            type="button"
-            class="pay-modal__amount-copy"
-            :aria-label="t('qiaozhi.payment.modal.copyAmount')"
-            @click="handleCopyAmount"
-          >
-            <CheckCircle2 v-if="amountCopied" />
-            <Copy v-else />
-          </button>
           <div class="pay-modal__amount-top">
             <small class="pay-modal__amount-label">
               {{ t('qiaozhi.payment.modal.amountPaid') }}
-              <em class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
+              <em v-if="feeText" class="pay-modal__fee-note">({{ t('qiaozhi.payment.modal.feeIncluded') }})</em>
             </small>
             <div class="pay-modal__amount-value">
-              <b>{{ amountBigText }}</b>
+              <!-- 复制金额按钮紧跟金额本身，不再悬浮在卡片右上角，弹窗顶部也不必为它额外留白。 -->
+              <div class="pay-modal__amount-main">
+                <b>{{ amountBigText }}</b>
+                <button
+                  type="button"
+                  class="pay-modal__amount-copy"
+                  :aria-label="t('qiaozhi.payment.modal.copyAmount')"
+                  @click="handleCopyAmount"
+                >
+                  <CheckCircle2 v-if="amountCopied" />
+                  <Copy v-else />
+                </button>
+              </div>
               <span v-if="paymentChipLabel" class="pay-modal__chain-chip">
                 <img v-if="chainLogo" class="pay-modal__chain-logo" :src="chainLogo" alt="" aria-hidden="true" />
                 <i v-else class="pay-modal__chain-dot" :class="chainDotClass" aria-hidden="true"></i>
@@ -66,13 +69,13 @@
             <b>{{ payCardTitle }}</b>
           </div>
 
-          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`">
+          <div v-if="showCountdown" class="pay-modal__cd-num" :class="`is-${cdTone}`" role="timer">
             {{ countdownText }}
           </div>
 
           <div v-if="qrSupported && !orderPastExpire" class="pay-modal__qr-wrap">
             <div class="pay-modal__qr">
-              <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR" />
+              <img v-if="qrImageUrl" :src="qrImageUrl" :alt="t('qiaozhi.payment.modal.qrAlt')" />
               <div v-else class="pay-modal__qr-placeholder">
                 <Loader2 class="pay-modal__spin" />
               </div>
@@ -104,7 +107,7 @@
           <div v-if="orderPastExpire" class="pay-modal__expired">
             <CircleX class="pay-modal__expired-icon" aria-hidden="true" />
             <b class="pay-modal__expired-title">{{ t('qiaozhi.payment.modal.payExpired') }}</b>
-            <button type="button" class="pay-modal__expired-btn" @click="handleRenew">
+            <button type="button" class="pay-modal__expired-btn" :disabled="renewing" @click="handleRenew">
               {{ t('qiaozhi.payment.modal.renewPayment') }}
             </button>
           </div>
@@ -112,7 +115,7 @@
 
         <!-- 加密货币操作：切换网络或币种 / 已转账但未到账 -->
         <div
-          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire"
+          v-if="hasCryptoPayment && stage === 'waiting' && !orderPastExpire && (switchableChannels.length || txHashSupported)"
           class="pay-modal__crypto-actions"
         >
           <div class="pay-modal__action-row">
@@ -127,7 +130,12 @@
               {{ t('qiaozhi.payment.modal.switchNetwork') }}
             </button>
 
-            <button type="button" class="pay-modal__action-btn is-solid" @click="toggleTxPanel">
+            <button
+              v-if="txHashSupported"
+              type="button"
+              class="pay-modal__action-btn is-solid"
+              @click="toggleTxPanel"
+            >
               <CheckCircle2 />
               {{ t('qiaozhi.payment.modal.txHashBtn') }}
             </button>
@@ -144,18 +152,19 @@
                 :disabled="switchBusy || ch.id === order?.channelId"
                 @click="handleSwitchChannel(ch.id)"
               >
-                {{ ch.name }}
+                {{ channelDisplayName(ch.name) }}
               </button>
             </div>
             <p v-if="switchBusy" class="pay-modal__panel-msg">{{ t('qiaozhi.payment.modal.switching') }}</p>
             <p v-else-if="switchError" class="pay-modal__panel-msg is-err">{{ switchError }}</p>
           </div>
 
-          <div v-if="txPanelOpen" class="pay-modal__panel">
+          <div v-if="txPanelOpen && txHashSupported" class="pay-modal__panel">
             <input
               v-model="txHashInput"
               class="pay-modal__input"
               type="text"
+              maxlength="128"
               autocomplete="off"
               spellcheck="false"
               :placeholder="t('qiaozhi.payment.modal.txHashPlaceholder')"
@@ -182,7 +191,7 @@
           <span :class="{ on: stepIdx >= 2 }">{{ t('qiaozhi.payment.modal.stepPaid') }}</span>
         </div>
 
-        <div class="pay-modal__stage">
+        <div class="pay-modal__stage" aria-live="polite">
           <div class="pay-modal__go" :class="goClass">
             <span v-if="stage === 'waiting'">
               <Loader2 v-if="!orderPastExpire" class="pay-modal__spin" aria-hidden="true" />
@@ -247,8 +256,17 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } from 'lucide-vue-next'
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
-import { chainLabel } from '../../utils/cryptoChain'
+import { useAppStore } from '../../stores/app'
+import { chainLabel, channelDisplayName } from '../../utils/cryptoChain'
 import { countdownTone } from '../../utils/countdownTone'
+import {
+  bareAmountText,
+  isPaidOrderStatus,
+  isTerminalOrderStatus,
+  parsePaidAtMs,
+  resolvePayableCurrency,
+  shouldShowFee,
+} from './utils/paymentDisplay'
 import bscLogo from '../../assets/chains/bsc.png'
 import tronLogo from '../../assets/chains/tron.png'
 import solanaLogo from '../../assets/chains/solana.png'
@@ -277,7 +295,9 @@ export interface PaymentModalOrder {
   maskedEmail?: string
   interactionMode?: 'qr' | 'redirect' | string
   feeAmount?: string
+  feePolicy?: string
   payableAmount?: string
+  payableCurrency?: string
   walletAddress?: string
   chainAmount?: string
   chain?: string
@@ -308,6 +328,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const appStore = useAppStore()
 
 type Stage = 'waiting' | 'running' | 'success'
 const stage = ref<Stage>('waiting')
@@ -318,10 +339,18 @@ const walletCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const switchPanelOpen = ref(false)
 const txPanelOpen = ref(false)
 const txHashInput = ref('')
-const now = ref(Date.now())
+// 倒计时用校正后的服务器时钟，避免客户端改时导致提前 / 延后过期。
+const now = ref(appStore.getServerTime())
 const nowTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const paidEmitTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const animationFrame = ref<number | null>(null)
+// 服务端已返回终态（取消 / 过期 / 退款）：不等倒计时走完，直接进入过期态。
+const forcedExpired = ref(false)
+// 支付成功时刻（服务端 paid_at），收据上的时间冻结在这一刻而不是随 now 继续走。
+const paidAt = ref<number | null>(null)
+// 「重新发起支付」在途标志：补查 + emit 期间禁用按钮，防连点并发两次补查而重复建单。
+const renewing = ref(false)
 const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia
   ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
   : false
@@ -364,9 +393,11 @@ const expireMs = computed(() => {
   return Number.isNaN(ts) ? null : ts
 })
 
+// 过期态：倒计时走完，或服务端已返回终态（forcedExpired）；已进入支付成功流程后不再显示。
 const orderPastExpire = computed(() => {
-  if (expireMs.value === null) return false
-  return expireMs.value <= now.value && stage.value === 'waiting'
+  if (stage.value !== 'waiting') return false
+  if (forcedExpired.value) return true
+  return expireMs.value !== null && expireMs.value <= now.value
 })
 
 const showCountdown = computed(() => expireMs.value !== null && stage.value === 'waiting' && !orderPastExpire.value)
@@ -401,6 +432,10 @@ const cryptoTokenLabel = computed(() => {
 
 const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 
+// 「已转账但未到账 → 提交交易哈希」只有 epusdt 网关实现了（GatewayTxHashSubmitter）；
+// 其他加密渠道（bepusdt / dujiaopay）同样有收款地址，但后端会直接回"不支持"，不给入口。
+const txHashSupported = computed(() => props.order?.providerType === 'epusdt')
+
 const cryptoChainLabel = computed(() => (props.order?.chain ? chainLabel(props.order.chain) : ''))
 
 // 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
@@ -408,7 +443,7 @@ const paymentChipLabel = computed(() => {
   if (cryptoChainLabel.value) return cryptoChainLabel.value
   const name = (props.order?.channelName || '').trim()
   if (!name) return ''
-  return /支付宝|alipay/i.test(name) ? 'Alipay' : name
+  return /支付宝|alipay/i.test(name) ? 'Alipay' : channelDisplayName(name)
 })
 
 // 有素材的链用真 logo（网关同款），其余链回退色点。
@@ -434,18 +469,17 @@ const chainDotClass = computed(() => {
 const amountBigText = computed(() => {
   const o = props.order
   if (!o) return '-'
-  if (o.chainAmount) return `${o.chainAmount} ${cryptoTokenLabel.value || 'USDT'}`
+  // 链上数量后跟 tokenId 解析出的币种；网关没给 tokenId 时只显示数量，不臆测币种。
+  if (o.chainAmount) return cryptoTokenLabel.value ? `${o.chainAmount} ${cryptoTokenLabel.value}` : o.chainAmount
   // 实付金额 = 含手续费金额；后端未下发时回退订单金额。
   const payable = (o.payableAmount || '').trim()
-  return payable ? formatCurrency(payable, o.currency) : formatCurrency(o.amount, o.currency)
+  return payable ? formatCurrency(payable, resolvePayableCurrency(o)) : formatCurrency(o.amount, o.currency)
 })
 
 const feeText = computed(() => {
   const o = props.order
-  if (!o) return ''
-  const raw = (o.feeAmount || '').trim()
-  if (!raw || raw === '0' || raw === '0.00') return ''
-  return formatCurrency(raw, o.currency)
+  if (!o || !shouldShowFee(o)) return ''
+  return formatCurrency((o.feeAmount || '').trim(), o.currency)
 })
 
 // 加密货币单：链上数量与法币实付的换算关系。网关按 amount(法币) + 实时汇率报出链上数量，
@@ -455,7 +489,7 @@ const equivalentText = computed(() => {
   if (!o || !o.chainAmount) return ''
   const payable = (o.payableAmount || '').trim()
   if (!payable) return ''
-  return formatCurrency(payable, o.currency)
+  return formatCurrency(payable, resolvePayableCurrency(o))
 })
 
 const payCardTitle = computed(() => (
@@ -488,7 +522,7 @@ const formatDateText = (raw?: number | string | null) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const receiptTimeText = computed(() => formatDateText(now.value))
+const receiptTimeText = computed(() => formatDateText(paidAt.value ?? now.value))
 
 const shortSn = computed(() => {
   const sn = props.order?.sn || ''
@@ -554,9 +588,9 @@ const stopNowTimer = () => {
 
 const startNowTimer = () => {
   stopNowTimer()
-  now.value = Date.now()
+  now.value = appStore.getServerTime()
   nowTimer.value = setInterval(() => {
-    now.value = Date.now()
+    now.value = appStore.getServerTime()
   }, 1000)
 }
 
@@ -574,7 +608,16 @@ const cancelAnimation = () => {
   }
 }
 
-const runSuccessAnimation = () => {
+const clearPaidEmitTimer = () => {
+  if (paidEmitTimer.value !== null) {
+    clearTimeout(paidEmitTimer.value)
+    paidEmitTimer.value = null
+  }
+}
+
+// order 由触发方在确认已付的那一刻捕获传入：动画结束时才读 props.order 的话，
+// 动画期间若订单被换掉（重新发起支付的窄窗口），会对新的未付单 emit paid。
+const runSuccessAnimation = (order: PaymentModalOrder | null) => {
   cancelAnimation()
   const duration = prefersReducedMotion ? 300 : 2600
   const delay = prefersReducedMotion ? 0 : 350
@@ -590,27 +633,32 @@ const runSuccessAnimation = () => {
     }
     animationFrame.value = null
     stage.value = 'success'
-    const order = props.order
     const emitPaidDelay = prefersReducedMotion ? 400 : 1500
-    setTimeout(() => {
+    // 句柄保存下来：动画期间用户关闭弹窗 / 组件卸载时要取消，否则关掉后仍会触发 paid 跳转。
+    paidEmitTimer.value = setTimeout(() => {
+      paidEmitTimer.value = null
       if (order) emit('paid', order)
     }, emitPaidDelay)
   }
   animationFrame.value = requestAnimationFrame(tick)
 }
 
-const triggerSuccessFromPolling = () => {
+const triggerSuccessFromPolling = (paidAtRaw?: string | number | null) => {
+  // 此刻的 props.order 就是轮询确认已付的那一单（pollOnce 已校验 sn 未变），先捕获再起动画。
+  const order = props.order
   stopPolling()
   if (stage.value !== 'waiting') return
+  // 收据时间冻结在服务端支付时刻；解析不了就取当前服务器时间。倒计时钟随之停掉。
+  paidAt.value = parsePaidAtMs(paidAtRaw, appStore.getServerTime())
+  stopNowTimer()
   stage.value = 'running'
-  runSuccessAnimation()
+  runSuccessAnimation(order)
 }
-
-const PAID_STATUSES = new Set(['paid', 'fulfilling', 'partially_delivered', 'delivered', 'completed'])
 
 const pollOnce = async () => {
   const o = props.order
   if (!o || !o.sn) return
+  const sn = o.sn
   try {
     let resp
     if (o.guestCredentials && o.guestCredentials.email) {
@@ -621,29 +669,47 @@ const pollOnce = async () => {
     } else {
       resp = await userOrderAPI.detail(o.sn, { silentBusinessError: true })
     }
+    // 等待响应期间可能已关窗或已换单（重新发起支付）：迟到的响应不能再起动画 / 作用到新单上。
+    if (!props.open || props.order?.sn !== sn) return
     const data = resp?.data?.data
     const status = String(data?.status || '')
-    if (PAID_STATUSES.has(status)) {
-      triggerSuccessFromPolling()
+    if (isPaidOrderStatus(status)) {
+      triggerSuccessFromPolling(data?.paid_at)
+    } else if (isTerminalOrderStatus(status)) {
+      // 后台取消 / 过期 / 退款等终态：不必等倒计时走完，停轮询并切到过期态。
+      stopPolling()
+      forcedExpired.value = true
     }
   } catch {
-    // 轮询失败静默忽略；下一次 2s 继续
+    // 轮询失败静默忽略；下一次 5s 继续
   }
 }
 
 const startPolling = () => {
   stopPolling()
+  // 5s 一次，与 classic usePayment 一致；游客订单详情按 IP 限流 120 次/分钟，
+  // 2s 轮询在多标签页或同一出口 IP 下容易触顶被封 60s。
   pollTimer.value = setInterval(() => {
     void pollOnce()
-  }, 2000)
+  }, 5000)
 }
 
-// 过期瞬间可能刚完成付款、2s 轮询尚未翻转：重发起前先补查一次状态，
+// 过期态下轮询已停，而过期瞬间可能刚完成付款：重发起前先补查一次状态，
 // 已支付则直接进入成功流程，避免旧单已付、又新建一单的重复付款窗口。
 const handleRenew = async () => {
-  await pollOnce()
-  if (stage.value !== 'waiting') return
-  emit('renew-payment')
+  if (renewing.value) return
+  const sn = props.order?.sn
+  renewing.value = true
+  try {
+    await pollOnce()
+    // 补查期间关了窗或已换单（上一次重发起已建出新单），补查结果已被 pollOnce 丢弃，
+    // 不能据"stage 仍是 waiting"判定未付再建一单。
+    if (!props.open || stage.value !== 'waiting') return
+    if (props.order?.sn !== sn) return
+    emit('renew-payment')
+  } finally {
+    renewing.value = false
+  }
 }
 
 const trapFocus = (e: KeyboardEvent) => {
@@ -684,7 +750,9 @@ const amountCopied = ref(false)
 const amountCopiedTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const handleCopyAmount = async () => {
-  const text = amountBigText.value.trim()
+  const o = props.order
+  if (!o) return
+  const text = bareAmountText(o)
   if (!text) return
   try {
     await navigator.clipboard.writeText(text)
@@ -745,6 +813,9 @@ const resetState = () => {
   switchPanelOpen.value = false
   txPanelOpen.value = false
   txHashInput.value = ''
+  forcedExpired.value = false
+  paidAt.value = null
+  renewing.value = false
 }
 
 watch(() => props.open, async (opened) => {
@@ -752,15 +823,20 @@ watch(() => props.open, async (opened) => {
     resetState()
     startNowTimer()
     await renderQRCode()
-    if (props.order?.sn) startPolling()
+    // 二维码渲染是异步的：期间若弹窗已被关闭（else 分支已清理），不能再起轮询 / 锁滚动。
+    if (!props.open) return
+    // 打开时已过期的单不起轮询：orderPastExpire 的 watch 只在 false→true 时停轮询，这里等不到翻转。
+    if (props.order?.sn && !orderPastExpire.value) startPolling()
     previouslyFocused.value = (document.activeElement as HTMLElement) || null
     await nextTick()
+    if (!props.open) return
     modalRef.value?.focus()
     document.body.style.overflow = 'hidden'
   } else {
     stopNowTimer()
     stopPolling()
     cancelAnimation()
+    clearPaidEmitTimer()
     if (walletCopiedTimer.value !== null) {
       clearTimeout(walletCopiedTimer.value)
       walletCopiedTimer.value = null
@@ -774,12 +850,23 @@ watch(() => props.open, async (opened) => {
   }
 }, { immediate: true })
 
-watch(() => props.order, async () => {
+watch(() => props.order, async (next, prev) => {
   if (!props.open) return
   switchPanelOpen.value = false
   txPanelOpen.value = false
   txHashInput.value = ''
+  // 重新发起支付时弹窗不关、直接换成新订单：上一单的终态标记要清掉，
+  // 过期时已停掉的轮询也要为新单重新拉起（切换网络同单不换号，不走这里）。
+  if (next?.sn && next.sn !== prev?.sn) {
+    forcedExpired.value = false
+    if (stage.value === 'waiting' && !orderPastExpire.value) startPolling()
+  }
   await renderQRCode()
+})
+
+// 进入过期态（倒计时走完或服务端终态）后停止轮询；重发起前由 handleRenew 补查一次。
+watch(orderPastExpire, (expired) => {
+  if (expired) stopPolling()
 })
 
 watch(() => props.txFeedback, (feedback) => {
@@ -790,6 +877,7 @@ onBeforeUnmount(() => {
   stopNowTimer()
   stopPolling()
   cancelAnimation()
+  clearPaidEmitTimer()
   if (walletCopiedTimer.value !== null) clearTimeout(walletCopiedTimer.value)
   if (amountCopiedTimer.value !== null) clearTimeout(amountCopiedTimer.value)
   document.body.style.overflow = ''
@@ -797,46 +885,43 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* 弹窗 Teleport 到 body：颜色 / 字号 / 圆角 / 阴影 / 时长全部读 body.qiaozhi-tokens 上的 --qz-* token
+   （暗色随 .dark 自动翻转），不再维护一套 --ux-* 局部变量。 */
 .pay-modal-mask {
   position: fixed; inset: 0;
-  background: rgba(10, 10, 10, 0.5);
+  background: color-mix(in oklab, var(--qz-text) 50%, transparent);
   backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
   z-index: 1200;
-  animation: pay-modal-fade .25s ease;
+  animation: pay-modal-fade var(--qz-duration-standard) var(--qz-ease-standard);
 }
+/* 暗色里 --qz-text 是近白，遮罩改用页面底色压暗（与分类抽屉遮罩同一做法） */
+.dark .pay-modal-mask { background: color-mix(in oklab, var(--qz-bg) 72%, transparent); }
 
 @keyframes pay-modal-fade { from { opacity: 0; } }
 
 .pay-modal {
-  --ux-accent: var(--accent, #0a0a0a);
-  --ux-mint: #167d3b;
-  --ux-ink-2: #57535f;
-  --ux-ink-3: #8e8a97;
-  --ux-surface: var(--surface, #fff);
-  --ux-surface-2: #f5f5f5;
-  --ux-surface-3: #ebebeb;
-  --ux-line: rgba(10, 10, 10, 0.08);
-  --ux-line-2: rgba(10, 10, 10, 0.16);
-  --ux-warn: #b06a00;
-  --ux-ease: cubic-bezier(.2, .8, .2, 1);
-  --ux-spring: cubic-bezier(.34, 1.45, .64, 1);
-
   position: relative;
   width: min(380px, calc(100vw - 32px));
-  max-height: min(90vh, 800px);
+  /* 目标是整个弹窗在视口内一屏放下、不出现内部滚动：等待支付态内容约 690px（英文约 720px），
+     展开操作面板后最高约 840px，上下各留 16px。高度由内容决定、不再额外写死上限，
+     只有极矮视口（横屏手机等）才回落到内部滚动兜底。 */
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(10, 10, 10, .18) transparent;
-  background: var(--ux-surface);
-  border-radius: 20px;
-  box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
+  scrollbar-color: var(--qz-border-strong) transparent;
+  background: var(--qz-surface);
+  border-radius: var(--qz-radius-panel);
+  box-shadow: var(--qz-shadow-floating), 0 0 0 1px var(--qz-border);
   display: flex; flex-direction: column;
   padding: 20px;
-  color: var(--text, #0a0a0a);
-  font: 14px/1.5 -apple-system, "Segoe UI", "PingFang SC", sans-serif;
-  animation: pay-modal-rise .3s var(--ux-spring);
+  color: var(--qz-text);
+  font-family: -apple-system, "Segoe UI", "PingFang SC", sans-serif;
+  font-size: var(--qz-text-sm);
+  line-height: 1.5;
+  animation: pay-modal-rise var(--qz-duration-considered) var(--qz-ease-enter);
   outline: none;
 }
 
@@ -844,46 +929,51 @@ onBeforeUnmount(() => {
 
 .pay-modal::-webkit-scrollbar { width: 6px; height: 6px; }
 .pay-modal::-webkit-scrollbar-track { background: transparent; }
-.pay-modal::-webkit-scrollbar-thumb { background: rgba(10, 10, 10, .14); border-radius: 999px; }
-.pay-modal::-webkit-scrollbar-thumb:hover { background: rgba(10, 10, 10, .28); }
+.pay-modal::-webkit-scrollbar-thumb { background: var(--qz-border-strong); border-radius: var(--qz-radius-pill); }
+.pay-modal::-webkit-scrollbar-thumb:hover { background: var(--qz-text-muted); }
 
 /* ---- 金额卡 ---- */
 .pay-modal__amount-card {
   position: relative;
-  padding: 18px 18px 16px;
-  border-radius: 18px;
-  background: var(--ux-surface);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
+  padding: 16px 16px 14px;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-raised);
   margin-bottom: 12px;
-  transition: opacity .4s, transform .5s var(--ux-ease);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
+.pay-modal__amount-main {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 0; max-width: 100%;
+}
+.pay-modal__amount-main b { min-width: 0; }
 .pay-modal__amount-copy {
-  position: absolute; top: 16px; right: 16px;
-  width: 32px; height: 32px;
-  border: 0; border-radius: 8px;
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   display: grid; place-items: center;
   cursor: pointer;
-  transition: background-color .15s, color .15s;
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
 }
-.pay-modal__amount-copy:hover { background: #ededed; color: #000; }
+.pay-modal__amount-copy:hover { background: var(--qz-accent-subtle); color: var(--qz-text); }
 .pay-modal__amount-copy svg { width: 14px; height: 14px; }
 .pay-modal__amount-label {
   display: block;
-  font-size: 13.5px; color: var(--ux-ink-3); font-weight: 500;
-  margin-bottom: 7px;
+  font-size: var(--qz-text-sm); color: var(--qz-text-muted); font-weight: 500;
+  margin-bottom: 5px;
 }
 .pay-modal__fee-note {
   font-style: normal;
-  font-size: 12px; font-weight: 400;
-  color: var(--ux-ink-3);
+  font-size: var(--qz-text-xs); font-weight: 400;
+  color: var(--qz-text-muted);
 }
 .pay-modal__amount-value {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
-  margin-bottom: 12px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  margin-bottom: 10px;
 }
 .pay-modal__amount-value b {
-  font-size: 36px; font-weight: 700; letter-spacing: -.02em;
+  font-size: var(--qz-text-3xl); font-weight: 700; letter-spacing: -.02em;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
@@ -891,76 +981,81 @@ onBeforeUnmount(() => {
 .pay-modal__chain-chip {
   display: inline-flex; align-items: center; gap: 6px;
   height: 26px; padding: 0 11px;
-  border-radius: 999px;
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
-  font-size: 13px; font-weight: 700;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted); color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs); font-weight: 700;
 }
-.pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: #a1a1aa; }
+/* 链 / 渠道色点只在没有 logo 素材时兜底显示；颜色是 tokens.css 的固定品牌色 --qz-brand-tron / -bsc / -sol(-2) / -alipay
+   （两个主题同值，品牌色不随主题变）。 */
+.pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: var(--qz-text-muted); }
 .pay-modal__chain-logo { flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; }
-.pay-modal__chain-dot.is-tron { background: #ef4444; }
-.pay-modal__chain-dot.is-bsc { background: #f0b90b; }
-.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, #9945ff, #14f195); }
-.pay-modal__chain-dot.is-alipay { background: #1677ff; }
+.pay-modal__chain-dot.is-tron { background: var(--qz-brand-tron); }
+.pay-modal__chain-dot.is-bsc { background: var(--qz-brand-bsc); }
+.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, var(--qz-brand-sol), var(--qz-brand-sol-2)); }
+.pay-modal__chain-dot.is-alipay { background: var(--qz-brand-alipay); }
 .pay-modal__amount-meta {
-  border-top: 1px solid var(--ux-line);
-  padding-top: 12px;
-  display: flex; flex-direction: column; gap: 8px;
+  border-top: 1px solid var(--qz-border);
+  padding-top: 10px;
+  display: flex; flex-direction: column; gap: 6px;
 }
 .pay-modal__meta-row {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  font-size: 14px; color: var(--ux-ink-3);
+  font-size: var(--qz-text-sm); color: var(--qz-text-muted);
 }
 .pay-modal__meta-row b {
-  color: var(--ux-ink-2); font-weight: 500;
-  font-size: 14px;
+  color: var(--qz-text-secondary); font-weight: 500;
+  font-size: var(--qz-text-sm);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere; text-align: right;
 }
 
 /* ---- 支付卡 ---- */
 .pay-modal__pay-card {
-  border-radius: 18px;
-  padding: 18px 18px 0;
+  border-radius: var(--qz-radius-control);
+  padding: 16px 16px 0;
   margin-bottom: 12px;
-  background: var(--ux-surface);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
-  transition: opacity .4s, transform .5s var(--ux-ease);
+  background: var(--qz-surface);
+  box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-raised);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__pay-head {
   display: flex; align-items: center; justify-content: center;
+  text-align: center;
   margin-bottom: 6px;
 }
-.pay-modal__pay-head b { font-size: 15.5px; font-weight: 500; }
+.pay-modal__pay-head b { font-size: var(--qz-text-base); font-weight: 500; }
 
+/* 倒计时在标题下方独立一行居中；字号与上下留白比最初（30px / 6 0 12）收紧，好让弹窗一屏放下。
+   四档颜色沿用 countdownTone：safe 成功色 → warn 警告色 → late 警告 / 危险各半 → critical 危险色。 */
 .pay-modal__cd-num {
   text-align: center;
-  margin: 6px 0 12px;
-  font-size: 30px; font-weight: 700;
+  margin: 2px 0 8px;
+  font-size: var(--qz-text-xl); font-weight: 700; line-height: 1.1;
   letter-spacing: .04em;
-  color: #22c55e;
+  color: var(--qz-success);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  transition: color .3s;
+  transition: color var(--qz-duration-standard) var(--qz-ease-standard);
 }
-.pay-modal__cd-num.is-safe { color: #22c55e; }
-.pay-modal__cd-num.is-warn { color: #f59e0b; }
-.pay-modal__cd-num.is-late { color: #ea580c; }
-.pay-modal__cd-num.is-critical { color: #b02020; }
+.pay-modal__cd-num.is-safe { color: var(--qz-success); }
+.pay-modal__cd-num.is-warn { color: var(--qz-warning); }
+.pay-modal__cd-num.is-late { color: color-mix(in oklab, var(--qz-warning) 50%, var(--qz-danger)); }
+.pay-modal__cd-num.is-critical { color: var(--qz-danger); }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
-  margin: 0 0 12px;
-  transition: filter .4s, opacity .4s;
+  margin: 0 0 8px;
+  transition: filter var(--qz-duration-considered) var(--qz-ease-standard), opacity var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__qr {
-  padding: 8px; background: #fff;
-  border-radius: 8px;
+  padding: 8px; background: var(--qz-qr-frame);
+  border-radius: var(--qz-radius-control);
 }
 .pay-modal__qr img { display: block; width: 120px; height: 120px; }
 .pay-modal__qr-placeholder {
   width: 120px; height: 120px;
   display: grid; place-items: center;
-  color: var(--ux-ink-3);
+  color: var(--qz-text-muted);
 }
 .pay-modal__spin { width: 24px; height: 24px; animation: pay-modal-spin 1s linear infinite; }
 @keyframes pay-modal-spin { to { transform: rotate(360deg); } }
@@ -971,19 +1066,19 @@ onBeforeUnmount(() => {
 .pay-modal__redirect-hint {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 10px 12px; margin-bottom: 16px;
-  border-radius: 10px;
-  background: #fff7e6; color: var(--ux-warn);
-  font-size: 12px; line-height: 1.5;
+  border-radius: var(--qz-radius-control);
+  background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning);
+  font-size: var(--qz-text-xs); line-height: 1.5;
 }
 .pay-modal__redirect-hint svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
 
 .pay-modal__addr {
-  margin-top: 12px;
-  padding: 14px 0 16px;
-  border-top: 1px solid var(--ux-line);
+  margin-top: 8px;
+  padding: 10px 0 12px;
+  border-top: 1px solid var(--qz-border);
 }
 .pay-modal__addr-label {
-  font-size: 12px; color: var(--ux-ink-3); font-weight: 600;
+  font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600;
   letter-spacing: .04em;
   margin-bottom: 6px;
 }
@@ -992,117 +1087,120 @@ onBeforeUnmount(() => {
 }
 .pay-modal__addr-body b {
   flex: 1; min-width: 0;
-  font-size: 14px; font-weight: 500;
+  font-size: var(--qz-text-sm); font-weight: 500;
   line-height: 1.6;
-  color: var(--ux-ink-2);
+  color: var(--qz-text-secondary);
   overflow-wrap: anywhere; word-break: break-all;
 }
 .pay-modal__addr-copy {
   flex-shrink: 0;
   width: 32px; height: 32px;
-  border: 0; border-radius: 8px;
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   display: grid; place-items: center;
   cursor: pointer;
-  transition: background-color .15s, color .15s;
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
 }
 .pay-modal__addr-copy svg { width: 14px; height: 14px; }
-.pay-modal__addr-copy:hover { background: #ededed; color: #000; }
+.pay-modal__addr-copy:hover { background: var(--qz-accent-subtle); color: var(--qz-text); }
 
 /* ---- 加密货币操作区 ---- */
 .pay-modal__crypto-actions {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
   margin-bottom: 12px;
 }
 .pay-modal__action-row {
   display: flex; gap: 10px;
 }
 .pay-modal__action-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  flex: 1 1 0; min-width: 0; height: 44px;
-  border: 0; border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  /* 两个按钮平分一行（手机上每个只有约 154px 宽），英文等长文案会折成两行：高度跟随内容而不是写死 44px，
+     否则第二行会溢出按钮边框。字号与弹窗正文一致（14px），中文文案在手机宽度下也能保持一行。 */
+  flex: 1 1 0; min-width: 0; min-height: var(--qz-control-md);
+  padding: 8px 10px;
+  border: 0; border-radius: var(--qz-radius-pill);
   cursor: pointer;
-  font-size: 15.5px; font-weight: 500;
-  background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
+  font-size: var(--qz-text-sm); font-weight: 500; line-height: 1.2; text-align: center;
+  background: var(--qz-surface); color: var(--qz-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-resting);
 }
-.pay-modal__action-btn:hover:not(:disabled) { color: #000; background: var(--ux-surface-2); }
+.pay-modal__action-btn:hover:not(:disabled) { color: var(--qz-text); background: var(--qz-surface-muted); }
 .pay-modal__action-btn.is-solid {
-  background: #343434; color: #fbfbfb;
+  background: var(--qz-accent-strong); color: var(--qz-on-accent);
   box-shadow: none;
 }
-.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: #fff; background: #262626; }
+.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: var(--qz-on-accent); background: var(--qz-accent); }
 .pay-modal__action-btn:disabled { opacity: .55; cursor: not-allowed; }
-.pay-modal__action-btn svg { width: 17px; height: 17px; }
+.pay-modal__action-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
 
 .pay-modal__panel {
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--ux-surface-2);
-  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px;
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  display: flex; flex-direction: column; gap: 6px;
 }
 .pay-modal__chip-list {
   display: flex; flex-wrap: wrap; gap: 8px;
 }
 .pay-modal__chip {
   padding: 7px 12px;
-  border: 0; border-radius: 999px;
-  background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
-  font-size: 12.5px; font-weight: 700;
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface); color: var(--qz-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--qz-border-strong);
+  font-size: var(--qz-text-xs); font-weight: 700;
   cursor: pointer;
 }
 .pay-modal__chip.is-active {
-  background: var(--ux-accent); color: #fff;
+  background: var(--qz-accent); color: var(--qz-on-accent);
   box-shadow: none;
 }
 .pay-modal__chip:disabled { cursor: default; opacity: .9; }
 .pay-modal__input {
   width: 100%; height: 40px;
-  border: 0; border-radius: 10px;
+  border: 0; border-radius: var(--qz-radius-control);
   padding: 0 12px;
-  background: var(--ux-surface);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
-  font-size: 12.5px; color: var(--text, #0a0a0a);
+  background: var(--qz-surface);
+  box-shadow: inset 0 0 0 1px var(--qz-border-strong);
+  font-size: var(--qz-text-xs); color: var(--qz-text);
   outline: none;
 }
-.pay-modal__input:focus { box-shadow: inset 0 0 0 1.5px var(--ux-accent); }
+.pay-modal__input:focus { box-shadow: inset 0 0 0 1.5px var(--qz-accent); }
 .pay-modal__panel-msg {
   margin: 0;
-  font-size: 11.5px; color: var(--ux-mint); font-weight: 600;
+  font-size: var(--qz-text-xs); color: var(--qz-success); font-weight: 600;
   line-height: 1.5;
 }
-.pay-modal__panel-msg.is-err { color: #b02020; }
+.pay-modal__panel-msg.is-err { color: var(--qz-danger); }
 
 .pay-modal__steps {
   display: flex; gap: 14px; justify-content: center;
   height: 0; margin: 0; overflow: hidden;
-  font-size: 11.5px; font-weight: 700; color: var(--ux-ink-3);
+  font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted);
   opacity: 0;
-  transition: opacity .3s, height .3s, margin .3s;
+  transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), height var(--qz-duration-standard) var(--qz-ease-standard), margin var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .is-run .pay-modal__steps,
 .is-ok .pay-modal__steps { opacity: 1; height: 20px; margin: 4px 0 14px; }
 .pay-modal__steps span {
   display: inline-flex; align-items: center; gap: 5px;
-  transition: color .3s;
+  transition: color var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .pay-modal__steps span::before {
   content: "";
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--ux-line-2);
-  transition: background-color .3s, transform .4s var(--ux-spring);
+  background: var(--qz-border-strong);
+  transition: background-color var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring);
 }
-.pay-modal__steps span.on { color: var(--text, #0a0a0a); }
-.pay-modal__steps span.on::before { background: var(--ux-accent); transform: scale(1.3); }
-.is-ok .pay-modal__steps span.on::before { background: var(--ux-mint); }
+.pay-modal__steps span.on { color: var(--qz-text); }
+.pay-modal__steps span.on::before { background: var(--qz-accent); transform: scale(1.3); }
+.is-ok .pay-modal__steps span.on::before { background: var(--qz-success); }
 
 .pay-modal__stage {
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  min-height: 34px; margin-top: 4px;
+  min-height: 34px; margin-top: 0;
   overflow: hidden;
-  transition: min-height .4s var(--ux-ease);
+  transition: min-height var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .is-run .pay-modal__stage,
 .is-ok .pay-modal__stage { min-height: 90px; }
@@ -1111,32 +1209,32 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex; align-items: center; justify-content: center;
   width: 100%; height: 52px;
-  border: 0; border-radius: 14px;
-  background: var(--ux-accent); color: #fff;
-  font-size: 14.5px; font-weight: 800;
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent); color: var(--qz-on-accent);
+  font-size: var(--qz-text-sm); font-weight: 800;
   overflow: hidden;
-  transition: width .5s var(--ux-spring), height .5s var(--ux-spring),
-              border-radius .5s var(--ux-spring), background-color .4s;
+  transition: width var(--qz-duration-spring) var(--qz-ease-spring), height var(--qz-duration-spring) var(--qz-ease-spring),
+              border-radius var(--qz-duration-spring) var(--qz-ease-spring), background-color var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__go.waiting {
   gap: 8px;
   height: auto;
-  background: transparent; color: var(--ux-ink-3);
+  background: transparent; color: var(--qz-text-muted);
   box-shadow: none;
-  font-size: 14px; font-weight: 500;
+  font-size: var(--qz-text-sm); font-weight: 500;
 }
 .pay-modal__go.waiting span { display: inline-flex; align-items: center; gap: 8px; }
-.pay-modal__go.waiting .pay-modal__spin { width: 16px; height: 16px; color: var(--ux-ink-3); }
+.pay-modal__go.waiting .pay-modal__spin { width: 16px; height: 16px; color: var(--qz-text-muted); }
 .is-run .pay-modal__go,
 .is-ok .pay-modal__go {
   width: 56px; height: 56px; border-radius: 50%;
   pointer-events: none;
-  background: var(--ux-accent); color: #fff;
+  background: var(--qz-accent); color: var(--qz-on-accent);
   box-shadow: none;
 }
 .is-run .pay-modal__go span,
 .is-ok .pay-modal__go span { opacity: 0; }
-.is-ok .pay-modal__go { background: var(--ux-mint); }
+.is-ok .pay-modal__go { background: var(--qz-success); }
 
 .pay-modal__ring {
   pointer-events: none;
@@ -1146,38 +1244,38 @@ onBeforeUnmount(() => {
   margin: -40px 0 0 -40px;
   transform: rotate(-90deg);
   opacity: 0;
-  transition: opacity .3s;
+  transition: opacity var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .is-run .pay-modal__ring,
-.is-ok .pay-modal__ring { opacity: 1; transition-delay: .25s; }
+.is-ok .pay-modal__ring { opacity: 1; transition-delay: var(--qz-duration-standard); }
 .pay-modal__ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
-.pay-modal__ring .t { stroke: var(--ux-surface-3); }
+.pay-modal__ring .t { stroke: var(--qz-border); }
 .pay-modal__ring .p {
-  stroke: var(--ux-accent);
+  stroke: var(--qz-accent);
   stroke-dasharray: 100;
   stroke-dashoffset: calc(100 - var(--p, 0) * 100);
-  transition: stroke .4s;
+  transition: stroke var(--qz-duration-considered) var(--qz-ease-standard);
 }
-.is-ok .pay-modal__ring .p { stroke: var(--ux-mint); }
+.is-ok .pay-modal__ring .p { stroke: var(--qz-success); }
 
 .pay-modal__ck {
   position: absolute;
   top: 50%; left: 50%;
   margin: -12px 0 0 -12px;
   width: 24px; height: 24px;
-  fill: none; stroke: #fff;
+  fill: none; stroke: var(--qz-on-accent);
   stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round;
   pointer-events: none;
 }
 .pay-modal__ck path {
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
-  transition: stroke-dashoffset .45s var(--ux-ease) .2s;
+  transition: stroke-dashoffset var(--qz-duration-considered) var(--qz-ease-standard) var(--qz-duration-fast);
 }
 .is-ok .pay-modal__ck path { stroke-dashoffset: 0; }
 
 .pay-modal__copied {
-  font-size: 11px; color: var(--ux-mint); font-weight: 600;
+  font-size: var(--qz-text-2xs); color: var(--qz-success); font-weight: 600;
 }
 
 /* 过期态：对齐支付网关收银台（红 ✗ + 标题 + 重新发起入口），不显示二维码与地址。 */
@@ -1185,23 +1283,25 @@ onBeforeUnmount(() => {
   display: flex; flex-direction: column; align-items: center;
   gap: 10px; padding: 34px 0 26px;
 }
-.pay-modal__expired-icon { width: 46px; height: 46px; color: #d4342a; stroke-width: 1.6; }
-.pay-modal__expired-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.pay-modal__expired-icon { width: 46px; height: 46px; color: var(--qz-danger); stroke-width: 1.6; }
+.pay-modal__expired-title { font-size: var(--qz-text-base); font-weight: 700; letter-spacing: -.01em; }
 .pay-modal__expired-btn {
-  margin-top: 4px; width: 100%; height: 44px;
-  border: 0; border-radius: 14px; cursor: pointer;
-  background: var(--ux-accent); color: #fff;
-  font-size: 14.5px; font-weight: 500;
+  margin-top: 4px; width: 100%; height: var(--qz-control-md);
+  border: 0; border-radius: var(--qz-radius-pill); cursor: pointer;
+  background: var(--qz-accent); color: var(--qz-on-accent);
+  font-size: var(--qz-text-sm); font-weight: 500;
 }
+.pay-modal__expired-btn:disabled { opacity: .55; cursor: not-allowed; }
 
 .pay-modal__rec {
   position: absolute;
-  left: 16px; right: 16px; bottom: 16px; top: 60px;
+  /* 顶部内边距已从 50px 收到 20px，收据层随之上移，四边留白接近一致。 */
+  left: 16px; right: 16px; bottom: 16px; top: 24px;
   display: none;
   flex-direction: column;
   padding: 22px 18px 16px;
-  border-radius: 22px;
-  background: var(--ux-surface-2);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
   text-align: center;
   z-index: 2;
   overflow-y: auto;
@@ -1210,53 +1310,54 @@ onBeforeUnmount(() => {
   content: "";
   position: absolute; left: 0; right: 0; top: -8px;
   height: 16px;
-  background: radial-gradient(circle 8px at 8px 0, transparent 98%, var(--ux-surface-2)) 0 8px/16px 8px repeat-x;
+  background: radial-gradient(circle 8px at 8px 0, transparent 98%, var(--qz-surface-muted)) 0 8px/16px 8px repeat-x;
 }
 .is-rec .pay-modal__rec {
   display: flex;
-  animation: pay-modal-rec-in .6s var(--ux-spring) both;
+  animation: pay-modal-rec-in var(--qz-duration-spring) var(--qz-ease-spring) both;
 }
 @keyframes pay-modal-rec-in { from { transform: translateY(60px); opacity: 0; } }
 
 .pay-modal__rec-header {
-  font-size: 10px; letter-spacing: 1.3px;
-  color: var(--ux-ink-3); font-weight: 600;
+  font-size: var(--qz-text-2xs); letter-spacing: 1.3px;
+  color: var(--qz-text-muted); font-weight: 600;
   padding-bottom: 12px;
-  border-bottom: 1px dashed var(--ux-line-2);
+  border-bottom: 1px dashed var(--qz-border-strong);
   margin-bottom: 16px;
 }
 .pay-modal__rec-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px;
-  background: var(--ux-surface);
-  border-radius: 12px;
+  background: var(--qz-surface);
+  border-radius: var(--qz-radius-control);
   margin-bottom: 14px;
   text-align: left;
-  box-shadow: inset 0 0 0 1px var(--ux-line);
+  box-shadow: inset 0 0 0 1px var(--qz-border);
 }
 .pay-modal__rec-icon {
   width: 36px; height: 36px; flex-shrink: 0;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #0f0f0f, #2a2a2a);
+  border-radius: var(--qz-radius-pill);
+  background: linear-gradient(135deg, var(--qz-accent), var(--qz-accent-strong));
   display: grid; place-items: center;
-  color: #fff; font-size: 14px; font-weight: 800;
+  color: var(--qz-on-accent); font-size: var(--qz-text-sm); font-weight: 800;
 }
 .pay-modal__rec-meta { flex: 1; min-width: 0; text-align: left; }
 .pay-modal__rec-name {
-  font-size: 13px; font-weight: 700;
-  color: var(--text, #0a0a0a); margin-bottom: 2px;
+  font-size: var(--qz-text-sm); font-weight: 700;
+  color: var(--qz-text); margin-bottom: 2px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .pay-modal__rec-sub {
-  font-size: 11px; color: var(--ux-ink-3);
+  font-size: var(--qz-text-2xs); color: var(--qz-text-muted);
   display: flex; align-items: center; gap: 5px;
 }
+/* 状态点画成 6px 圆（而非 7px 的 "●" 字形），模板字号地板是 11px */
 .pay-modal__rec-sub::before {
-  content: "●"; color: var(--ux-mint); font-size: 7px;
+  content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--qz-success);
 }
 .pay-modal__rec-amt {
-  font-size: 14px; font-weight: 800;
-  color: var(--text, #0a0a0a);
+  font-size: var(--qz-text-sm); font-weight: 800;
+  color: var(--qz-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1265,8 +1366,8 @@ onBeforeUnmount(() => {
   margin: 0 auto 10px;
   border-radius: 50%;
   display: grid; place-items: center;
-  background: var(--ux-mint); color: #fff;
-  box-shadow: 0 0 0 7px color-mix(in srgb, var(--ux-mint) 16%, transparent);
+  background: var(--qz-success); color: var(--qz-on-accent);
+  box-shadow: 0 0 0 7px color-mix(in oklab, var(--qz-success) 16%, transparent);
 }
 .pay-modal__rec-check svg {
   width: 24px; height: 24px;
@@ -1276,24 +1377,24 @@ onBeforeUnmount(() => {
 
 .pay-modal__rec-title {
   display: block;
-  font-size: 17px; font-weight: 700;
+  font-size: var(--qz-text-lg); font-weight: 700;
   letter-spacing: -.03em;
 }
 
 .pay-modal__rec > p {
   margin: 4px 0 12px;
-  font-size: 12px; color: var(--ux-ink-3); line-height: 1.55;
+  font-size: var(--qz-text-xs); color: var(--qz-text-muted); line-height: 1.55;
 }
-.pay-modal__rec-email { color: var(--ux-ink-2); font-weight: 600; }
+.pay-modal__rec-email { color: var(--qz-text-secondary); font-weight: 600; }
 
 .pay-modal__rec-dl {
   display: grid; grid-template-columns: auto 1fr;
   gap: 6px 12px;
   margin: 0 0 16px;
   text-align: left;
-  font-size: 12px;
+  font-size: var(--qz-text-xs);
 }
-.pay-modal__rec-dl dt { color: var(--ux-ink-3); font-weight: 600; }
+.pay-modal__rec-dl dt { color: var(--qz-text-muted); font-weight: 600; }
 .pay-modal__rec-dl dd {
   margin: 0; text-align: right;
   font-weight: 800;
@@ -1301,10 +1402,10 @@ onBeforeUnmount(() => {
 }
 
 .pay-modal__rec-btn {
-  width: 100%; height: 44px;
-  border: 0; border-radius: 12px;
-  background: var(--ux-accent); color: #fff;
-  font-size: 13.5px; font-weight: 700;
+  width: 100%; height: var(--qz-control-md);
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent); color: var(--qz-on-accent);
+  font-size: var(--qz-text-sm); font-weight: 700;
   cursor: pointer;
 }
 
@@ -1315,7 +1416,26 @@ onBeforeUnmount(() => {
 .is-rec .pay-modal__stage {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
-  transition: opacity .4s, transform .5s var(--ux-ease);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
+}
+
+/* 矮视口（如 iPhone Safari 带工具条时约 664px 高）的紧凑模式：缩小大字金额与二维码、再收一轮内边距，
+   让等待支付态仍尽量一屏放下而不触发内部滚动。 */
+@media (max-height: 740px) {
+  .pay-modal { padding: 16px; }
+  .pay-modal__amount-card { padding: 10px 14px 8px; margin-bottom: 8px; }
+  .pay-modal__amount-value { margin-bottom: 6px; }
+  .pay-modal__amount-value b { font-size: var(--qz-text-2xl); }
+  .pay-modal__amount-meta { padding-top: 6px; gap: 4px; }
+  .pay-modal__pay-card { padding: 14px 14px 0; margin-bottom: 8px; }
+  .pay-modal__pay-head { margin-bottom: 4px; }
+  .pay-modal__cd-num { margin: 0 0 6px; font-size: var(--qz-text-lg); }
+  .pay-modal__qr-wrap { margin-bottom: 6px; }
+  .pay-modal__qr img,
+  .pay-modal__qr-placeholder { width: 96px; height: 96px; }
+  .pay-modal__addr { margin-top: 6px; padding: 6px 0 8px; }
+  .pay-modal__crypto-actions { margin-bottom: 8px; }
+  .pay-modal__stage { min-height: 30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

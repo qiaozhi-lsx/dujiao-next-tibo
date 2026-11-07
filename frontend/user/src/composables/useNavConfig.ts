@@ -6,6 +6,7 @@ import {
     BookOpen, Code, Phone, MapPin, Music, Camera,
 } from 'lucide-vue-next'
 import { useAppStore } from '../stores/app'
+import { optionalFlagOn } from '../utils/configFlags'
 import { getLocalizedText } from '../utils/resellerSiteConfig'
 
 /**
@@ -83,16 +84,19 @@ export const useNavConfig = () => {
     /** 列表模式下首页即商品列表，/products 与首页同页，导航里不再单独列一项 */
     const isListMode = computed(() => appStore.config?.template_mode === 'list')
 
-    const blogEnabled = computed(() => navConfig.value?.builtin?.blog !== false)
-    const noticeEnabled = computed(() => navConfig.value?.builtin?.notice !== false)
-    const aboutEnabled = computed(() => navConfig.value?.builtin?.about !== false)
+    // 可选开关键就位（appStore.configComplete）前一律按关闭处理：新后端内联的 window.__PUBLIC_CONFIG__
+    // 已带 nav_config，首帧即就位；旧后端不带键时要等完整配置到达，否则冷启动时这些链接会先闪现再消失
+    // （见 utils/configFlags.ts）
+    const blogEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.blog))
+    const noticeEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.notice))
+    const aboutEnabled = computed(() => optionalFlagOn(appStore.configComplete, navConfig.value?.builtin?.about))
 
-    /** 内置导航项（博客 / 公告 / 关于），受后台开关控制 */
+    /** 内置导航项（博客 / 公告 / 关于），受后台开关控制；门控规则同上，开关键就位前一项都不输出 */
     const builtinNavItems = computed<NavItem[]>(() => {
         const builtin = navConfig.value?.builtin
         const result: NavItem[] = []
         for (const [key, def] of Object.entries(builtinNavDefs)) {
-            if (builtin && builtin[key] === false) continue
+            if (!optionalFlagOn(appStore.configComplete, builtin?.[key])) continue
             result.push({ key, path: def.path, label: t(def.label), icon: def.icon, type: 'route', target: '_self' })
         }
         return result

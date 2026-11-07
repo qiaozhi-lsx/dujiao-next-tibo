@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dujiao-next/internal/constants"
 	"github.com/gin-gonic/gin"
@@ -21,20 +22,68 @@ type InitialConfigSource interface {
 	GetConfig(defaults map[string]interface{}) (map[string]interface{}, error)
 }
 
-// initialConfigFieldWhitelist 决定哪些字段会被嵌入到首屏 HTML。
+// InitialConfigFlagsSource 是 InitialConfigSource 的可选扩展，补齐不在 site_config 里、
+// 但首帧渲染就要用到的开关：导航配置（nav_config 是独立的设置键）与注册 / 邮箱验证开关。
+// 前端对这几个键的读法是"缺键先按关闭、完整配置到达后再翻转"，内联它们才能消除冷启动时
+// 导航项、验证码字段晚一拍出现的闪烁。来源不实现本接口时，入口只注入 site_config 子集（旧行为）。
+type InitialConfigFlagsSource interface {
+	// GetNavConfig 返回 nav_config 设置原文（可 JSON 序列化）；未配置或读取失败时返回 nil，
+	// 由 web 包补上与 /api/v1/public/config 相同的默认结构。
+	GetNavConfig() interface{}
+	// GetRegistrationFlags 返回注册开关与邮箱验证开关；读取失败时应按默认开启处理，
+	// 与 /api/v1/public/config 的口径一致。
+	GetRegistrationFlags() (registrationEnabled, emailVerificationEnabled bool)
+}
+
+// defaultNavConfig 是 nav_config 未配置时的默认导航结构：三个内置导航全开、无自定义项。
+// 必须与 settings 模块 public handler 写进 /api/v1/public/config 的默认值保持同形，
+// 否则首帧与完整配置不一致，前端会先按一种导航渲染再翻转。每次返回新 map，避免缓存共享可变状态。
+func defaultNavConfig() map[string]interface{} {
+	return map[string]interface{}{
+		"builtin":      map[string]interface{}{"blog": true, "notice": true, "about": true},
+		"custom_items": make([]interface{}, 0),
+	}
+}
+
+// SiteResolver 判断一次入口请求落在主站还是分销白标站。
+// 只用标准库类型，由调用方把分销模块的域名解析器适配进来，避免 web 包依赖业务模块。
+// isMain 为 false 时入口不注入任何内联配置（分销站的品牌/脚本由 /public/config 的 overlay 决定）；
+// host 为归一化后的请求 Host，会原样写进 tenant 字段。
+type SiteResolver func(req *http.Request) (isMain bool, host string)
+
+// safeTenantHost 是允许写进内联 tenant.host 的字符集：小写字母、数字、'.'、'-'、':'（端口）
+// 与 IPv6 字面量的 '[' ']'。空串也算安全。
+var safeTenantHost = regexp.MustCompile(`^[a-z0-9.\-:\[\]]*$`)
+
+// isSafeTenantHost 报告 host 是否只含 Host 字面量字符。
+//
+// tenant.host 是第一个进入内联 <script> 的请求侧数据：Go 服务器会拒绝含 '<' '>' '"' 空白的
+// req.Host，但 reseller.trusted_forwarded_host 开启时它来自 X-Forwarded-Host，而 NormalizeHost
+// 只做小写 / 去端口，不过滤字符。这里按 Host 字面量白名单兜底，不依赖序列化层的转义策略
+// （无论 encoding/json 是否转义 HTML、是否替换 "</script>"），是纵深防御。
+func isSafeTenantHost(host string) bool {
+	return safeTenantHost.MatchString(host)
+}
+
+// initialConfigFieldWhitelist 决定 site_config 里哪些字段会被嵌入到首屏 HTML。
 // 只放首屏模板选择 + 品牌/SEO/多语言这些让骨架期不白屏的最小集，
 // payment_channels、server_time 之类让完整 /public/config 响应补齐。
+// nav_config 与注册开关不是 site_config 的 schema 字段（公共 /public/config 也总是用独立
+// setting key 覆盖它们，不读 site_config 里的同名值），故不走 whitelist，
+// 由 InitialConfigFlagsSource 单独提供，见 buildInitialConfigPayload。
 var initialConfigFieldWhitelist = []string{
 	constants.SettingFieldStorefrontTemplate,
+	"template_mode",
 	"brand",
 	"seo",
 	constants.SettingFieldSiteCurrency,
 	"languages",
-	"nav_config",
 	"scripts",
 }
 
-// buildInitialConfigPayload 从 settings 读站点基础字段，裁出 whitelist 返回。
+// buildInitialConfigPayload 从 settings 读站点基础字段，裁出 whitelist 返回；
+// settings 还实现 InitialConfigFlagsSource 时，额外写入 nav_config（未配置补默认结构）、
+// registration_enabled、email_verification_enabled，键名与 /api/v1/public/config 相同。
 // 任何错误都返回空 map 而非 nil，调用方可以无条件 JSON 序列化。
 func buildInitialConfigPayload(_ context.Context, settings InitialConfigSource) map[string]interface{} {
 	if settings == nil {
@@ -50,11 +99,21 @@ func buildInitialConfigPayload(_ context.Context, settings InitialConfigSource) 
 	if err != nil || data == nil {
 		return nil
 	}
-	out := make(map[string]interface{}, len(initialConfigFieldWhitelist))
+	out := make(map[string]interface{}, len(initialConfigFieldWhitelist)+3)
 	for _, k := range initialConfigFieldWhitelist {
 		if v, ok := data[k]; ok {
 			out[k] = v
 		}
+	}
+	if flags, ok := settings.(InitialConfigFlagsSource); ok {
+		navConfig := flags.GetNavConfig()
+		if navConfig == nil {
+			navConfig = defaultNavConfig()
+		}
+		out["nav_config"] = navConfig
+		registrationEnabled, emailVerificationEnabled := flags.GetRegistrationFlags()
+		out["registration_enabled"] = registrationEnabled
+		out["email_verification_enabled"] = emailVerificationEnabled
 	}
 	return out
 }
@@ -209,9 +268,16 @@ func RegisterAdmin(r *gin.Engine, prefix string, fsys fs.FS) error {
 //
 // settings 不为 nil 时，入口 index.html 会在 </head> 之前被注入
 // <script>window.__PUBLIC_CONFIG__=...;</script>，让 Vue 启动即拿到基础配置，
-// 省掉冷启动首帧 /api/v1/public/config 这次 RTT。注入失败（settings 调用出错、
+// 省掉冷启动首帧 /api/v1/public/config 这次 RTT；settings 还实现 InitialConfigFlagsSource 时，
+// 导航配置与注册 / 邮箱验证开关也一并内联（生产适配器实现了它）。注入失败（settings 调用出错、
 // HTML 没 </head>）时降级返回原始 index.html，不影响渲染。
-func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error {
+// 站点配置本体走进程内 5s 缓存（initialConfigCache），后台改动的设置最多 5s 后在首帧生效。
+//
+// site 不为 nil 时，每次入口请求先判断租户：分销白标站直接返回原始 index.html
+// （settings 里的 brand/seo/nav/scripts 都是主站的，注进去会让分销站首帧闪主站品牌）；
+// 主站则在 payload 里补 tenant 字段，与 /api/v1/public/config 同形。
+// site 为 nil 时视为主站注入，但不编造 tenant 字段。
+func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource, site SiteResolver) error {
 	if r == nil {
 		return errors.New("nil gin engine")
 	}
@@ -226,17 +292,45 @@ func RegisterUser(r *gin.Engine, fsys fs.FS, settings InitialConfigSource) error
 
 	fileServer := http.FileServer(http.FS(fsys))
 
-	// serveIndexWithInitialConfig 每次请求都重新读 settings 以反映运行时改动；
+	// 内联 payload 在 5s 内复用，不每次请求都读 settings：后台改动的设置最多 5s 后在首帧生效
+	// （与 /api/v1/public/* 响应的 10s 缓存同量级，且完整配置仍由那次请求补齐）。
+	initialConfig := newInitialConfigCache(5*time.Second, time.Now)
+
+	// serveIndexWithInitialConfig 注入站点基础配置后返回入口 HTML；
 	// 若没有 settings 依赖（例如测试用的旧调用方），直接返回原始 index。
 	serveIndexWithInitialConfig := func(c *gin.Context) {
 		if settings == nil {
 			serveIndex(c, indexCached)
 			return
 		}
-		payload := buildInitialConfigPayload(c.Request.Context(), settings)
-		if len(payload) == 0 {
+		isMain, host := true, ""
+		if site != nil {
+			isMain, host = site(c.Request)
+		}
+		if !isMain {
 			serveIndex(c, indexCached)
 			return
+		}
+		ctx := c.Request.Context()
+		base := initialConfig.get(func() map[string]interface{} {
+			return buildInitialConfigPayload(ctx, settings)
+		})
+		if len(base) == 0 {
+			serveIndex(c, indexCached)
+			return
+		}
+		// base 是缓存里跨请求共享的 map，只读不改；tenant 是按请求变化的字段，
+		// 必须先浅复制出本次请求自己的 map 再写，否则并发请求会同时写同一个 map。
+		payload := make(map[string]interface{}, len(base)+1)
+		for k, v := range base {
+			payload[k] = v
+		}
+		// host 含 Host 字面量之外的字符时置空：mode 仍是 main、注入照常，只是不把可疑值带进 <script>。
+		if site != nil {
+			if !isSafeTenantHost(host) {
+				host = ""
+			}
+			payload["tenant"] = map[string]interface{}{"mode": "main", "host": host}
 		}
 		injected, err := injectInitialConfigIntoHTML(string(indexCached), payload)
 		if err != nil {

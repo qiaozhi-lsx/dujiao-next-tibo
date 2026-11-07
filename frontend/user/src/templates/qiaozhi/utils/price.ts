@@ -2,6 +2,9 @@ import { computed } from 'vue'
 import { useAppStore } from '../../../stores/app'
 import { amountToCents, centsToAmount } from '../../../utils/money'
 
+// 起价（最低启用 SKU 价）是纯函数，放在 startingPrice.ts 以便 node:test 直接覆盖；这里统一导出。
+export { startingPrice } from './startingPrice'
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   CNY: '¥',
   USD: '$',
@@ -51,6 +54,9 @@ export function useQiaozhiPrice() {
     currency,
     symbol: computed(() => currencySymbol(currency.value)),
     format: (amount: unknown) => formatQiaozhiPrice(amount, currency.value),
-    split: (amount: unknown) => splitQiaozhiPrice(amount, currency.value),
+    // 传入币种时按该币种取符号（如 Payment 页用订单币种），未传沿用站点币种。
+    split: (amount: unknown, currencyOverride?: string) => (
+      splitQiaozhiPrice(amount, String(currencyOverride || '').trim() || currency.value)
+    ),
   }
 }

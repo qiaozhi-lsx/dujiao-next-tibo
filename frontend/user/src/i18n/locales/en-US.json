@@ -1740,7 +1740,15 @@
       "support": "Support",
       "notice": "News",
       "about": "About",
-      "account": "Account"
+      "account": "Account",
+      "primaryAria": "Primary navigation",
+      "footerAria": "Footer navigation",
+      "bottomAria": "Bottom navigation",
+      "backTop": "Back to top"
+    },
+    "qty": {
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity"
     },
     "hero": {
       "eyebrow": "DIGITAL SERVICES",
@@ -1750,6 +1758,10 @@
       "searchPlaceholder": "Search products or keywords...",
       "share": "Share",
       "shared": "Copied"
+    },
+    "home": {
+      "featuredEyebrow": "FEATURED",
+      "storeEyebrow": "STORE"
     },
     "search": {
       "label": "Search products",
@@ -1764,11 +1776,15 @@
       "title": "Picked for you",
       "unit": "items",
       "months": "months",
-      "days": "days"
+      "days": "days",
+      "membershipEyebrow": "MEMBERSHIP"
     },
     "catalog": {
       "title": "Categories",
       "unit": "items"
+    },
+    "categories": {
+      "eyebrow": "CATEGORIES"
     },
     "products": {
       "hero": {
@@ -1794,7 +1810,8 @@
       "hint": "Include your order number for faster help."
     },
     "footer": {
-      "rights": "All rights reserved"
+      "rights": "All rights reserved",
+      "mobileLinksAria": "Footer links"
     },
     "login": {
       "eyebrow": "SIGN IN",
@@ -1808,10 +1825,29 @@
       "hasAccountPrefix": "Already have an account?",
       "goLogin": "Sign in"
     },
+    "forgot": {
+      "eyebrow": "ACCOUNT RECOVERY"
+    },
+    "notice": {
+      "eyebrow": "NOTICE"
+    },
+    "blog": {
+      "eyebrow": "BLOG"
+    },
+    "about": {
+      "eyebrow": "ABOUT"
+    },
+    "legal": {
+      "eyebrow": "LEGAL"
+    },
     "cart": {
       "eyebrow": "CART",
       "back": "Back to home",
       "emptyHint": "Pick something you like and bring it back here to check out."
+    },
+    "guestOrders": {
+      "eyebrow": "ORDERS",
+      "emptyBeforeQuery": "Enter your email and order password to look up orders"
     },
     "checkout": {
       "eyebrow": "CHECKOUT",
@@ -1845,11 +1881,13 @@
       "errPassword": "Order password must be at least 6 characters",
       "errChannel": "Please choose a payment method",
       "errSubmit": "Failed to place the order, please retry",
+      "renewNeedsCaptcha": "Payment expired. Please complete the captcha again and resubmit.",
       "descExpand": "Expand",
       "descCollapse": "Collapse"
     },
     "payment": {
       "eyebrow": "PAYMENT",
+      "pageEyebrow": "PAYMENT",
       "summaryTitle": "Order summary",
       "scanEyebrow": "SCAN TO PAY",
       "modal": {
@@ -1898,7 +1936,8 @@
         "amountLabel": "Total",
         "timeLabel": "Time",
         "notQrCapable": "Payment info is not available yet. Please retry or contact support.",
-        "closeAria": "Close payment modal"
+        "closeAria": "Close payment modal",
+        "qrAlt": "Payment QR code"
       }
     },
     "orderDetail": {
@@ -1919,6 +1958,7 @@
       "helpOrderNo": "with order no."
     },
     "tfa": {
+      "eyebrow": "TWO-FACTOR AUTHENTICATOR",
       "title": "Two-factor codes",
       "desc": "Paste the 2FA secret or otpauth link from your product data to see the code instantly (all computed locally).",
       "placeholder": "e.g. JBSWY3DPEHPK3PXP",

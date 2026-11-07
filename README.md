@@ -157,12 +157,39 @@ placeholder, which the server rewrites on startup. Consequences for admin code:
   and prefixing again yields `/admin/admin/...`
 
 **Storefront templates.** The customer frontend ships more than one look, selected by the
-`storefront_template` site setting (`classic`, `vault`). Template pages live in
-`src/templates/<name>/` and fall back to `src/views/` when a page has no template-specific
-version; see `src/templates/registry.ts`. Append `?template=vault` to preview one locally.
+`storefront_template` site setting (`classic`, `vault`, `qiaozhi`). `classic` is the default
+and lives in `src/views/`; the other two live in `src/templates/<name>/` and fall back to
+`src/views/` when a page has no template-specific version; see `src/templates/registry.ts`.
+Append `?template=<name>` to preview one locally (`?template=reset` clears the override).
 
 **i18n.** Both frontends and all API responses are localized — Simplified Chinese, Traditional
 Chinese, and English. Do not hard-code user-facing strings on either side.
+
+### `qiaozhi` style conventions
+
+The `qiaozhi` template (`frontend/user/src/templates/qiaozhi/`) is styled in layers, and each
+layer may only consume the layers listed before it:
+
+| Layer | Holds |
+| --- | --- |
+| `styles/tokens.css` | Design tokens (`--qz-*`): colors, shadows, spacing, radii, control heights, type scale, motion (`--qz-ease-*` / `--qz-duration-*`). Derived from Arc UI `foundation.css` ([arc-library](https://github.com/kuratlielia/arc-library), MIT). Declared on `.qiaozhi-scope, body.qiaozhi-tokens` — the `body` variant is what Teleport-ed overlays inherit — with a `.dark` pair for dark mode. Ends with the `--ui-*` compat bridge: the classic names that shared classic components (toast, dialogs, captcha widgets) still read, each a `var()` onto a `--qz-*` token. |
+| `styles/base.css` | Primitives ported from Arc UI (MIT): `.qz-btn` / `.qz-icon-btn` / `.qz-pill` / `.qz-chip` / `.qz-badge` (+ `.is-accent`) / `.qz-field*` / `.qz-card` / `.qz-panel` / `.qz-eyebrow` / `.qz-section-head` / `.qz-page-head` / `.qz-alert` / `.qz-stat-grid` + `.qz-stat` / `.qz-empty` / `.qz-skeleton` / `.qz-brand-icon` / `.qz-reveal`, plus the focus ring and reduced-motion rules. Tokens only. |
+| `styles/layout.css` | The shell: header, nav, page container, footer, floating support button, bottom nav. Tokens and primitives only. |
+| page `<style scoped>` | Layout for one page or component. Tokens and primitives only — no color literals, every `font-size` is a `--qz-text-*` step, every `transition` easing and duration a `--qz-ease-*` / `--qz-duration-*` token. A page overriding a primitive chains its own class onto the primitive (`.qz-btn.qz-pay-back`, `.qz-panel.qz-cart-summary`) rather than relying on injection order. |
+
+Non-scoped `<style>` blocks in components are legitimate shared rule sources too: `PersonalCenter.vue`
+hoists the `.qz-me-*` vocabulary for the `me/*` panels, and the `Qz*` components (button label morph,
+hold-to-confirm, select, tabs) publish the classes their slotted or teleported markup needs.
+
+**These conventions are enforced by tests**, like the backend layering.
+`src/templates/qiaozhi/__tests__/style-conventions.spec.ts` (run by `pnpm run test`) fails on
+any identifier from the pre-`qz` prefix, any reference to the dissolved transitional stylesheet
+(or the file coming back), a token missing from the scope selector pair or a color / shadow token
+missing from the `.dark` pair, a compat-bridge alias that is not a pure `var(--qz-*)` reference, a
+color literal or non-token `font-size` in `base.css` or a page `<style>` block, any `font-size` or
+`font:` shorthand below the 11px floor (`--qz-text-2xs`), a `qz-*` class used in a template with
+no rule in `base.css` / `layout.css` / its own or a reachable component style, and size or variant
+CSS inside `QzButton.vue` — that belongs to `base.css` as `.qz-btn--*`.
 
 ## Quick Start (Deploy)
 

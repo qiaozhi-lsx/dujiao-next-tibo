@@ -1,46 +1,49 @@
 <template>
-  <div class="j8-me-panel">
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+  <!-- 资料面板没有专属样式：区块 / 表单 / 动作组来自 PersonalCenter.vue 的 .qz-me-* 共享块，
+       .qz-panel / .qz-section-head / .qz-field 三件套 / .qz-alert / QzButton 来自 styles/base.css。 -->
+  <div class="qz-me-panel">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.profile.title') }}</h2>
           <small>{{ t('personalCenter.profile.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">{{ t('personalCenter.tabs.profile') }}</span>
+        <div class="qz-me-acts">
+          <span class="qz-chip">{{ t('personalCenter.tabs.profile') }}</span>
         </div>
       </div>
 
       <p
         v-if="profileAlert"
-        class="j8-ic-alert"
+        class="qz-alert"
         :class="alertClass(profileAlert.level)"
         :role="profileAlert.level === 'error' ? 'alert' : 'status'"
       >
         {{ profileAlert.message }}
       </p>
 
-      <form class="j8-ic" novalidate @submit.prevent="handleSaveProfile">
-        <div class="j8-ic-field">
-          <label for="qz-me-profile-email">{{ t('personalCenter.profile.emailLabel') }}</label>
-          <input id="qz-me-profile-email" :value="userProfileStore.profile?.email || ''" type="email" disabled />
+      <form class="qz-me-form" novalidate @submit.prevent="handleSaveProfile">
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-me-profile-email">{{ t('personalCenter.profile.emailLabel') }}</label>
+          <input id="qz-me-profile-email" class="qz-field-control" :value="userProfileStore.profile?.email || ''" type="email" disabled />
         </div>
 
-        <div class="j8-ic-row">
-          <div class="j8-ic-field">
-            <label for="qz-me-profile-nickname">{{ t('personalCenter.profile.nicknameLabel') }}</label>
+        <div class="qz-me-form-row">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-profile-nickname">{{ t('personalCenter.profile.nicknameLabel') }}</label>
             <input
               id="qz-me-profile-nickname"
               v-model="profileForm.nickname"
+              class="qz-field-control"
               type="text"
               autocomplete="nickname"
               :placeholder="t('personalCenter.profile.nicknamePlaceholder')"
             />
           </div>
 
-          <div class="j8-ic-field">
-            <label for="qz-me-profile-locale">{{ t('personalCenter.profile.localeLabel') }}</label>
-            <J8Select
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-me-profile-locale">{{ t('personalCenter.profile.localeLabel') }}</label>
+            <QzSelect
               id="qz-me-profile-locale"
               :model-value="profileForm.locale"
               :items="[{ value: 'zh-CN', label: '简体中文' }, { value: 'zh-TW', label: '繁體中文' }, { value: 'en-US', label: 'English' }]"
@@ -49,13 +52,13 @@
           </div>
         </div>
 
-        <div class="j8-me-card-acts">
-          <J8Button type="submit" :loading="userProfileStore.savingProfile">
+        <div class="qz-me-acts qz-me-form-acts">
+          <QzButton type="submit" :loading="userProfileStore.savingProfile">
             {{ userProfileStore.savingProfile ? t('personalCenter.profile.saving') : t('personalCenter.profile.save') }}
-          </J8Button>
+          </QzButton>
         </div>
       </form>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -64,8 +67,8 @@ import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { PageAlert, PageAlertLevel } from '../../../utils/alerts'
 import { useUserProfileStore } from '../../../stores/userProfile'
-import J8Button from '../components/J8Button.vue'
-import J8Select from '../components/J8Select.vue'
+import QzButton from '../components/QzButton.vue'
+import QzSelect from '../components/QzSelect.vue'
 
 const { t } = useI18n()
 const userProfileStore = useUserProfileStore()
@@ -77,11 +80,11 @@ const profileForm = reactive({
 
 const profileAlert = ref<PageAlert | null>(null)
 
-/** 警示条 tone：success → 品牌色底、warning → 琥珀底、error → 红底 */
+/** 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger */
 const alertClass = (level: PageAlertLevel) => {
-  if (level === 'error') return 'is-error'
-  if (level === 'success') return 'j8-ok-alert'
-  return ''
+  if (level === 'error') return 'is-danger'
+  if (level === 'success') return 'is-success'
+  return 'is-warning'
 }
 
 const handleSaveProfile = async () => {
@@ -114,18 +117,3 @@ watch(
   { immediate: true }
 )
 </script>
-
-<style scoped>
-/* 成功态警示条（复用 j8-ic-alert 底色体系，绿/品牌色 tone 与登录页一致） */
-.j8-ic-alert.j8-ok-alert {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-}
-
-/* 只读邮箱：全局输入样式未覆盖 :disabled，这里补齐可辨识的置灰态 */
-.j8-ic-field input:not([type="radio"]):not([type="checkbox"]):disabled {
-  background: var(--surface-2);
-  color: var(--muted);
-  cursor: not-allowed;
-}
-</style>

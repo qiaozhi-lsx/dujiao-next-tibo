@@ -2,7 +2,7 @@
   <button
     ref="buttonEl"
     type="button"
-    class="j8-hc-btn"
+    class="qz-btn qz-btn--secondary qz-btn--sm qz-hc-btn"
     :data-state="done ? 'done' : holding ? 'holding' : 'idle'"
     :disabled="disabled || undefined"
     :aria-disabled="done || undefined"
@@ -20,12 +20,12 @@
     @contextmenu.prevent
   >
     <!-- 底层正常色面;fill 里再叠一份同款面,文字白色,clip-path 裁切处自然换色 -->
-    <span class="j8-hc-face">
-      <span class="j8-hc-icon" aria-hidden="true">
+    <span class="qz-hc-face">
+      <span class="qz-hc-icon" aria-hidden="true">
         <Transition :name="iconSwapName">
-          <span v-if="done" key="done" class="j8-hc-icon-phase">
+          <span v-if="done" key="done" class="qz-hc-icon-phase">
             <svg
-              class="j8-hc-check"
+              class="qz-hc-check"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -36,26 +36,26 @@
               <path d="M4 12.5l5 5L20 6.5" pathLength="1" />
             </svg>
           </span>
-          <span v-else key="idle" class="j8-hc-icon-phase">
-            <slot name="icon"><Trash2 :size="14" :stroke-width="1.75" /></slot>
+          <span v-else key="idle" class="qz-hc-icon-phase">
+            <slot name="icon"><Trash2 :size="16" :stroke-width="1.75" /></slot>
           </span>
         </Transition>
       </span>
-      <span ref="frameEl" class="j8-hc-frame">
-        <span ref="measureEl" class="j8-hc-measure">{{ displayText }}</span>
+      <span ref="frameEl" class="qz-hc-frame">
+        <span ref="measureEl" class="qz-hc-measure">{{ displayText }}</span>
         <Transition :name="swapName">
-          <span :key="displayText" class="j8-hc-label">{{ displayText }}</span>
+          <span :key="displayText" class="qz-hc-label">{{ displayText }}</span>
         </Transition>
       </span>
     </span>
 
-    <span ref="fillEl" class="j8-hc-fill" aria-hidden="true">
-      <span class="j8-hc-face">
-        <span class="j8-hc-icon">
+    <span ref="fillEl" class="qz-hc-fill" aria-hidden="true">
+      <span class="qz-hc-face">
+        <span class="qz-hc-icon">
           <Transition :name="iconSwapName">
-            <span v-if="done" key="done" class="j8-hc-icon-phase">
+            <span v-if="done" key="done" class="qz-hc-icon-phase">
               <svg
-                class="j8-hc-check"
+                class="qz-hc-check"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -66,23 +66,23 @@
                 <path d="M4 12.5l5 5L20 6.5" pathLength="1" />
               </svg>
             </span>
-            <span v-else key="idle" class="j8-hc-icon-phase">
-              <slot name="icon"><Trash2 :size="14" :stroke-width="1.75" /></slot>
+            <span v-else key="idle" class="qz-hc-icon-phase">
+              <slot name="icon"><Trash2 :size="16" :stroke-width="1.75" /></slot>
             </span>
           </Transition>
         </span>
-        <span ref="fillFrameEl" class="j8-hc-frame">
-          <span class="j8-hc-measure">{{ displayText }}</span>
+        <span ref="fillFrameEl" class="qz-hc-frame">
+          <span class="qz-hc-measure">{{ displayText }}</span>
           <Transition :name="swapName">
-            <span :key="displayText" class="j8-hc-label">{{ displayText }}</span>
+            <span :key="displayText" class="qz-hc-label">{{ displayText }}</span>
           </Transition>
         </span>
       </span>
     </span>
   </button>
 
-  <span v-if="hint" :id="hintId" class="j8-hc-sr">{{ hint }}</span>
-  <span class="j8-hc-sr" role="status">{{ done ? confirmedLabel : '' }}</span>
+  <span v-if="hint" :id="hintId" class="qz-sr-only">{{ hint }}</span>
+  <span class="qz-sr-only" role="status">{{ done ? confirmedLabel : '' }}</span>
 </template>
 
 <script setup lang="ts">
@@ -129,8 +129,8 @@ const measureEl = ref<HTMLElement | null>(null)
 const reduced = ref(false)
 let mq: MediaQueryList | null = null
 const syncReduced = () => { reduced.value = mq?.matches ?? false }
-const swapName = computed(() => (reduced.value ? 'j8-hc-fade' : 'j8-hc-swap-text'))
-const iconSwapName = computed(() => (reduced.value ? 'j8-hc-fade' : 'j8-hc-swap-icon'))
+const swapName = computed(() => (reduced.value ? 'qz-hc-fade' : 'qz-hc-swap-text'))
+const iconSwapName = computed(() => (reduced.value ? 'qz-hc-fade' : 'qz-hc-swap-icon'))
 
 /* ---------- 运动常量:回退 / 补满 / 宽度形变共用同一条 spring 曲线 ---------- */
 const SPRING_BEZIER = [0.34, 1.45, 0.64, 1] as const
@@ -245,7 +245,7 @@ function begin(from: 'pointer' | 'key') {
   if (done.value || props.disabled || source) return
   cancelRaf()
   const el = buttonEl.value
-  if (el && !reduced.value) el.style.setProperty('--j8-press', String(el.offsetWidth > 220 ? 0.985 : 0.97))
+  if (el && !reduced.value) el.style.setProperty('--qz-press', String(el.offsetWidth > 220 ? 0.985 : 0.97))
   source = from
   holding.value = true
   holdBase = Math.min(1, Math.max(0, progress))
@@ -399,109 +399,120 @@ watch(() => props.disabled, (value) => {
 </script>
 
 <style>
-/* 长按确认:高 34px 与购物车工具按钮一致;三态 idle / hover / holding + done */
-.j8-hc-btn {
-  position: relative;
+/* 长按确认：外观骨架是 base.css 的 .qz-btn--secondary.qz-btn--sm（sm 高、14px/500、surface 底 + 边框、hover 弱化底、
+   松开后的弹簧回弹、disabled 保形只淡字、键盘焦点环），这里只叠三样：危险色（hover / 按住 / done）、按住时的瞬时缩放、
+   从左到右揭开的填充层。文案 / 图标切换的曲线与 QzButton 的 label 形变保持同一组数值，两种按钮并排时手感一致。
+   不用 scoped、沿用 base.css 的作用域前缀；覆盖基类属性的选择器都带上 .qz-btn，靠特指度赢。颜色 / 尺寸全部走 --qz-* token。 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn.qz-hc-btn {
+  /* 长按期间不能被选中文字、不能弹出 iOS 长按菜单、不能双击缩放 */
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* 危险色：细指针 hover、以及任何输入方式按住蓄力时都显示；done / disabled 不响应 */
+@media (hover: hover) and (pointer: fine) {
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn.qz-hc-btn:hover:where(:not(:disabled, [aria-disabled="true"])) {
+    color: var(--qz-danger);
+    background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
+    border-color: var(--qz-danger);
+    box-shadow: none;
+  }
+}
+/* 按住：瞬时缩放（与 .qz-btn:active 同一手感，--qz-press 由脚本按宽度写入），松开由基类的弹簧 transition 弹回 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn.qz-hc-btn[data-state="holding"] {
+  color: var(--qz-danger);
+  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
+  border-color: var(--qz-danger);
+  transform: scale(var(--qz-press, .97));
+  transition: transform var(--qz-duration-instant) var(--qz-ease-standard);
+}
+
+/* done：整体变红（填充层已铺满），由 aria-disabled 表达不可再操作，保持可聚焦 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn.qz-hc-btn[data-state="done"] {
+  border-color: var(--qz-danger);
+  cursor: default;
+}
+
+/* 面：图标 + 文案；fill 里再叠一份同款。图标盒与 .qz-btn--sm 的 16px 字形同大 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-face {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  white-space: nowrap;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-icon-phase {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-icon svg { display: block; }
+
+/* 文案框：measure 撑出自然宽，label 绝对居中；宽度由脚本 WAAPI 弹簧形变 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-frame { position: relative; display: inline-block; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-measure { display: inline-block; visibility: hidden; white-space: nowrap; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-label {
+  position: absolute;
+  inset: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 34px;
-  padding: 0px 13px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill, 999px);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 12.5px;
-  font-weight: 800;
-  line-height: 1;
   white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
-/* 按住:瞬时缩放,松开由基础 transition 弹回 */
-.j8-hc-btn[data-state="holding"] {
-  transform: scale(var(--j8-press, 0.97));
-  transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-}
-
-/* done:整体变红,由 aria-disabled 表达不可再操作,保持可聚焦 */
-.j8-hc-btn[data-state="done"] { border-color: var(--red); cursor: default; }
-
-.j8-hc-btn:disabled { cursor: not-allowed; background: var(--surface-2); border-color: var(--line); color: var(--muted); }
-
-@media (hover: hover) and (pointer: fine) {
-  .j8-hc-btn:hover:not(:disabled):not([data-state="done"]) {
-    color: var(--red);
-    background: var(--red-soft);
-    border-color: var(--red);
-  }
-}
-
-/* 面:图标 + 文案;fill 里再叠一份同款 */
-.j8-hc-face { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.j8-hc-icon { flex: 0 0 auto; width: 14px; height: 14px; display: inline-grid; place-items: center; }
-.j8-hc-icon-phase { grid-area: 1 / 1; display: grid; place-items: center; }
-.j8-hc-icon svg { display: block; width: 14px; height: 14px; }
-
-/* 文案框:measure 撑出自然宽,label 绝对居中;宽度由脚本 WAAPI 弹簧形变 */
-.j8-hc-frame { position: relative; display: inline-block; }
-.j8-hc-measure { display: inline-block; visibility: hidden; white-space: nowrap; }
-.j8-hc-label { position: absolute; inset: 0px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
-
-/* 红色填充面:整层定位,clip-path 从左到右揭开,顶层文字白色 */
-.j8-hc-fill {
+/* 危险色填充层：整层定位，clip-path 从左到右揭开；面上的字用 --qz-on-accent（亮色白字压深红、暗色深字压粉红，两边都够对比） */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-fill {
   position: absolute;
-  inset: 0px;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: inherit;
-  background: var(--red);
-  color: #fff;
+  background: var(--qz-danger);
+  color: var(--qz-on-accent);
   clip-path: inset(0 100% 0 0);
 }
 
-/* 手绘对勾:pathLength=1 时 dasharray / offset 即 0..1 */
-.j8-hc-check path {
+/* 手绘对勾：svg 没写 width/height，显式撑满 16px 图标格；pathLength=1 时 dasharray / offset 即 0..1 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-check { width: 16px; height: 16px; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-check path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: j8-hc-draw 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s forwards;
+  animation: qz-hc-draw 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s forwards;
 }
-@keyframes j8-hc-draw { to { stroke-dashoffset: 0; } }
+@keyframes qz-hc-draw { to { stroke-dashoffset: 0; } }
 
-/* 文案切换:新字自下方上浮进场,旧字上移退场 */
-.j8-hc-swap-text-enter-active { transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease; }
-.j8-hc-swap-text-leave-active { transition: opacity 0.13s ease, transform 0.13s ease, filter 0.13s ease; }
-.j8-hc-swap-text-enter-from { opacity: 0; transform: translateY(0.3em); filter: blur(4px); }
-.j8-hc-swap-text-leave-to { opacity: 0; transform: translateY(-0.3em); filter: blur(4px); }
+/* 文案切换：新字自下方上浮进场，旧字上移退场（与 QzButton 同一组时长 / 缓动 token） */
+.qz-hc-swap-text-enter-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-standard) var(--qz-ease-enter), filter var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-hc-swap-text-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard), filter var(--qz-duration-instant) var(--qz-ease-standard); }
+.qz-hc-swap-text-enter-from { opacity: 0; transform: translateY(0.3em); filter: blur(4px); }
+.qz-hc-swap-text-leave-to { opacity: 0; transform: translateY(-0.3em); filter: blur(4px); }
 
-/* 图标切换:缩放弹入 / 缩出 */
-.j8-hc-swap-icon-enter-active { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.34, 1.45, 0.64, 1), filter 0.2s ease; }
-.j8-hc-swap-icon-leave-active { transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease; }
-.j8-hc-swap-icon-enter-from,
-.j8-hc-swap-icon-leave-to { opacity: 0; transform: scale(0.6); filter: blur(2px); }
+/* 图标切换：缩放弹入 / 缩出 */
+.qz-hc-swap-icon-enter-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring), filter var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-hc-swap-icon-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard), filter var(--qz-duration-instant) var(--qz-ease-standard); }
+.qz-hc-swap-icon-enter-from,
+.qz-hc-swap-icon-leave-to { opacity: 0; transform: scale(0.6); filter: blur(2px); }
 
-/* 低动态:纯淡入淡出 */
-.j8-hc-fade-enter-active,
-.j8-hc-fade-leave-active { transition: opacity 0.15s ease; }
-.j8-hc-fade-enter-from,
-.j8-hc-fade-leave-to { opacity: 0; }
-
-/* sr-only:hint 说明与 done 播报 */
-.j8-hc-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0px; border: 0px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* 低动态：纯淡入淡出 */
+.qz-hc-fade-enter-active,
+.qz-hc-fade-leave-active { transition: opacity var(--qz-duration-fast) var(--qz-ease-standard); }
+.qz-hc-fade-enter-from,
+.qz-hc-fade-leave-to { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .j8-hc-btn,
-  .j8-hc-btn[data-state="holding"] { transform: none; transition-duration: 0.001ms; }
-  .j8-hc-swap-text-enter-from,
-  .j8-hc-swap-text-leave-to,
-  .j8-hc-swap-icon-enter-from,
-  .j8-hc-swap-icon-leave-to { transform: none; filter: none; }
-  .j8-hc-check path { animation: none; stroke-dashoffset: 0; }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn.qz-hc-btn[data-state="holding"] { transform: none; transition: none; }
+  .qz-hc-swap-text-enter-from,
+  .qz-hc-swap-text-leave-to,
+  .qz-hc-swap-icon-enter-from,
+  .qz-hc-swap-icon-leave-to { transform: none; filter: none; }
+  :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-check path { animation: none; stroke-dashoffset: 0; }
 }
 </style>

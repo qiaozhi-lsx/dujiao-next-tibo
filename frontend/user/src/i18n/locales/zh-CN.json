@@ -1740,7 +1740,15 @@
       "support": "在线客服",
       "notice": "公告",
       "about": "关于",
-      "account": "个人中心"
+      "account": "个人中心",
+      "primaryAria": "主导航",
+      "footerAria": "页脚导航",
+      "bottomAria": "底部导航",
+      "backTop": "回到顶部"
+    },
+    "qty": {
+      "decrease": "减少数量",
+      "increase": "增加数量"
     },
     "hero": {
       "eyebrow": "DIGITAL SERVICES",
@@ -1750,6 +1758,10 @@
       "searchPlaceholder": "搜索商品名称或关键词...",
       "share": "分享",
       "shared": "已复制"
+    },
+    "home": {
+      "featuredEyebrow": "FEATURED",
+      "storeEyebrow": "STORE"
     },
     "search": {
       "label": "搜索商品",
@@ -1764,11 +1776,15 @@
       "title": "为你精选",
       "unit": "个商品",
       "months": "个月",
-      "days": "天"
+      "days": "天",
+      "membershipEyebrow": "MEMBERSHIP"
     },
     "catalog": {
       "title": "商品分类",
       "unit": "件"
+    },
+    "categories": {
+      "eyebrow": "CATEGORIES"
     },
     "products": {
       "hero": {
@@ -1794,7 +1810,8 @@
       "hint": "订单问题请带上订单号联系，处理更高效。"
     },
     "footer": {
-      "rights": "保留所有权利"
+      "rights": "保留所有权利",
+      "mobileLinksAria": "页脚链接"
     },
     "login": {
       "eyebrow": "SIGN IN",
@@ -1808,10 +1825,29 @@
       "hasAccountPrefix": "已有账号？",
       "goLogin": "直接登录"
     },
+    "forgot": {
+      "eyebrow": "ACCOUNT RECOVERY"
+    },
+    "notice": {
+      "eyebrow": "NOTICE"
+    },
+    "blog": {
+      "eyebrow": "BLOG"
+    },
+    "about": {
+      "eyebrow": "ABOUT"
+    },
+    "legal": {
+      "eyebrow": "LEGAL"
+    },
     "cart": {
       "eyebrow": "CART",
       "back": "返回首页",
       "emptyHint": "挑一件心仪的，放进购物车再来结算吧。"
+    },
+    "guestOrders": {
+      "eyebrow": "ORDERS",
+      "emptyBeforeQuery": "输入邮箱与订单密码后查看订单"
     },
     "checkout": {
       "eyebrow": "CHECKOUT",
@@ -1845,11 +1881,13 @@
       "errPassword": "订单查询密码至少 6 位",
       "errChannel": "请选择支付方式",
       "errSubmit": "下单失败，请稍后重试",
+      "renewNeedsCaptcha": "支付已过期，请重新完成验证码后再次提交",
       "descExpand": "展开",
       "descCollapse": "收起"
     },
     "payment": {
       "eyebrow": "PAYMENT",
+      "pageEyebrow": "PAYMENT",
       "summaryTitle": "订单摘要",
       "scanEyebrow": "SCAN TO PAY",
       "modal": {
@@ -1898,7 +1936,8 @@
         "amountLabel": "合计",
         "timeLabel": "时间",
         "notQrCapable": "暂未获取到支付信息,请稍后重试或联系客服",
-        "closeAria": "关闭支付弹窗"
+        "closeAria": "关闭支付弹窗",
+        "qrAlt": "支付二维码"
       }
     },
     "orderDetail": {
@@ -1919,6 +1958,7 @@
       "helpOrderNo": "并提供订单号"
     },
     "tfa": {
+      "eyebrow": "TWO-FACTOR AUTHENTICATOR",
       "title": "动态验证码",
       "desc": "粘贴商品资料里的 2FA 密钥或 otpauth 链接，立即显示动态验证码（完全本地计算，不会上传）。",
       "placeholder": "例如：JBSWY3DPEHPK3PXP",

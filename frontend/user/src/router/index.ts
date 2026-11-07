@@ -338,10 +338,11 @@ router.beforeEach(async (to, _from, next) => {
     const appStore = useAppStore()
     void captureAffiliateFromRoute(to)
 
-    // Fire-and-forget config load: 不等 config 返回就放行路由挂载，避免 RTT 阻塞首帧；
-    // 组件按需从 appStore.config?.xxx 响应式读取，getActiveTemplate() 在 config=null 时回落 classic。
+    // 快路径由 loadConfig 内部同步返回（window.__PUBLIC_CONFIG__ 存在时同步赋值后 return），
+    // 这里的 await 不含 RTT；无内联配置时必须等，否则 templateView() 会在 config=null 时
+    // 回落 classic，而 vue-router 会把懒加载结果固化进 route record，整会话都纠不回来。
     if (!appStore.config) {
-        void appStore.loadConfig()
+        await appStore.loadConfig()
     }
 
     if (to.meta.requiresUserAuth) {
