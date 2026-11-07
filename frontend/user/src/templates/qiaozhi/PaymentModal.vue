@@ -16,7 +16,9 @@
         @keydown="handleKeydown"
       >
         <!-- 金额卡 -->
-        <div class="pay-modal__amount-card">
+        <!-- 成功态下视觉已淡出（opacity:0 + pointer-events:none），inert 把键盘 Tab 也挡在外头；
+             crypto-actions 已被 v-if 过滤掉，不需要 inert。 -->
+        <div class="pay-modal__amount-card" :inert="stage === 'success' || undefined">
           <div class="pay-modal__amount-top">
             <small class="pay-modal__amount-label">
               {{ t('qiaozhi.payment.modal.amountPaid') }}
@@ -64,7 +66,7 @@
         </div>
 
         <!-- 支付卡：二维码 / 倒计时 / 收款地址 -->
-        <div class="pay-modal__pay-card">
+        <div class="pay-modal__pay-card" :inert="stage === 'success' || undefined">
           <div class="pay-modal__pay-head">
             <b>{{ payCardTitle }}</b>
           </div>
