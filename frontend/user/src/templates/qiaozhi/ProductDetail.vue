@@ -142,7 +142,7 @@
                 </div>
                 <div v-if="captchaProvider === 'image'" class="qz-field">
                   <span class="qz-field-label">{{ t('qiaozhi.detail.captcha') }}<b>*</b></span>
-                  <ImageCaptcha ref="imageCaptchaRef" v-model="captchaPayload" />
+                  <ImageCaptcha ref="imageCaptchaRef" v-model="captchaPayload" @config-stale="handleCaptchaConfigStale" />
                 </div>
                 <div v-else-if="captchaProvider === 'turnstile'" class="qz-field">
                   <span class="qz-field-label">{{ t('qiaozhi.detail.captcha') }}<b>*</b></span>
@@ -187,6 +187,7 @@
               </div>
 
               <p v-if="formError" class="qz-alert is-danger" role="alert">{{ formError }}</p>
+              <p v-else-if="purchaseWarning" class="qz-alert is-warning" role="alert">{{ purchaseWarning }}</p>
               <p v-else-if="cannotPurchaseReason" class="qz-alert is-warning" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="qz-pd-buttons">
@@ -303,7 +304,7 @@ const {
   isSkuPurchasable, skuDisplayText, skuStockText,
   requiresLogin, requiresSKUSelection, canPurchase, cannotPurchaseReason,
   quantityEffectiveMin, quantityEffectiveLimit,
-  addToCart, buyNow, loadProduct,
+  addToCart, buyNow, loadProduct, purchaseWarning,
 } = useProductDetail()
 
 const title = computed(() => getLocalizedText(product.value?.title))
@@ -421,6 +422,15 @@ const captchaProvider = computed(() => {
   return String(cfg.provider)
 })
 const turnstileSiteKey = computed(() => String(captchaConfig.value?.turnstile?.site_key || ''))
+
+// 游客下单的图形验证码若因上游配置已变更而失效（ImageCaptcha 拉不到新图时 emit config-stale），
+// 强刷 /public/config 让本页取到最新 captcha / 渠道配置，顺便把已废弃的 payload 清掉。
+// 与 Login / Register / Forgot 三页 useLogin / useRegister / useForgot 中的同名 handler 保持一致。
+const handleCaptchaConfigStale = async () => {
+  await appStore.loadConfig(true)
+  captchaPayload.value = {}
+  turnstileToken.value = ''
+}
 
 const channels = computed(() => {
   const list = appStore.config?.payment_channels
