@@ -141,7 +141,7 @@ type stubPaymentWriter struct{}
 func (stubPaymentWriter) CreatePayment(CreatePaymentInput) (*CreatePaymentResult, error) {
 	return nil, nil
 }
-func (stubPaymentWriter) GetPayment(uint) (*paymentdomain.Payment, error)                  { return nil, nil }
+func (stubPaymentWriter) GetPayment(uint) (*paymentdomain.Payment, error) { return nil, nil }
 func (stubPaymentWriter) CapturePayment(CapturePaymentInput) (*paymentdomain.Payment, error) {
 	return nil, nil
 }
