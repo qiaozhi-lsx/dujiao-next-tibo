@@ -65,6 +65,7 @@ func registerStorefrontRoutes(
 	guestReadRule middleware.RateLimitRule,
 	guestWriteRule middleware.RateLimitRule,
 	giftCardRedeemRule middleware.RateLimitRule,
+	txHashRule middleware.RateLimitRule,
 ) {
 	storefront := apiV1.Group("")
 	storefront.Use(middleware.ResellerTenantMiddleware(c.ResellerDomainResolver))
@@ -100,7 +101,7 @@ func registerStorefrontRoutes(
 	{
 		ordertransport.RegisterGuestCreateRoute(guestWrite, orderCreateHandler)
 		ordertransport.RegisterGuestCreateAndPayRoute(guestWrite, orderCreateHandler)
-		paymenttransport.RegisterGuestWriteRoutes(guestWrite, paymentWriteHandler)
+		paymenttransport.RegisterGuestWriteRoutes(guestWrite, paymentWriteHandler, middleware.RateLimitMiddleware(redisClient, txHashRule, middleware.KeyByIP))
 	}
 
 	// 用户认证接口
@@ -139,7 +140,7 @@ func registerStorefrontRoutes(
 		ordertransport.RegisterUserPaymentChannelsRoute(user, userOrderHandler)
 		ordertransport.RegisterUserReadRoutes(user, userOrderHandler)
 		ordertransport.RegisterUserCancelRoute(user, userOrderHandler)
-		paymenttransport.RegisterUserWriteRoutes(user, paymentWriteHandler)
+		paymenttransport.RegisterUserWriteRoutes(user, paymentWriteHandler, middleware.RateLimitMiddleware(redisClient, txHashRule, middleware.KeyByIP))
 		paymenttransport.RegisterUserLatestRoute(user, paymentLatestHandler)
 		wallettransport.RegisterUserRoutes(user, userWalletHandler)
 		giftCardRedeem := user.Group("", middleware.RateLimitMiddleware(redisClient, giftCardRedeemRule, middleware.KeyByUserIDAndIP))

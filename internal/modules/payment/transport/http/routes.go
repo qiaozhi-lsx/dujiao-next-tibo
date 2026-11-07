@@ -19,23 +19,27 @@ func RegisterUserLatestRoute(user gin.IRoutes, handler *LatestHandler) {
 }
 
 // RegisterGuestWriteRoutes 注册前台游客支付创建/捕获路由。
-func RegisterGuestWriteRoutes(guest gin.IRoutes, handler *WriteHandler) {
-	if guest == nil || handler == nil {
+// txHashRateLimit 仅挂在 /submit-tx-hash 上:链上哈希补单频率敏感,独立限额收窄滥用面,
+// 不影响同组其他 write 路由已经承担的 guestWriteRule。
+func RegisterGuestWriteRoutes(guest gin.IRoutes, handler *WriteHandler, txHashRateLimit gin.HandlerFunc) {
+	if guest == nil || handler == nil || txHashRateLimit == nil {
 		panic("payment guest write routes: required dependency is nil")
 	}
 	guest.POST("/payments", handler.CreateGuestPayment)
 	guest.POST("/payments/:id/capture", handler.CaptureGuestPayment)
-	guest.POST("/payments/:id/submit-tx-hash", handler.SubmitGuestTxHash)
+	guest.POST("/payments/:id/submit-tx-hash", txHashRateLimit, handler.SubmitGuestTxHash)
 }
 
 // RegisterUserWriteRoutes 注册前台用户支付创建/捕获路由。
-func RegisterUserWriteRoutes(user gin.IRoutes, handler *WriteHandler) {
-	if user == nil || handler == nil {
+// txHashRateLimit 仅挂在 /submit-tx-hash 上:链上哈希补单频率敏感,按 IP 计数而非用户,
+// 避免多账号同 IP 共用额度被放大。
+func RegisterUserWriteRoutes(user gin.IRoutes, handler *WriteHandler, txHashRateLimit gin.HandlerFunc) {
+	if user == nil || handler == nil || txHashRateLimit == nil {
 		panic("payment user write routes: required dependency is nil")
 	}
 	user.POST("/payments", handler.CreatePayment)
 	user.POST("/payments/:id/capture", handler.CapturePayment)
-	user.POST("/payments/:id/submit-tx-hash", handler.SubmitTxHash)
+	user.POST("/payments/:id/submit-tx-hash", txHashRateLimit, handler.SubmitTxHash)
 }
 
 // RegisterAdminRoutes 注册后台支付只读路由。
