@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dujiao-next/internal/constants"
+	"github.com/dujiao-next/internal/shared/navconfig"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,16 +34,6 @@ type InitialConfigFlagsSource interface {
 	// GetRegistrationFlags 返回注册开关与邮箱验证开关；读取失败时应按默认开启处理，
 	// 与 /api/v1/public/config 的口径一致。
 	GetRegistrationFlags() (registrationEnabled, emailVerificationEnabled bool)
-}
-
-// defaultNavConfig 是 nav_config 未配置时的默认导航结构：三个内置导航全开、无自定义项。
-// 必须与 settings 模块 public handler 写进 /api/v1/public/config 的默认值保持同形，
-// 否则首帧与完整配置不一致，前端会先按一种导航渲染再翻转。每次返回新 map，避免缓存共享可变状态。
-func defaultNavConfig() map[string]interface{} {
-	return map[string]interface{}{
-		"builtin":      map[string]interface{}{"blog": true, "notice": true, "about": true},
-		"custom_items": make([]interface{}, 0),
-	}
 }
 
 // SiteResolver 判断一次入口请求落在主站还是分销白标站。
@@ -108,7 +99,7 @@ func buildInitialConfigPayload(_ context.Context, settings InitialConfigSource) 
 	if flags, ok := settings.(InitialConfigFlagsSource); ok {
 		navConfig := flags.GetNavConfig()
 		if navConfig == nil {
-			navConfig = defaultNavConfig()
+			navConfig = navconfig.Default()
 		}
 		out["nav_config"] = navConfig
 		registrationEnabled, emailVerificationEnabled := flags.GetRegistrationFlags()

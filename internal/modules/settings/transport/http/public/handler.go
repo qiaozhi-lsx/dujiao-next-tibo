@@ -11,6 +11,7 @@ import (
 	reseller "github.com/dujiao-next/internal/modules/reseller/contract"
 	"github.com/dujiao-next/internal/platform/http/response"
 	"github.com/dujiao-next/internal/shared/jsonmap"
+	"github.com/dujiao-next/internal/shared/navconfig"
 	"github.com/dujiao-next/internal/version"
 
 	"github.com/gin-gonic/gin"
@@ -227,10 +228,7 @@ func (h *Handler) GetConfig(c *gin.Context) {
 	if navConfigVal != nil {
 		data["nav_config"] = navConfigVal
 	} else {
-		data["nav_config"] = map[string]interface{}{
-			"builtin":      map[string]interface{}{"blog": true, "notice": true, "about": true},
-			"custom_items": make([]interface{}, 0),
-		}
+		data["nav_config"] = navconfig.Default()
 	}
 
 	if announcement, ok := h.settings.GetActiveHomeAnnouncement(); ok {
