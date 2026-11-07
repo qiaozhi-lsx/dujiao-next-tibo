@@ -7,7 +7,7 @@
     <button
       v-if="isHorizontal && edges.overflow"
       type="button"
-      class="qz-icon-btn qz-icon-btn--sm qz-tabs-arrow is-left"
+      class="qz-icon-btn qz-icon-btn--sm is-left"
       :disabled="!edges.left"
       :aria-label="scrollLeftLabel"
       @click="scrollByPage(-1)"
@@ -38,7 +38,7 @@
     <button
       v-if="isHorizontal && edges.overflow"
       type="button"
-      class="qz-icon-btn qz-icon-btn--sm qz-tabs-arrow is-right"
+      class="qz-icon-btn qz-icon-btn--sm is-right"
       :disabled="!edges.right"
       :aria-label="scrollRightLabel"
       @click="scrollByPage(1)"

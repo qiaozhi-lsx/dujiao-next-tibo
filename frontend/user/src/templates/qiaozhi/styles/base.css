@@ -8,24 +8,57 @@
    style-conventions guard enforces it). Pages consume these classes and add layout on top.
    Page head, alert, stat grid, skeleton, the accent badge and the small print under a section
    head have no Arc source: they are the rules the first-wave pages each carried a copy of,
-   lifted here so a page keeps only its layout.
+   lifted here so a page keeps only its layout. The root block, the brand glyph, the reveal
+   motion and the native-button cursor are the template's own base rules, kept from its
+   original sheet.
 
-   Scope. Every rule starts with `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))`, the form
-   legacy.css already uses for body-reachable rules: `.qiaozhi-scope` is the layout root,
-   `body.qiaozhi-tokens` is what Teleport-ed overlays (drawer, modals, toasts) sit under.
-   `:where()` keeps the body branch at zero specificity, so a rule here weighs exactly
-   `.qiaozhi-scope .qz-x` (0,2,0) — legacy.css, imported after this sheet, still wins ties
-   while pages migrate, and page `<style scoped>` overrides stay cheap. State guards use
-   `:where(:not(…))` for the same reason.
+   Scope. Every class rule starts with `:is(.qiaozhi-scope, :where(body.qiaozhi-tokens))`:
+   `.qiaozhi-scope` is the layout root, `body.qiaozhi-tokens` is what Teleport-ed overlays
+   (drawer, modals, toasts) sit under. `:where()` keeps the body branch at zero specificity,
+   so a rule here weighs exactly `.qiaozhi-scope .qz-x` (0,2,0) and page `<style scoped>`
+   overrides stay cheap (chain a page class to out-rank one — see the specificity note in the
+   page files). State guards use `:where(:not(…))` for the same reason. The exceptions are the
+   root block (`html`, the `.qiaozhi-scope` element itself), the page-fade transition classes
+   (Vue <Transition> names carry no scope), the native-button cursor and the reduced-motion
+   kill switch, which address the layout root only.
 
    Press feedback: `.qz-btn` / `.qz-icon-btn` / `.qz-pill` scale by `--qz-press` on :active.
    QzButton.vue and QzQtyStepper.vue write it per button width (.985 wide / .97 / .96 icon);
    the CSS fallback is .97 for buttons and pills and .96 for icon buttons.
 
-   Order: button → icon button → pill → chip / badge → field → card / panel → eyebrow /
-   section head → page head → alert → stat grid → empty state → skeleton → visually hidden →
-   focus → reduced motion.
+   Order: root → button → icon button → pill → chip / badge → field → card / panel → eyebrow /
+   section head → page head → alert → stat grid → empty state → skeleton → brand glyph →
+   reveal motion → page fade → visually hidden → focus → reduced motion.
    ========================================================================= */
+
+/* ---------- Root (the template's document-level rules) ----------
+   `html` keeps the scrollbar gutter so the fixed header does not shift when a page gets a
+   scrollbar (src/style.css sets the same pair globally; repeated here so the template does not
+   depend on it). The layout root paints the page colour, sets the body type and makes itself a
+   full-height column (header / main / footer); the 1.55 body leading is the template's own — the
+   `--qz-leading-*` steps are for components that set theirs explicitly. The background / colour
+   transition is what makes the theme toggle fade instead of flash. */
+html { scrollbar-gutter: stable; overflow-y: scroll; }
+.qiaozhi-scope {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--qz-bg);
+  color: var(--qz-text);
+  font-family: var(--qz-font-body);
+  font-size: var(--qz-text-sm);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .2s, color .2s;
+}
+.dark .qiaozhi-scope { color-scheme: dark; }
+
+/* Native buttons: the UA default is the arrow; the template reads every button as clickable. Layout
+   root only — teleported overlays and classic components style their own cursors. */
+.qiaozhi-scope button { cursor: pointer; }
+.qiaozhi-scope button:disabled { cursor: not-allowed; }
 
 /* ---------- Button (Arc Button: .button / .primary .secondary .ghost .danger / .sm .lg) ---------- */
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-btn {
@@ -453,6 +486,43 @@
 }
 @keyframes qz-pulse { 50% { opacity: .45; } }
 
+/* ---------- Brand glyph (product / category / featured-card logo slot) ----------
+   Fills its box: an `<img>` is contained, a fallback letter in `<b>` sits centred in the accent
+   colour. The host (card icon, category row, art layer) gives the box its size and shape; it may
+   also size the inner `> b` / `> svg` — see QzProductCard.vue, QzCategoryPanel.vue. Declared on
+   both scopes: the category drawer that uses it is teleported to <body>. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--qz-accent-strong);
+  font-weight: 800;
+}
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon > img { width: 100%; height: 100%; object-fit: contain; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-brand-icon > b { font-size: var(--qz-text-sm); }
+
+/* ---------- Reveal motion (utils/reveal.ts) ----------
+   Markup starts as `.qz-reveal.is-pending` (hidden); the IntersectionObserver swaps it to `.is-in`
+   as it scrolls into view and sets `--d` per element for the stagger. The rise is the template's
+   own curve and length, not a `--qz-duration-*` step. */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-reveal.is-pending { opacity: 0; }
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-reveal.is-in {
+  animation: qz-rise .75s cubic-bezier(.2, .8, .2, 1) backwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes qz-rise {
+  0% { opacity: 0; transform: translateY(22px) scale(.97); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* ---------- Page fade (<Transition name="page-fade">: the back-to-top button in the layout) ----------
+   App.vue declares the same pair for the RouterView; kept here so the template's own transition does
+   not depend on it. Transition classes land on the element itself, hence no scope prefix. */
+.page-fade-enter-active, .page-fade-leave-active { transition: opacity .2s; }
+.page-fade-enter-from, .page-fade-leave-to { opacity: 0; }
+
 /* ---------- Visually hidden (screen-reader only text: live regions, sr-only headings) ----------
    The 1px box (not 0) keeps every screen reader announcing it. Declared on both scopes: the
    search box's live region sits in the header, the category drawer is teleported to <body>. */
@@ -485,9 +555,13 @@
   outline-offset: 2px;
 }
 
-/* ---------- Reduced motion: no transitions, no press scale, no skeleton pulse ---------- */
+/* ---------- Reduced motion: no transitions, no press scale, no skeleton pulse ----------
+   The primitives opt out individually on both scopes; the kill switch below then stops every
+   animation and transition under the layout root (reveal rise, hero text, featured-card art,
+   page fade …) in one go — `!important` so page-level motion cannot opt back in. */
 @media (prefers-reduced-motion: reduce) {
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill, .qz-field-control) { transition: none; }
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) :is(.qz-btn, .qz-icon-btn, .qz-pill):active { transform: none; transition: none; }
   :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-skeleton { animation: none; }
+  .qiaozhi-scope *, .qiaozhi-scope ::before, .qiaozhi-scope ::after { animation: none !important; transition: none !important; }
 }

@@ -3,17 +3,20 @@
 
    Header (brand / primary nav / actions), page container, desktop footer, mobile footer
    links, mobile bottom nav, floating support button + contact panel, language popover,
-   back-to-top. Migrated from the legacy sheet and rewritten on `--qz-*` tokens
+   back-to-top. Rewritten from the template's original sheet on `--qz-*` tokens
    (tokens.css); interactive controls come from the base primitives (base.css):
    `.qz-pill` for nav items, `.qz-icon-btn` / `.qz-icon-btn--sm` for icon buttons,
    `.qz-btn qz-btn--secondary qz-btn--sm` for the account button.
 
-   Scope: `.qiaozhi-scope` only (nothing here is teleported to <body>).
+   Scope: `.qiaozhi-scope` for the shell itself; the one body-scoped rule is the mobile
+   position of the classic toast stack (Teleport-ed to <body>), which has to clear the
+   bottom nav.
    Breakpoints: ≤1120 tighter header padding, secondary nav items (2FA / notice / about)
    collapse to icon-only pills · ≤1000 the tutorial pill collapses too · ≤760 nav + desktop
    footer hidden, bottom nav + mobile footer links shown, header 60px (token override in
-   tokens.css). The nav row is a hidden-scrollbar scroll box with an inline-end fade, so
-   whatever still overflows is never shown cut.
+   tokens.css). The nav row is a hidden-scrollbar scroll box; while it actually overflows
+   (QiaozhiLayout.vue sets `data-overflow` from a ResizeObserver) an inline-end fade makes
+   sure whatever is cut off dissolves instead of ending in a hard edge.
    Values: colours, font sizes, spacing, radii, motion are tokens (brand glyph colours are
    the `--qz-brand-*` tokens); the only literal px are icon glyphs (16 / 18), 1px hairlines
    and a few content-driven boxes (brand mark 34, count badge 18, popover / panel widths).
@@ -151,9 +154,11 @@
 /* Primary nav: a row of `.qz-pill`s. The row is a hidden-scrollbar scroll box so that, when
    every optional item is enabled and the viewport is narrow, pills scroll instead of
    overlapping the brand or the actions; `safe center` keeps them centred while they fit.
-   The static inline-end mask fades the last 24px of the box, so a pill that does overflow
-   dissolves instead of showing a cut edge (only alpha matters: --qz-text is opaque in both
-   themes, `transparent` is the fade). While everything fits, nothing reaches that strip. */
+   QiaozhiLayout.vue watches the row with a ResizeObserver and sets `data-overflow` only while
+   scrollWidth exceeds clientWidth; then the inline-end mask fades the last 24px of the box, so
+   the pill that is cut off dissolves instead of ending in a hard edge (only alpha matters:
+   --qz-text is opaque in both themes, `transparent` is the fade). While everything fits there
+   is no mask at all, so the last pill — and its focus ring — stays fully opaque. */
 .qiaozhi-scope .qz-nav {
   display: flex;
   align-items: center;
@@ -164,6 +169,8 @@
   padding: var(--qz-space-1); /* room for focus rings inside the scroll box */
   overflow-x: auto;
   scrollbar-width: none;
+}
+.qiaozhi-scope .qz-nav[data-overflow] {
   mask-image: linear-gradient(to right, var(--qz-text) calc(100% - var(--qz-space-6)), transparent);
 }
 .qiaozhi-scope .qz-nav::-webkit-scrollbar {
@@ -498,7 +505,7 @@
 /* ---------- Visibility utilities (header icon buttons vs. the account button) ----------
    Hide-only on both sides, so a visible element keeps the `display` its own class gives it
    (`.qz-icon-btn` is inline-grid). `.02px` closes the gap with `(max-width: 760px)` the way the
-   legacy sheet pairs its `1023.98px` queries. */
+   page sheets pair their `1023.98px` queries. */
 @media (min-width: 760.02px) {
   .qiaozhi-scope .qz-only-mobile {
     display: none;
@@ -667,5 +674,12 @@
   .qiaozhi-scope .qz-contact-panel {
     right: var(--qz-fab-right);
     bottom: calc(var(--qz-fab-bottom) + var(--qz-fab-height) + var(--qz-fab-gap));
+  }
+
+  /* Classic toast stack (src/components/Toast.vue, Teleport-ed to <body>): classic pins it to the
+     bottom on phones, where the bottom nav sits; move it under the fixed header instead. */
+  body.qiaozhi-tokens > div.z-\[100\].pointer-events-none {
+    bottom: auto;
+    top: calc(var(--qz-header-h) + var(--qz-space-3));
   }
 }

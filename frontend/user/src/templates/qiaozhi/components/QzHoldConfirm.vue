@@ -480,7 +480,8 @@ watch(() => props.disabled, (value) => {
   clip-path: inset(0 100% 0 0);
 }
 
-/* 手绘对勾：pathLength=1 时 dasharray / offset 即 0..1 */
+/* 手绘对勾：svg 没写 width/height，显式撑满 16px 图标格；pathLength=1 时 dasharray / offset 即 0..1 */
+:is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-check { width: 16px; height: 16px; }
 :is(.qiaozhi-scope, :where(body.qiaozhi-tokens)) .qz-hc-check path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;

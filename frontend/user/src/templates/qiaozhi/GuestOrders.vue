@@ -260,8 +260,8 @@ onUnmounted(() => { cleanupReveal?.() })
 /* 页头用 base.css 的 .qz-page-head */
 
 /* ---------- 查询表单 ----------
-   .qz-panel.qz-orders-search 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（sticky、≤760 隐藏、overflow hidden）
-   在它被删掉之前不能影响这块面板。 */
+   .qz-panel.qz-orders-search 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它，
+   不依赖样式注入顺序。 */
 .qz-panel.qz-orders-search {
   position: static;
   display: block;
@@ -312,8 +312,8 @@ onUnmounted(() => { cleanupReveal?.() })
   gap: var(--qz-space-2);
 }
 
-/* .qz-card.qz-orders-item 写成 (0,3,0)：legacy.css 里旧商品卡的 .qz-card 规则（min-height 270、hover 上浮、::before 圆斑、pointer）
-   在它被删掉之前不能影响订单行。 */
+/* .qz-card.qz-orders-item 写成 (0,3,0)：base.css 的 .qz-card 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
 .qz-card.qz-orders-item {
   display: flex;
   flex-wrap: wrap;

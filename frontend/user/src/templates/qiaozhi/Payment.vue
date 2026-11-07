@@ -1,28 +1,28 @@
 <template>
-  <div ref="rootEl" class="qz-container qz-pd">
+  <div ref="rootEl" class="qz-container qz-pay">
     <!-- 返回 -->
-    <button type="button" class="qz-pd-back" @click="goBack">
+    <button type="button" class="qz-pay-back" @click="goBack">
       <ChevronLeft />
       {{ t('payment.backToOrders') }}
     </button>
 
     <!-- 骨架 -->
-    <div v-if="loading" class="qz-pd-skeleton">
-      <div class="qz-pd-sk-line is-lg"></div>
-      <div class="qz-pd-sk-line"></div>
-      <div class="qz-pd-sk-block"></div>
-      <div class="qz-pd-sk-line is-sm"></div>
-      <div class="qz-pd-sk-line is-btn"></div>
+    <div v-if="loading" class="qz-pay-skeleton">
+      <div class="qz-pay-sk-line is-lg"></div>
+      <div class="qz-pay-sk-line"></div>
+      <div class="qz-pay-sk-block"></div>
+      <div class="qz-pay-sk-line is-sm"></div>
+      <div class="qz-pay-sk-line is-btn"></div>
     </div>
 
     <!-- 游客补录凭据 -->
-    <section v-else-if="showGuestAuthForm" class="qz-pd-detail">
+    <section v-else-if="showGuestAuthForm" class="qz-pay-detail">
       <h2>{{ t('payment.guestAuthTitle') }}</h2>
-      <p class="qz-pd-note is-warm" style="margin-top: 10px;">
+      <p class="qz-pay-note is-warm" style="margin-top: 10px;">
         <b>{{ t('payment.guestAuthHint') }}</b>
       </p>
-      <form class="qz-ic" style="margin-top: 16px;" novalidate @submit.prevent="handleGuestAuthSubmit">
-        <div class="qz-ic-field">
+      <form class="qz-pay-form" style="margin-top: 16px;" novalidate @submit.prevent="handleGuestAuthSubmit">
+        <div class="qz-pay-field">
           <label for="qz-pay-guest-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
           <input
             id="qz-pay-guest-email"
@@ -32,7 +32,7 @@
             :placeholder="t('qiaozhi.detail.emailPlaceholder')"
           />
         </div>
-        <div class="qz-ic-field">
+        <div class="qz-pay-field">
           <label for="qz-pay-guest-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
           <input
             id="qz-pay-guest-password"
@@ -42,8 +42,8 @@
             :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
           />
         </div>
-        <p v-if="guestAuthError" class="qz-ic-alert is-error" role="alert">{{ guestAuthError }}</p>
-        <button type="submit" class="qz-pd-buy">
+        <p v-if="guestAuthError" class="qz-pay-form-alert is-error" role="alert">{{ guestAuthError }}</p>
+        <button type="submit" class="qz-pay-primary">
           <LogIn />
           {{ t('payment.guestAuthSubmit') }}
         </button>
@@ -54,26 +54,26 @@
     <div v-else-if="!order" class="qz-empty">
       <PackageOpen />
       <b>{{ t('payment.orderNotFound') }}</b>
-      <RouterLink :to="backLink" class="qz-btn-primary">
+      <RouterLink :to="backLink" class="qz-pay-return">
         <ArrowLeft />
         {{ t('payment.backToOrders') }}
       </RouterLink>
     </div>
 
     <!-- 过期 / 取消 -->
-    <section v-else-if="orderExpired || orderCanceled" class="qz-pd-detail">
-      <div class="qz-pd-pay-head">
+    <section v-else-if="orderExpired || orderCanceled" class="qz-pay-detail">
+      <div class="qz-pay-head">
         <div>
           <span class="qz-eyebrow">{{ t('qiaozhi.payment.pageEyebrow') }}</span>
           <h2>{{ orderCanceled ? t('payment.orderCanceled') : t('payment.orderExpired') }}</h2>
-          <p class="qz-pd-pay-sub">{{ order.order_no }}</p>
+          <p class="qz-pay-sub">{{ order.order_no }}</p>
         </div>
-        <RouterLink :to="backLink" class="qz-btn-primary">
+        <RouterLink :to="backLink" class="qz-pay-return">
           <ArrowLeft />
           {{ t('payment.backToOrders') }}
         </RouterLink>
       </div>
-      <div class="qz-pd-pay-meta">
+      <div class="qz-pay-meta">
         <div>
           <small>{{ t('payment.orderNo') }}</small>
           <b>{{ order.order_no }}</b>
@@ -91,17 +91,17 @@
 
     <template v-else>
       <!-- 订单摘要卡 -->
-      <section class="qz-pd-card qz-pd-pay-card">
-        <div class="qz-pd-pay-head">
+      <section class="qz-pay-card qz-pay-summary">
+        <div class="qz-pay-head">
           <div>
             <span class="qz-eyebrow">{{ t('qiaozhi.payment.eyebrow') }}</span>
             <h1>{{ t('qiaozhi.payment.summaryTitle') }}</h1>
-            <p class="qz-pd-pay-sub">
+            <p class="qz-pay-sub">
               <span>{{ t('payment.orderNo') }}</span>
               <code>{{ order.order_no }}</code>
             </p>
           </div>
-          <div class="qz-pd-chips">
+          <div class="qz-pay-chips">
             <span class="is-accent">{{ statusLabel(order.status) }}</span>
             <span v-if="showCountdown" :class="countdownExpired ? 'is-danger' : 'is-warm'">
               <Clock />
@@ -110,17 +110,17 @@
           </div>
         </div>
 
-        <div class="qz-pd-price-row">
-          <div class="qz-pd-price">
-            <span class="qz-pd-price-sym">{{ totalParts.symbol }}</span>
+        <div class="qz-pay-price-row">
+          <div class="qz-pay-price">
+            <span class="qz-pay-price-sym">{{ totalParts.symbol }}</span>
             <strong>{{ totalParts.major }}{{ totalParts.minor }}</strong>
           </div>
-          <div v-if="customerFeeApplied && customerFeeAmountDisplay" class="qz-pd-price-tag is-promo">
+          <div v-if="customerFeeApplied && customerFeeAmountDisplay" class="qz-pay-price-tag is-promo">
             {{ t('payment.feeAmountLabel') }} +{{ customerFeeAmountDisplay }}
           </div>
         </div>
 
-        <div class="qz-pd-pay-meta">
+        <div class="qz-pay-meta">
           <div>
             <small>{{ t('orderDetail.createdAtLabel') }}</small>
             <b>{{ formatDate(order.created_at) }}</b>
@@ -140,11 +140,11 @@
         </div>
 
         <!-- 商品清单 -->
-        <div v-if="orderItems.length" class="qz-pd-pay-items">
+        <div v-if="orderItems.length" class="qz-pay-items">
           <h3>{{ t('payment.itemsTitle') }}</h3>
           <ul>
             <li v-for="(item, idx) in orderItems" :key="idx">
-              <div class="qz-pd-pay-item-main">
+              <div class="qz-pay-item-main">
                 <b>{{ getLocalizedText(item.title) }}</b>
                 <small>
                   {{ t('orderDetail.quantityLabel') }}&nbsp;×&nbsp;{{ item.quantity }}
@@ -152,106 +152,106 @@
                   <span v-if="item.fulfillment_type">&nbsp;·&nbsp;{{ fulfillmentTypeLabelText(item.fulfillment_type) }}</span>
                 </small>
               </div>
-              <span class="qz-pd-pay-item-amount">{{ formatMoney(item.total_price, order.currency) }}</span>
+              <span class="qz-pay-item-amount">{{ formatMoney(item.total_price, order.currency) }}</span>
             </li>
           </ul>
         </div>
       </section>
 
       <!-- 支付结果视图：QR / 跳转 -->
-      <section v-if="showResultView" class="qz-pd-detail qz-pd-pay-result">
-        <div class="qz-pd-pay-head">
+      <section v-if="showResultView" class="qz-pay-detail qz-pay-result">
+        <div class="qz-pay-head">
           <div>
             <span class="qz-eyebrow">{{ t('qiaozhi.payment.scanEyebrow') }}</span>
             <h2>{{ paymentResultTitle }}</h2>
-            <p class="qz-pd-pay-sub">{{ paymentGuideTip }}</p>
+            <p class="qz-pay-sub">{{ paymentGuideTip }}</p>
           </div>
-          <div class="qz-pd-pay-head-actions">
-            <button type="button" class="qz-pd-cart" :disabled="loading" @click="handleRefresh">
+          <div class="qz-pay-head-actions">
+            <button type="button" class="qz-pay-secondary" :disabled="loading" @click="handleRefresh">
               <RefreshCw />
               {{ t('payment.refreshStatus') }}
             </button>
-            <button type="button" class="qz-pd-cart" @click="handleChangePaymentMethod">
+            <button type="button" class="qz-pay-secondary" @click="handleChangePaymentMethod">
               <RotateCcw />
               {{ t('payment.changeMethod') }}
             </button>
           </div>
         </div>
 
-        <div v-if="paymentAlert" class="qz-pd-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warm'">
+        <div v-if="paymentAlert" class="qz-pay-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warm'">
           {{ paymentAlert.message }}
         </div>
 
-        <div v-if="showQRCode" class="qz-pd-pay-qrbox">
-          <div class="qz-pd-pay-qr">
+        <div v-if="showQRCode" class="qz-pay-qrbox">
+          <div class="qz-pay-qr">
             <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR Code" />
-            <div v-else class="qz-pd-pay-qr-placeholder">
-              <Loader2 class="qz-ic-spin" />
+            <div v-else class="qz-pay-qr-placeholder">
+              <Loader2 class="qz-pay-spin" />
             </div>
           </div>
-          <div class="qz-pd-pay-qr-side">
-            <p class="qz-pd-pay-qr-title">{{ paymentGuideTitle }}</p>
-            <p class="qz-pd-pay-qr-amount">
+          <div class="qz-pay-qr-side">
+            <p class="qz-pay-qr-title">{{ paymentGuideTitle }}</p>
+            <p class="qz-pay-qr-amount">
               <span>{{ t('payment.payableAmountLabel') }}</span>
               <strong>{{ payableAmountDisplay }}</strong>
             </p>
-            <p v-if="qrUsingPayLinkFallback" class="qz-pd-note is-warm">
+            <p v-if="qrUsingPayLinkFallback" class="qz-pay-note is-warm">
               <b>{{ t('payment.qrFallbackHint') }}</b>
             </p>
-            <div v-if="pollingActive" class="qz-pd-pay-polling">
-              <Loader2 class="qz-ic-spin" />
+            <div v-if="pollingActive" class="qz-pay-polling">
+              <Loader2 class="qz-pay-spin" />
               <span>{{ t('payment.pollingHint') }}</span>
             </div>
           </div>
         </div>
 
-        <div v-if="hasCryptoPaymentDetails" class="qz-pd-pay-crypto">
-          <div v-for="item in cryptoPaymentDetails" :key="item.key" class="qz-pd-pay-crypto-row">
+        <div v-if="hasCryptoPaymentDetails" class="qz-pay-crypto">
+          <div v-for="item in cryptoPaymentDetails" :key="item.key" class="qz-pay-crypto-row">
             <small>{{ item.label }}</small>
             <b>
               {{ item.value }}
               <em v-if="item.detail">({{ item.detail }})</em>
             </b>
           </div>
-          <div v-if="cryptoWalletAddress" class="qz-pd-pay-crypto-action">
-            <button type="button" class="qz-pd-cart" @click="handleCopyWalletAddress">
+          <div v-if="cryptoWalletAddress" class="qz-pay-crypto-action">
+            <button type="button" class="qz-pay-secondary" @click="handleCopyWalletAddress">
               <Copy />
               {{ t('payment.copyWalletAddress') }}
             </button>
-            <span v-if="walletAddressCopied" class="qz-ic-hint is-ok">{{ t('payment.copied') }}</span>
+            <span v-if="walletAddressCopied" class="qz-pay-hint is-ok">{{ t('payment.copied') }}</span>
           </div>
         </div>
 
-        <div v-if="showPayLink" class="qz-pd-pay-link">
-          <button type="button" class="qz-pd-buy" @click="handleOpenPayLink">
+        <div v-if="showPayLink" class="qz-pay-link">
+          <button type="button" class="qz-pay-primary" @click="handleOpenPayLink">
             <ExternalLink />
             {{ t('payment.openPayLink') }}
           </button>
-          <button type="button" class="qz-pd-cart" @click="handleCopyPayLink">
+          <button type="button" class="qz-pay-secondary" @click="handleCopyPayLink">
             <Copy />
             {{ t('payment.copyPayLink') }}
           </button>
-          <span v-if="copied" class="qz-ic-hint is-ok">{{ t('payment.copied') }}</span>
+          <span v-if="copied" class="qz-pay-hint is-ok">{{ t('payment.copied') }}</span>
         </div>
-        <p v-if="openedPayWindow && payLinkOpenedTip" class="qz-pd-note is-accent">
+        <p v-if="openedPayWindow && payLinkOpenedTip" class="qz-pay-note is-accent">
           <b>{{ payLinkOpenedTip }}</b>
         </p>
-        <p v-if="showTelegramPayHint" class="qz-pd-note is-warm">
+        <p v-if="showTelegramPayHint" class="qz-pay-note is-warm">
           <b>{{ t('payment.telegramExternalHint') }}</b>
         </p>
       </section>
 
       <!-- 待发起支付：渠道选择 + 下单按钮 -->
-      <section v-else class="qz-pd-detail qz-pd-pay-channel">
+      <section v-else class="qz-pay-detail qz-pay-choose">
         <h2>{{ t('payment.channelTitle') }}</h2>
 
-        <div v-if="!configReady" class="qz-pd-note is-accent" style="margin-top: 12px;">
+        <div v-if="!configReady" class="qz-pay-note is-accent" style="margin-top: 12px;">
           <b>{{ t('common.loading') }}</b>
         </div>
 
         <template v-else>
           <!-- 钱包余额开关 -->
-          <div v-if="showBalanceOption" class="qz-ic-balance" style="margin-top: 14px;">
+          <div v-if="showBalanceOption" class="qz-pay-balance" style="margin-top: 14px;">
             <Wallet />
             <span>
               <b>{{ t('payment.walletBalanceLabel') }}</b>
@@ -263,7 +263,7 @@
               {{ t('payment.useBalance') }}
             </label>
           </div>
-          <div v-if="useBalance" class="qz-pd-pay-walletinfo">
+          <div v-if="useBalance" class="qz-pay-walletinfo">
             <span>{{ t('payment.walletDeductLabel') }}&nbsp;{{ expectedWalletPaidDisplay }}</span>
             <span v-if="!walletOnlyPayment">·&nbsp;{{ t('payment.onlinePayLabel') }}&nbsp;{{ expectedOnlinePayDisplay }}</span>
             <span v-if="walletOnlyPayment && expectedOnlinePayCents > 0" class="is-warn">
@@ -272,11 +272,11 @@
           </div>
 
           <!-- 缓存支付 -->
-          <div v-if="cachedPayment" class="qz-pd-alert is-warm" style="margin-top: 14px;">
+          <div v-if="cachedPayment" class="qz-pay-alert is-warm" style="margin-top: 14px;">
             <div style="font-weight: 800; margin-bottom: 6px;">{{ t('payment.cachedTitle') }}</div>
             <div style="margin-bottom: 8px;">{{ t('payment.cachedHint', { channel: cachedChannelName }) }}</div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-              <button type="button" class="qz-pd-cart" @click="restoreCachedPayment">
+              <button type="button" class="qz-pay-secondary" @click="restoreCachedPayment">
                 <RotateCcw />
                 {{ t('payment.useCached') }}
               </button>
@@ -285,17 +285,17 @@
           </div>
 
           <!-- 支付方式网格 -->
-          <div v-if="!walletOnlyPayment" class="qz-ic-pay" style="margin-top: 14px;">
+          <div v-if="!walletOnlyPayment" class="qz-pay-methods" style="margin-top: 14px;">
             <h3><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
-            <div v-if="!channels.length" class="qz-ic-alert">
+            <div v-if="!channels.length" class="qz-pay-form-alert">
               {{ showBalanceOption ? t('payment.channelEmptyUseBalance') : t('payment.channelEmpty') }}
             </div>
-            <div v-else class="qz-ic-channels">
+            <div v-else class="qz-pay-channel-grid">
               <button
                 v-for="ch in channels"
                 :key="ch.id"
                 type="button"
-                class="qz-ic-channel"
+                class="qz-pay-channel"
                 :class="{ 'is-active': selectedChannelId === Number(ch.id) }"
                 :disabled="isChannelDisabledForAmount(ch)"
                 :title="channelAmountLimitHint(ch) || undefined"
@@ -311,41 +311,41 @@
             </div>
           </div>
 
-          <div class="qz-pd-pay-total">
+          <div class="qz-pay-total">
             <span>{{ t('payment.payableAmountLabel') }}</span>
             <strong>{{ payableAmountDisplay }}</strong>
           </div>
 
           <!-- 提示 -->
-          <div v-if="paymentAlert" class="qz-pd-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warm'">
+          <div v-if="paymentAlert" class="qz-pay-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warm'">
             {{ paymentAlert.message }}
           </div>
           <div
             v-else-if="!walletOnlyPayment && requiresOnlineChannel && !selectedChannel"
-            class="qz-pd-alert is-warm"
+            class="qz-pay-alert is-warm"
           >
             {{ t('payment.selectChannelError') }}
           </div>
           <div
             v-else-if="walletOnlyPayment && expectedOnlinePayCents > 0"
-            class="qz-pd-alert is-warm"
+            class="qz-pay-alert is-warm"
           >
             {{ t('payment.walletInsufficientHint') }}
           </div>
           <div
             v-else-if="!requiresOnlineChannel"
-            class="qz-pd-note is-accent"
+            class="qz-pay-note is-accent"
           >
             <b>{{ t('payment.walletPayOnly') }}</b>
           </div>
 
-          <div class="qz-pd-pay-actions">
-            <button type="button" class="qz-pd-buy" :disabled="!canSubmitPayment" @click="handlePayment">
-              <Loader2 v-if="submitting" class="qz-ic-spin" />
+          <div class="qz-pay-actions">
+            <button type="button" class="qz-pay-primary" :disabled="!canSubmitPayment" @click="handlePayment">
+              <Loader2 v-if="submitting" class="qz-pay-spin" />
               <CreditCard v-else />
               {{ submitting ? t('payment.submitting') : t('payment.submitButton') }}
             </button>
-            <button type="button" class="qz-pd-cart" :disabled="loading" @click="handleRefresh">
+            <button type="button" class="qz-pay-secondary" :disabled="loading" @click="handleRefresh">
               <RefreshCw />
               {{ t('payment.refreshStatus') }}
             </button>
@@ -411,75 +411,346 @@ const goBack = () => {
 </script>
 
 <style scoped>
-/* 页面级补充（基于 qz-pd-* / qz-ic-* 的组合排版）。
-   .qz-pd-pay-* 只有本页使用（`rg qz-pd-pay` 之外的命中全是 ProductDetail 自己的 .qz-pd-pay-option*），
-   颜色 / 字号 / 圆角 / 阴影一律读 --qz-* token；壳层的 .qz-pd-* / .qz-ic-* 仍是 legacy.css 的共享规则。 */
-.qz-pd-pay-card { display: grid; gap: 16px; padding: 24px 24px 20px; grid-template-columns: minmax(0, 1fr); }
-.qz-pd-pay-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-.qz-pd-pay-head > div:first-child { display: grid; gap: 6px; min-width: 0; }
-.qz-pd-pay-head h1 { font-size: var(--qz-text-xl); font-weight: 700; line-height: 1.3; color: var(--qz-text); }
-.qz-pd-pay-head h2 { font-size: var(--qz-text-lg); font-weight: 700; line-height: 1.3; color: var(--qz-text); }
-.qz-pd-pay-sub { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--qz-text-sm); color: var(--qz-text-muted); }
-.qz-pd-pay-sub code { font-family: inherit; font-weight: 700; color: var(--qz-text); font-variant-numeric: tabular-nums; }
-.qz-pd-pay-head-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.qz-pd-pay-head-actions .qz-pd-cart { height: var(--qz-control-sm); padding: 0 12px; font-size: var(--qz-text-sm); }
-.qz-pd-pay-head-actions .qz-pd-cart svg { width: 15px; height: 15px; }
+/* 支付页：全部样式在本块，class 统一 qz-pay-*（与 ProductDetail 的 qz-pd-* 不再同名）。
+   前半是本页从旧共享表接手的"外壳"规则——页面根 / 返回钮 / 骨架 / 卡片与详情面 / chips / 价签 / 提示条 /
+   主次按钮 / 游客补录表单 / 渠道选择；后半是本页自己的排版（摘要卡 / 元信息 / 商品清单 / 二维码 / 链上明细 /
+   渠道区 / 操作区）。颜色 / 字号 / 圆角 / 阴影一律读 --qz-* token（旧表的 11.5 / 12.5 / 13 / 34px 字号就近取
+   --qz-text-xs / -sm / -3xl，--amber / --red 取 --qz-warning / --qz-danger，软底是 12% 的 color-mix）；
+   骨架用 base.css 的 qz-pulse 关键帧。
+   特指度：根元素同时带 .qz-container（layout.css，(0,2,0)），这里写成 .qz-container.qz-pay 提到 (0,3,0)，
+   不依赖注入顺序。 */
 
-.qz-pd-pay-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding-top: 4px; border-top: 1px solid var(--qz-border); }
-.qz-pd-pay-meta > div { display: grid; gap: 4px; min-width: 0; padding-top: 10px; }
-.qz-pd-pay-meta small { font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600; }
-.qz-pd-pay-meta b { font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); overflow-wrap: anywhere; }
+/* ---------- 页面根：比容器窄一档，纵向堆叠 ---------- */
+.qz-container.qz-pay { width: min(1080px, 94vw); display: flex; flex-direction: column; gap: 16px; padding-top: 24px; }
 
-.qz-pd-pay-items { padding-top: 4px; border-top: 1px solid var(--qz-border); }
-.qz-pd-pay-items h3 { margin: 10px 0 8px; font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted); }
-.qz-pd-pay-items ul { display: grid; gap: 8px; }
-.qz-pd-pay-items li { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); }
-.qz-pd-pay-item-main { display: grid; gap: 4px; min-width: 0; }
-.qz-pd-pay-item-main b { font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); overflow-wrap: anywhere; }
-.qz-pd-pay-item-main small { font-size: var(--qz-text-xs); color: var(--qz-text-muted); }
-.qz-pd-pay-item-amount { flex: 0 0 auto; font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* ---------- 返回钮（桌面端随滚动吸顶） ---------- */
+.qz-pay-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface);
+  box-shadow: var(--qz-shadow-resting);
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.qz-pay-back svg { width: 15px; height: 15px; }
+.qz-pay-back:hover { color: var(--qz-accent-strong); border-color: var(--qz-border-strong); }
+@media (min-width: 1024px) {
+  .qz-pay-back {
+    position: sticky;
+    top: calc(var(--qz-header-h) + 12px);
+    z-index: 38;
+    background: color-mix(in srgb, var(--qz-surface) 94%, transparent);
+    backdrop-filter: blur(14px);
+  }
+}
 
-.qz-pd-pay-result { display: grid; gap: 16px; }
-.qz-pd-pay-qrbox { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: center; padding: 16px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
-.qz-pd-pay-qr { position: relative; width: 100%; max-width: 300px; aspect-ratio: 1 / 1; margin: 0 auto; padding: 14px; border-radius: var(--qz-radius-control); background: var(--qz-qr-frame); display: grid; place-items: center; box-shadow: var(--qz-shadow-resting); }
-.qz-pd-pay-qr img { width: 100%; height: 100%; object-fit: contain; }
-.qz-pd-pay-qr-placeholder { display: grid; place-items: center; color: var(--qz-text-muted); }
-.qz-pd-pay-qr-placeholder .qz-ic-spin { width: 32px; height: 32px; }
-.qz-pd-pay-qr-side { display: grid; gap: 10px; min-width: 0; }
-.qz-pd-pay-qr-title { font-size: var(--qz-text-base); font-weight: 800; color: var(--qz-text); }
-.qz-pd-pay-qr-amount { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--qz-radius-control); background: var(--qz-surface); border: 1px solid var(--qz-border); }
-.qz-pd-pay-qr-amount span { font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600; }
-.qz-pd-pay-qr-amount strong { font-size: var(--qz-text-xl); font-weight: 800; color: var(--qz-text); font-variant-numeric: tabular-nums; }
-.qz-pd-pay-polling { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--qz-radius-pill); background: var(--qz-accent-subtle); color: var(--qz-accent-strong); font-size: var(--qz-text-sm); font-weight: 700; }
-.qz-pd-pay-polling .qz-ic-spin { width: 16px; height: 16px; }
+/* ---------- 骨架（base.css 的 qz-pulse） ---------- */
+.qz-pay-skeleton { display: grid; gap: 16px; }
+.qz-pay-sk-block,
+.qz-pay-sk-line {
+  border-radius: var(--qz-radius-sm);
+  background: color-mix(in oklab, var(--qz-surface-muted) 70%, var(--qz-border));
+  animation: qz-pulse 1.4s ease-in-out infinite;
+}
+.qz-pay-sk-block { aspect-ratio: 1 / 1; max-height: 520px; }
+.qz-pay-sk-line { height: 18px; }
+.qz-pay-sk-line.is-lg { height: 32px; width: 80%; }
+.qz-pay-sk-line.is-sm { width: 45%; }
+.qz-pay-sk-line.is-btn { height: 48px; margin-top: auto; }
 
-.qz-pd-pay-crypto { display: grid; gap: 8px; padding: 14px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
-.qz-pd-pay-crypto-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--qz-border); }
-.qz-pd-pay-crypto-row:last-child { border-bottom: 0; padding-bottom: 0; }
-.qz-pd-pay-crypto-row small { flex: 0 0 auto; font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600; }
-.qz-pd-pay-crypto-row b { min-width: 0; text-align: right; font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); overflow-wrap: anywhere; word-break: break-all; }
-.qz-pd-pay-crypto-row em { font-style: normal; font-weight: 500; color: var(--qz-text-muted); margin-left: 4px; }
-.qz-pd-pay-crypto-action { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* ---------- 卡片面 / 详情面 ---------- */
+.qz-pay-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  overflow: visible;
+  background: var(--qz-surface);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  box-shadow: var(--qz-shadow-resting);
+}
+.qz-pay-detail {
+  padding: 24px 28px 28px;
+  background: var(--qz-surface);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  box-shadow: var(--qz-shadow-resting);
+}
+.qz-pay-detail > h2 { margin-bottom: 14px; font-size: var(--qz-text-lg); font-weight: 700; color: var(--qz-text); }
 
-.qz-pd-pay-link { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.qz-pd-pay-link .qz-pd-buy { width: auto; min-width: 200px; padding: 0 20px; }
+/* ---------- 状态 chips / 价签 ---------- */
+.qz-pay-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -6px; }
+.qz-pay-chips > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 7px;
+  font-size: var(--qz-text-xs);
+  font-weight: 700;
+}
+.qz-pay-chips svg { width: 12px; height: 12px; }
+.qz-pay-chips .is-accent { background: var(--qz-accent-subtle); color: var(--qz-accent-strong); }
+.qz-pay-chips .is-warm { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning); }
+.qz-pay-chips .is-danger { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
+.qz-pay-price-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.qz-pay-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+.qz-pay-price-sym { font-size: var(--qz-text-lg); font-weight: 800; color: var(--qz-text); }
+.qz-pay-price strong {
+  font-size: var(--qz-text-3xl);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--qz-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.qz-pay-price-tag {
+  align-self: center;
+  padding: 3px 8px;
+  border-radius: 7px;
+  font-size: var(--qz-text-xs);
+  font-weight: 800;
+  background: var(--qz-accent-subtle);
+  color: var(--qz-accent-strong);
+}
+.qz-pay-price-tag.is-promo { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
 
-.qz-pd-pay-channel { display: grid; gap: 0; }
-.qz-pd-pay-channel h2 { font-size: var(--qz-text-lg); font-weight: 700; color: var(--qz-text); margin-bottom: 4px; }
-.qz-pd-pay-walletinfo { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; font-size: var(--qz-text-xs); color: var(--qz-text-muted); }
-.qz-pd-pay-walletinfo .is-warn { color: var(--qz-warning); font-weight: 700; }
+/* ---------- 提示：note（带图标的说明）与 alert（结果 / 错误） ---------- */
+.qz-pay-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 10px 12px;
+  border-radius: var(--qz-radius-sm);
+  font-size: var(--qz-text-xs);
+}
+.qz-pay-note b { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.qz-pay-note svg { width: 14px; height: 14px; }
+.qz-pay-note.is-accent { background: var(--qz-accent-subtle); color: var(--qz-accent-strong); }
+.qz-pay-note.is-warm { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning); }
+.qz-pay-alert { padding: 10px 12px; border-radius: 11px; font-size: var(--qz-text-xs); font-weight: 700; }
+.qz-pay-alert.is-danger { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
+.qz-pay-alert.is-warm { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning); }
 
-.qz-pd-pay-total { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding: 14px 16px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
-.qz-pd-pay-total span { font-size: var(--qz-text-sm); color: var(--qz-text-muted); font-weight: 600; }
-.qz-pd-pay-total strong { font-size: var(--qz-text-xl); font-weight: 800; color: var(--qz-text); font-variant-numeric: tabular-nums; }
+/* ---------- 按钮：主（渐变）/ 次（弱强调底）/ 返回链接（空态与过期态） ----------
+   三者共用胶囊圆角与按压缩放（Arc 按钮语言）；hover 上浮 1px，按压 .97。 */
+.qz-pay-primary,
+.qz-pay-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--qz-control-md);
+  border-radius: var(--qz-radius-pill);
+  font-size: var(--qz-text-sm);
+  font-weight: 800;
+  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.qz-pay-secondary { border: 1px solid var(--qz-border-strong); background: var(--qz-accent-subtle); color: var(--qz-accent-strong); }
+.qz-pay-secondary svg { width: 17px; height: 17px; }
+.qz-pay-primary {
+  width: 100%;
+  background: linear-gradient(90deg, var(--qz-accent), var(--qz-accent-strong));
+  color: var(--qz-on-accent);
+  box-shadow: var(--qz-shadow-raised);
+}
+.qz-pay-primary:hover:not(:disabled),
+.qz-pay-secondary:hover:not(:disabled) { transform: translateY(-1px); }
+.qz-pay-primary:disabled,
+.qz-pay-secondary:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.qz-pay-return {
+  min-height: var(--qz-control-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: var(--qz-radius-pill);
+  padding: 10px 15px;
+  background: linear-gradient(135deg, var(--qz-accent), var(--qz-accent-strong));
+  box-shadow: var(--qz-shadow-raised);
+  color: var(--qz-on-accent);
+  font-size: var(--qz-text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.qz-pay-return svg { width: 16px; height: 16px; }
+.qz-pay-return:hover { transform: translateY(-1px); }
+.qz-pay-return:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.qz-empty .qz-pay-return { margin-top: 18px; }
+.qz-pay-return:not(:disabled):active,
+.qz-pay-back:not(:disabled):active,
+.qz-pay-secondary:not(:disabled):active,
+.qz-pay-primary:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
 
-.qz-pd-pay-actions { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; margin-top: 14px; }
-.qz-pd-pay-actions .qz-pd-buy { width: 100%; }
+/* ---------- 游客补录凭据表单 ---------- */
+.qz-pay-form { display: grid; gap: 10px; }
+.qz-pay-field { display: grid; gap: 4px; }
+.qz-pay-field > label { font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted); }
+.qz-pay-field > label b { margin-left: 3px; color: var(--qz-danger); }
+.qz-pay-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--qz-control-md);
+  padding: 9px 13px;
+  border: 1px solid var(--qz-border-strong);
+  border-radius: var(--qz-radius-sm);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  outline: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.qz-pay-field input:focus { border-color: var(--qz-accent); box-shadow: 0 0 0 4px var(--qz-accent-subtle); }
+.qz-pay-field input::placeholder { color: var(--qz-text-muted); }
+.qz-pay-form-alert {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--qz-radius-sm);
+  font-size: var(--qz-text-sm);
+  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
+  color: var(--qz-warning);
+}
+.qz-pay-form-alert.is-error { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
+.qz-pay-hint { margin: -4px 0 0; font-size: var(--qz-text-xs); line-height: 1.55; color: var(--qz-text-muted); }
+.qz-pay-hint.is-ok { margin: 0; color: var(--qz-accent-strong); }
+
+/* ---------- 钱包余额行 / 支付方式 ---------- */
+.qz-pay-methods {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--qz-surface-muted);
+  border: 1px solid var(--qz-border);
+}
+.qz-pay-methods h3 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted); }
+.qz-pay-methods h3 svg { width: 15px; height: 15px; }
+.qz-pay-channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.qz-pay-channel,
+.qz-pay-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--qz-control-md);
+  padding: 7px 10px;
+  text-align: left;
+  border: 1px solid var(--qz-border);
+  border-radius: 10px;
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.qz-pay-channel:hover:not(:disabled),
+.qz-pay-balance:hover { border-color: var(--qz-border-strong); }
+.qz-pay-channel:disabled { opacity: 0.5; cursor: not-allowed; }
+.qz-pay-channel.is-active { border-color: var(--qz-accent); background: var(--qz-accent-subtle); }
+.qz-pay-channel > i { flex: 0 0 auto; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--qz-border-strong); background: var(--qz-surface); }
+.qz-pay-channel.is-active > i { border: 5px solid var(--qz-accent); }
+.qz-pay-channel img { flex: 0 0 auto; width: 24px; height: 24px; border-radius: var(--qz-radius-xs); object-fit: contain; }
+.qz-pay-channel span,
+.qz-pay-balance span { display: grid; min-width: 0; }
+.qz-pay-channel b,
+.qz-pay-balance b { overflow: hidden; font-size: var(--qz-text-sm); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.qz-pay-channel small,
+.qz-pay-balance small { font-size: var(--qz-text-2xs); color: var(--qz-text-muted); }
+.qz-pay-balance input { accent-color: var(--qz-accent); width: 16px; height: 16px; }
+.qz-pay-balance svg { flex: 0 0 auto; width: 20px; height: 20px; color: var(--qz-accent-strong); }
+.qz-pay-balance em { margin-left: auto; font-size: var(--qz-text-2xs); font-style: normal; color: var(--qz-warning); text-align: right; }
+.qz-pay-spin { width: 16px; height: 16px; animation: qz-pay-spin 1s linear infinite; }
+@keyframes qz-pay-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1023px) {
+  .qz-container.qz-pay { padding-top: 16px; gap: 12px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .qz-pay-card { grid-template-columns: minmax(0, 1fr); }
+  .qz-pay-sk-block { max-height: 260px; }
+}
+@media (max-width: 640px) {
+  .qz-pay-price strong { font-size: var(--qz-text-2xl); }
+  .qz-pay-detail { padding: 18px 16px 20px; }
+}
+
+/* ---------- 本页排版 ---------- */
+.qz-pay-summary { display: grid; gap: 16px; padding: 24px 24px 20px; grid-template-columns: minmax(0, 1fr); }
+.qz-pay-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.qz-pay-head > div:first-child { display: grid; gap: 6px; min-width: 0; }
+.qz-pay-head h1 { font-size: var(--qz-text-xl); font-weight: 700; line-height: 1.3; color: var(--qz-text); }
+.qz-pay-head h2 { font-size: var(--qz-text-lg); font-weight: 700; line-height: 1.3; color: var(--qz-text); }
+.qz-pay-sub { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--qz-text-sm); color: var(--qz-text-muted); }
+.qz-pay-sub code { font-family: inherit; font-weight: 700; color: var(--qz-text); font-variant-numeric: tabular-nums; }
+.qz-pay-head-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qz-pay-head-actions .qz-pay-secondary { height: var(--qz-control-sm); padding: 0 12px; font-size: var(--qz-text-sm); }
+.qz-pay-head-actions .qz-pay-secondary svg { width: 15px; height: 15px; }
+
+.qz-pay-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding-top: 4px; border-top: 1px solid var(--qz-border); }
+.qz-pay-meta > div { display: grid; gap: 4px; min-width: 0; padding-top: 10px; }
+.qz-pay-meta small { font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600; }
+.qz-pay-meta b { font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); overflow-wrap: anywhere; }
+
+.qz-pay-items { padding-top: 4px; border-top: 1px solid var(--qz-border); }
+.qz-pay-items h3 { margin: 10px 0 8px; font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted); }
+.qz-pay-items ul { display: grid; gap: 8px; }
+.qz-pay-items li { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); }
+.qz-pay-item-main { display: grid; gap: 4px; min-width: 0; }
+.qz-pay-item-main b { font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); overflow-wrap: anywhere; }
+.qz-pay-item-main small { font-size: var(--qz-text-xs); color: var(--qz-text-muted); }
+.qz-pay-item-amount { flex: 0 0 auto; font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.qz-pay-result { display: grid; gap: 16px; }
+.qz-pay-qrbox { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: center; padding: 16px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
+.qz-pay-qr { position: relative; width: 100%; max-width: 300px; aspect-ratio: 1 / 1; margin: 0 auto; padding: 14px; border-radius: var(--qz-radius-control); background: var(--qz-qr-frame); display: grid; place-items: center; box-shadow: var(--qz-shadow-resting); }
+.qz-pay-qr img { width: 100%; height: 100%; object-fit: contain; }
+.qz-pay-qr-placeholder { display: grid; place-items: center; color: var(--qz-text-muted); }
+.qz-pay-qr-placeholder .qz-pay-spin { width: 32px; height: 32px; }
+.qz-pay-qr-side { display: grid; gap: 10px; min-width: 0; }
+.qz-pay-qr-title { font-size: var(--qz-text-base); font-weight: 800; color: var(--qz-text); }
+.qz-pay-qr-amount { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--qz-radius-control); background: var(--qz-surface); border: 1px solid var(--qz-border); }
+.qz-pay-qr-amount span { font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600; }
+.qz-pay-qr-amount strong { font-size: var(--qz-text-xl); font-weight: 800; color: var(--qz-text); font-variant-numeric: tabular-nums; }
+.qz-pay-polling { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--qz-radius-pill); background: var(--qz-accent-subtle); color: var(--qz-accent-strong); font-size: var(--qz-text-sm); font-weight: 700; }
+.qz-pay-polling .qz-pay-spin { width: 16px; height: 16px; }
+
+.qz-pay-crypto { display: grid; gap: 8px; padding: 14px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
+.qz-pay-crypto-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--qz-border); }
+.qz-pay-crypto-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.qz-pay-crypto-row small { flex: 0 0 auto; font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600; }
+.qz-pay-crypto-row b { min-width: 0; text-align: right; font-size: var(--qz-text-sm); font-weight: 800; color: var(--qz-text); overflow-wrap: anywhere; word-break: break-all; }
+.qz-pay-crypto-row em { font-style: normal; font-weight: 500; color: var(--qz-text-muted); margin-left: 4px; }
+.qz-pay-crypto-action { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.qz-pay-link { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.qz-pay-link .qz-pay-primary { width: auto; min-width: 200px; padding: 0 20px; }
+
+.qz-pay-choose { display: grid; gap: 0; }
+.qz-pay-choose h2 { font-size: var(--qz-text-lg); font-weight: 700; color: var(--qz-text); margin-bottom: 4px; }
+.qz-pay-walletinfo { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; font-size: var(--qz-text-xs); color: var(--qz-text-muted); }
+.qz-pay-walletinfo .is-warn { color: var(--qz-warning); font-weight: 700; }
+
+.qz-pay-total { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding: 14px 16px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
+.qz-pay-total span { font-size: var(--qz-text-sm); color: var(--qz-text-muted); font-weight: 600; }
+.qz-pay-total strong { font-size: var(--qz-text-xl); font-weight: 800; color: var(--qz-text); font-variant-numeric: tabular-nums; }
+
+.qz-pay-actions { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; margin-top: 14px; }
+.qz-pay-actions .qz-pay-primary { width: 100%; }
 
 @media (max-width: 720px) {
-  .qz-pd-pay-qrbox { grid-template-columns: minmax(0, 1fr); }
-  .qz-pd-pay-actions { grid-template-columns: minmax(0, 1fr); }
-  .qz-pd-pay-head { align-items: stretch; }
-  .qz-pd-pay-head-actions { width: 100%; }
+  .qz-pay-qrbox { grid-template-columns: minmax(0, 1fr); }
+  .qz-pay-actions { grid-template-columns: minmax(0, 1fr); }
+  .qz-pay-head { align-items: stretch; }
+  .qz-pay-head-actions { width: 100%; }
 }
 </style>

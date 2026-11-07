@@ -15,7 +15,7 @@
         @click="expand"
       >
         <Search aria-hidden="true" />
-        <span v-if="triggerLabel" class="qz-es-trigger-label" aria-hidden="true">{{ triggerLabel }}</span>
+        <span v-if="triggerLabel" aria-hidden="true">{{ triggerLabel }}</span>
       </button>
       <input
         ref="inputEl"

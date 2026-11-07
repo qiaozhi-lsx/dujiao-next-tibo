@@ -225,7 +225,7 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 /* 精选卡：表面 / 边框 / 圆角 / 内边距来自 .qz-panel，标签来自 .qz-chip，CTA 来自 .qz-btn--primary.qz-btn--sm。
    这里放卡内布局、艺术区容器（.qz-fart）的尺寸、艺术层本身（.qz-fart.is-<variant> 底色与 .fa-* 插画）以及
    hover / 按压联动。品牌色全部走 tokens.css 的 --qz-art-* token（亮暗差异在 token 里切换，本块没有 .dark 规则，
-   也没有颜色字面量；字号只用 --qz-text-*）。关键帧 fa-* 仍在 legacy.css 的「关键帧全集」里，随 P12 一起迁移。 */
+   也没有颜色字面量；字号只用 --qz-text-*）。艺术层的 fa-* 关键帧在本块底部。 */
 .qz-fcard {
   display: flex;
   flex-direction: column;
@@ -800,4 +800,19 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
   .fa-num b small { font-size: var(--qz-text-xs); }
   .fa-tools-row { gap: 10px; padding: 0 var(--qz-space-2); }
 }
+
+/* ---------- 艺术层关键帧（只有本组件用；scoped 编译会给名字加作用域后缀，与上面的 animation 一并改写） ----------
+   浮动 / 轨道 / 闪烁 / 扫光 / 字词起伏 / 芯片上升 / 数字计数。 */
+@keyframes fa-float { 0%, 100% { transform: translateY(4px); } 50% { transform: translateY(-5px); } }
+@keyframes fa-bob { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -57%); } }
+@keyframes fa-orbit { 0% { transform: translate(-50%, -50%) rotate(-16deg); } 100% { transform: translate(-50%, -50%) rotate(344deg); } }
+@keyframes fa-unspin { 100% { transform: rotate(-360deg); } }
+@keyframes fa-count { 0% { --fa-n: 0; } }
+@keyframes fa-spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes fa-gem-float { 0%, 100% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.97); } 50% { transform: translate(-50%, -57%) rotate(6deg) scale(1.04); } }
+@keyframes fa-twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes fa-x-float { 0%, 100% { transform: rotate(-8deg) translateY(4px); } 50% { transform: rotate(-5deg) translateY(-6px); } }
+@keyframes fa-sheen { 0%, 22% { opacity: 0; transform: translate(-60%); } 28% { opacity: 1; } 56% { opacity: 1; transform: translate(60%); } 62%, 100% { opacity: 0; transform: translate(60%); } }
+@keyframes fa-word { 0%, 100% { translate: 0; } 50% { translate: 0 -8px; } }
+@keyframes fa-rise { 0% { opacity: 0; transform: translateY(24px) scale(0.9); } 15%, 65% { opacity: 1; } 100% { opacity: 0; transform: translateY(-112px) scale(1); } }
 </style>

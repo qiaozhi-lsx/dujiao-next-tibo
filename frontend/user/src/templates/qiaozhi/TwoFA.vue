@@ -273,8 +273,8 @@ onUnmounted(() => {
   place-items: start center;
 }
 
-/* .qz-panel.qz-tfa-card 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（sticky、≤760 隐藏、overflow hidden）
-   在它被删掉之前不能影响这张卡。 */
+/* .qz-panel.qz-tfa-card 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
 .qz-panel.qz-tfa-card {
   position: static;
   display: flex;
