@@ -245,22 +245,19 @@ const shareSite = async () => {
 const { shouldShow } = useAnnouncement()
 const activeAnnouncement = ref<HomeAnnouncement | null>(null)
 const announcementVisible = ref(false)
-const showAnnouncementIfNeeded = () => {
-  const announcement = appStore.config?.announcement as HomeAnnouncement | undefined
-  if (announcement && shouldShow(announcement)) {
-    activeAnnouncement.value = announcement
-    announcementVisible.value = true
-  }
-}
 // 内联首屏配置不含 announcement，完整 /public/config 稍后才到；监听配置而非在 onMounted 里只调一次。
-// 公告非空即置位，后台刷新再次替换 config 时不会重复弹。
-let announcementHandled = false
+// 用 version 作为守卫键：后台更新公告 version 后、热导航回首页都能再放一次；同一 version 内不重复弹。
+const announcementSeenVersion = ref<string | null>(null)
 watch(
   () => appStore.config?.announcement,
-  (announcement) => {
-    if (announcementHandled || !announcement) return
-    announcementHandled = true
-    showAnnouncementIfNeeded()
+  (raw) => {
+    const announcement = raw as HomeAnnouncement | undefined
+    if (!announcement || !announcement.version) return
+    if (announcement.version === announcementSeenVersion.value) return
+    if (!shouldShow(announcement)) return
+    announcementSeenVersion.value = announcement.version
+    activeAnnouncement.value = announcement
+    announcementVisible.value = true
   },
   { immediate: true },
 )
