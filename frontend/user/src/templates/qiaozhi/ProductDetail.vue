@@ -187,6 +187,7 @@
               </div>
 
               <p v-if="formError" class="qz-alert is-danger" role="alert">{{ formError }}</p>
+              <p v-else-if="purchaseWarning" class="qz-alert is-warning" role="alert">{{ purchaseWarning }}</p>
               <p v-else-if="cannotPurchaseReason" class="qz-alert is-warning" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="qz-pd-buttons">
@@ -303,7 +304,7 @@ const {
   isSkuPurchasable, skuDisplayText, skuStockText,
   requiresLogin, requiresSKUSelection, canPurchase, cannotPurchaseReason,
   quantityEffectiveMin, quantityEffectiveLimit,
-  addToCart, buyNow, loadProduct,
+  addToCart, buyNow, loadProduct, purchaseWarning,
 } = useProductDetail()
 
 const title = computed(() => getLocalizedText(product.value?.title))
