@@ -1,12 +1,12 @@
 <template>
   <div ref="rootEl" class="qz-container qz-od">
     <!-- 页头：eyebrow + h1（含订单状态）+ 说明 + 返回 -->
-    <header class="qz-od-head">
-      <div class="qz-od-head-copy">
+    <header class="qz-page-head">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ t('guestOrders.title') }}</span>
         <h1>
           <span>{{ t('guestOrderDetail.title') }}</span>
-          <span v-if="showOrderTitle" class="qz-badge qz-od-status" :class="toneClass(order?.status)">
+          <span v-if="showOrderTitle" class="qz-badge" :class="toneClass(order?.status)">
             <component :is="statusIcon" />
             {{ statusLabel(order?.status) }}
           </span>
@@ -66,9 +66,9 @@
 
     <!-- 骨架 -->
     <div v-else-if="viewState === 'loading'" class="qz-od-skeleton" aria-hidden="true">
-      <div class="qz-od-sk-line"></div>
-      <div class="qz-od-sk-card"></div>
-      <div class="qz-od-sk-card"></div>
+      <div class="qz-skeleton is-line qz-od-sk-line"></div>
+      <div class="qz-skeleton qz-od-sk-card"></div>
+      <div class="qz-skeleton qz-od-sk-card"></div>
     </div>
 
     <!-- 订单不存在 -->
@@ -230,7 +230,7 @@
           <div v-if="unit.fulfillment" class="qz-od-ful">
             <span class="qz-od-ful-meta">{{ fulfillmentInfoText(unit.fulfillment) }}</span>
             <p v-if="unit.items.length !== 1 && unitNote(unit)" class="qz-od-note">{{ unitNote(unit) }}</p>
-            <div v-if="isFulfillmentTruncated(unit.fulfillment)" class="qz-od-trunc">
+            <div v-if="isFulfillmentTruncated(unit.fulfillment)" class="qz-alert is-warning qz-od-trunc">
               <AlertTriangle />
               <span>{{ t('orderDetail.fulfillmentTruncatedHint') }}</span>
             </div>
@@ -530,56 +530,7 @@ onUnmounted(() => { cleanupReveal?.() })
   max-width: 760px;
 }
 
-/* ---------- 页头 ---------- */
-.qz-od-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-od-head-copy {
-  min-width: 0;
-}
-
-.qz-od-head h1 {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2) var(--qz-space-3);
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-od-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-od-head > .qz-btn {
-  flex: none;
-}
-
-/* 标题旁的状态徽标：基类只带四种状态色，「处理中」用主色底 */
-.qz-od-status {
-  letter-spacing: normal;
-}
-
-.qz-od-status svg {
-  width: 12px;
-  height: 12px;
-}
-
-.qz-badge.is-accent {
-  color: var(--qz-accent-strong);
-  background: var(--qz-accent-subtle);
-}
+/* 页头（含标题旁的状态徽标）用 base.css 的 .qz-page-head / .qz-badge.is-accent */
 
 /* ---------- 游客鉴权 ---------- */
 .qz-panel.qz-od-auth {
@@ -620,10 +571,6 @@ onUnmounted(() => { cleanupReveal?.() })
   gap: var(--qz-space-3);
 }
 
-.qz-od-auth-form .qz-field-error {
-  margin: 0;
-}
-
 .qz-od-auth-actions {
   display: flex;
   flex-wrap: wrap;
@@ -631,33 +578,20 @@ onUnmounted(() => { cleanupReveal?.() })
   gap: var(--qz-space-2);
 }
 
-/* ---------- 骨架 ---------- */
+/* ---------- 骨架：行与卡块都是 base 的 .qz-skeleton，这里只给尺寸 ---------- */
 .qz-od-skeleton {
   display: grid;
   gap: var(--qz-space-4);
 }
 
-.qz-od-sk-line,
-.qz-od-sk-card {
-  background: var(--qz-surface-muted);
-  animation: qz-od-pulse 1.4s ease-in-out infinite;
-}
-
-.qz-od-sk-line {
+.qz-skeleton.qz-od-sk-line {
   width: 60%;
-  height: 18px;
-  border-radius: var(--qz-radius-pill);
 }
 
-.qz-od-sk-card {
+/* 卡块占位跟面板同圆角：覆盖基类的 control 圆角，写成 (0,3,0) */
+.qz-skeleton.qz-od-sk-card {
   height: 150px;
   border-radius: var(--qz-radius-panel);
-}
-
-@keyframes qz-od-pulse {
-  50% {
-    opacity: 0.55;
-  }
 }
 
 /* ---------- 面板 ---------- */
@@ -720,7 +654,7 @@ onUnmounted(() => { cleanupReveal?.() })
 }
 
 .qz-od-no {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-xs);
   letter-spacing: 0.02em;
 }
@@ -768,7 +702,7 @@ onUnmounted(() => { cleanupReveal?.() })
 
 .qz-od-unit-order b {
   color: var(--qz-text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -796,7 +730,7 @@ onUnmounted(() => { cleanupReveal?.() })
   height: 52px;
   overflow: hidden;
   border: 1px solid var(--qz-border);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface);
   color: var(--qz-text-secondary);
   font-size: var(--qz-text-lg);
@@ -858,7 +792,7 @@ onUnmounted(() => { cleanupReveal?.() })
   margin-top: var(--qz-space-1);
   padding: var(--qz-space-2) var(--qz-space-3);
   border: 1px solid var(--qz-border);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface);
   color: var(--qz-text-secondary);
   font-size: var(--qz-text-xs);
@@ -929,25 +863,19 @@ onUnmounted(() => { cleanupReveal?.() })
   line-height: var(--qz-leading-body);
 }
 
-.qz-od-trunc {
+/* 截断提示是 base 的 .qz-alert.is-warning；这里只把图标和文案排成一行（警示色留给图标） */
+.qz-alert.qz-od-trunc {
   display: flex;
   align-items: flex-start;
   gap: var(--qz-space-2);
-  padding: var(--qz-space-2) var(--qz-space-3);
-  border: 1px solid color-mix(in oklab, var(--qz-warning) 30%, transparent);
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-xs);
-  font-weight: 600;
-  line-height: var(--qz-leading-body);
 }
 
 .qz-od-trunc svg {
   flex: none;
-  width: 14px;
-  height: 14px;
-  margin-top: 1px;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--qz-warning);
 }
 
 .qz-od-payload {
@@ -958,7 +886,7 @@ onUnmounted(() => { cleanupReveal?.() })
   border-radius: var(--qz-radius-control);
   background: var(--qz-surface-muted);
   color: var(--qz-text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-xs);
   line-height: 1.65;
   white-space: pre-wrap;
@@ -1125,11 +1053,11 @@ onUnmounted(() => { cleanupReveal?.() })
 }
 
 .qz-od-table th:first-child {
-  border-radius: 12px 0 0 12px;
+  border-radius: var(--qz-radius-sm) 0 0 var(--qz-radius-sm);
 }
 
 .qz-od-table th:last-child {
-  border-radius: 0 12px 12px 0;
+  border-radius: 0 var(--qz-radius-sm) var(--qz-radius-sm) 0;
 }
 
 .qz-od-table td {
@@ -1171,12 +1099,6 @@ onUnmounted(() => { cleanupReveal?.() })
 
 @media (max-width: 760px) {
   .qz-od {
-    gap: var(--qz-space-3);
-  }
-
-  .qz-od-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
     gap: var(--qz-space-3);
   }
 

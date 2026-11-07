@@ -10,8 +10,11 @@
     <div v-if="loading" class="qz-notice-list" aria-busy="true">
       <span class="qz-sr-only" role="status">{{ t('common.loading') }}</span>
       <div v-for="i in 6" :key="i" class="qz-card qz-notice-skeleton" aria-hidden="true">
-        <span class="qz-notice-skeleton-thumb"></span>
-        <span class="qz-notice-skeleton-lines"><span></span><span></span></span>
+        <span class="qz-skeleton qz-notice-skeleton-thumb"></span>
+        <span class="qz-notice-skeleton-lines">
+          <span class="qz-skeleton is-line"></span>
+          <span class="qz-skeleton is-sm"></span>
+        </span>
       </div>
     </div>
 
@@ -213,7 +216,7 @@ const {
     transform var(--qz-duration-fast) var(--qz-ease-standard);
 }
 
-/* ---------- 骨架 ---------- */
+/* ---------- 骨架：块都是 base 的 .qz-skeleton（标题行 .is-line、摘要行 .is-sm），这里只排布局 ---------- */
 .qz-notice-skeleton {
   display: flex;
   align-items: center;
@@ -221,7 +224,8 @@ const {
   min-height: 88px;
 }
 
-.qz-notice-skeleton-thumb {
+/* 缩略图占位跟真图同尺寸同圆角：覆盖基类的 control 圆角，写成 (0,3,0) */
+.qz-skeleton.qz-notice-skeleton-thumb {
   flex: none;
   width: 56px;
   height: 56px;
@@ -232,30 +236,6 @@ const {
   display: grid;
   flex: 1 1 auto;
   gap: var(--qz-space-2);
-}
-
-.qz-notice-skeleton-lines > span {
-  display: block;
-  width: 70%;
-  height: 12px;
-  border-radius: var(--qz-radius-pill);
-}
-
-.qz-notice-skeleton-lines > span:first-child {
-  width: 42%;
-  height: 16px;
-}
-
-.qz-notice-skeleton-thumb,
-.qz-notice-skeleton-lines > span {
-  background: var(--qz-border);
-  animation: qz-notice-pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes qz-notice-pulse {
-  50% {
-    opacity: 0.45;
-  }
 }
 
 /* ---------- 分页 ---------- */
@@ -283,10 +263,10 @@ const {
   }
 
   .qz-notice-thumb,
-  .qz-notice-skeleton-thumb {
+  .qz-skeleton.qz-notice-skeleton-thumb {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: var(--qz-radius-sm);
   }
 
   .qz-notice-arrow {
@@ -298,11 +278,6 @@ const {
   .qz-notice-item,
   .qz-notice-arrow {
     transition: none;
-  }
-
-  .qz-notice-skeleton-thumb,
-  .qz-notice-skeleton-lines > span {
-    animation: none;
   }
 }
 </style>

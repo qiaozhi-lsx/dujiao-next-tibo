@@ -1,8 +1,8 @@
 <template>
   <div ref="rootEl" class="qz-container qz-orders">
     <!-- 页头：eyebrow + h1 + 说明 + 返回 -->
-    <header class="qz-orders-head qz-reveal is-pending">
-      <div class="qz-orders-head-copy">
+    <header class="qz-page-head qz-reveal is-pending">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ t('qiaozhi.guestOrders.eyebrow') }}</span>
         <h1>{{ t('guestOrders.title') }}</h1>
         <p>{{ t('guestOrders.subtitle') }}</p>
@@ -257,37 +257,7 @@ onUnmounted(() => { cleanupReveal?.() })
   max-width: 920px;
 }
 
-/* ---------- 页头 ---------- */
-.qz-orders-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-orders-head-copy {
-  min-width: 0;
-}
-
-.qz-orders-head h1 {
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-orders-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-orders-head > .qz-btn {
-  flex: none;
-}
+/* 页头用 base.css 的 .qz-page-head */
 
 /* ---------- 查询表单 ----------
    .qz-panel.qz-orders-search 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（sticky、≤760 隐藏、overflow hidden）
@@ -326,7 +296,8 @@ onUnmounted(() => { cleanupReveal?.() })
   align-items: end;
 }
 
-.qz-orders-tip {
+/* base 的 .qz-field-hint / .qz-field-error 现在自带 margin: 0，这里要的非零外距写成 (0,3,0) 稳压 */
+.qz-orders-search .qz-orders-tip {
   margin: var(--qz-space-3) 0 0;
 }
 
@@ -384,7 +355,7 @@ onUnmounted(() => { cleanupReveal?.() })
   height: 40px;
   overflow: hidden;
   border: 1px solid var(--qz-border);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
   color: var(--qz-text-secondary);
   font-size: var(--qz-text-sm);
@@ -468,12 +439,6 @@ onUnmounted(() => { cleanupReveal?.() })
   margin-left: auto;
 }
 
-/* 「处理中」用主色底的 badge，基类只带四种状态色 */
-.qz-badge.is-accent {
-  color: var(--qz-accent-strong);
-  background: var(--qz-accent-subtle);
-}
-
 /* ---------- 分页 ---------- */
 .qz-orders-pager {
   display: flex;
@@ -491,12 +456,6 @@ onUnmounted(() => { cleanupReveal?.() })
 }
 
 @media (max-width: 760px) {
-  .qz-orders-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: var(--qz-space-3);
-  }
-
   .qz-orders-form {
     grid-template-columns: minmax(0, 1fr);
   }

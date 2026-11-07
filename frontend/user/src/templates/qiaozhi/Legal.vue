@@ -4,7 +4,7 @@
     <div v-if="loading" aria-busy="true">
       <span class="qz-sr-only" role="status">{{ t('common.loading') }}</span>
       <div class="qz-legal-skeleton" aria-hidden="true">
-        <span v-for="i in 6" :key="i"></span>
+        <span v-for="i in 6" :key="i" class="qz-skeleton is-line"></span>
       </div>
     </div>
 
@@ -35,47 +35,26 @@ const { loading, title, content } = useLegal(() => props.type)
 </script>
 
 <style scoped>
+/* 骨架行都是 base 的 .qz-skeleton.is-line，这里只排布局与行宽（首行当小标题，略宽间距） */
 .qz-legal-skeleton {
   display: grid;
   gap: var(--qz-space-3);
 }
 
-.qz-legal-skeleton > span {
-  display: block;
-  width: 100%;
-  height: 14px;
-  border-radius: var(--qz-radius-pill);
-  background: var(--qz-border);
-  animation: qz-legal-pulse 1.2s ease-in-out infinite;
-}
-
-.qz-legal-skeleton > span:first-child {
+.qz-legal-skeleton > .qz-skeleton:first-child {
   width: 38%;
-  height: 20px;
   margin-bottom: var(--qz-space-2);
 }
 
-.qz-legal-skeleton > span:nth-child(3) {
+.qz-legal-skeleton > .qz-skeleton:nth-child(3) {
   width: 92%;
 }
 
-.qz-legal-skeleton > span:nth-child(5) {
+.qz-legal-skeleton > .qz-skeleton:nth-child(5) {
   width: 64%;
 }
 
-.qz-legal-skeleton > span:last-child {
+.qz-legal-skeleton > .qz-skeleton:last-child {
   width: 46%;
-}
-
-@keyframes qz-legal-pulse {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .qz-legal-skeleton > span {
-    animation: none;
-  }
 }
 </style>

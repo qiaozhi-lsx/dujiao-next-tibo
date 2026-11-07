@@ -17,7 +17,7 @@
 
       <!-- 邮箱验证关闭：无法自助重置，只给回登录的出口 -->
       <div v-if="!emailVerificationEnabled" class="qz-auth-form">
-        <p class="qz-auth-alert is-error" role="alert">{{ t('auth.forgot.disabled') }}</p>
+        <p class="qz-alert is-danger" role="alert">{{ t('auth.forgot.disabled') }}</p>
         <RouterLink to="/auth/login" class="qz-btn qz-btn--secondary qz-btn--block">
           {{ t('auth.forgot.backLogin') }}
         </RouterLink>
@@ -97,7 +97,7 @@
           />
         </div>
 
-        <p v-if="error" class="qz-auth-alert is-error" role="alert">{{ error }}</p>
+        <p v-if="error" class="qz-alert is-danger" role="alert">{{ error }}</p>
 
         <QzButton type="submit" variant="primary" class="qz-btn--block" :loading="userAuthStore.loading">
           <RotateCw v-if="!userAuthStore.loading" />
@@ -222,23 +222,7 @@ onUnmounted(() => {
   gap: var(--qz-space-2);
 }
 
-/* 提示条：错误 / 功能关闭 */
-.qz-auth-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-auth-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
+/* 提示条（错误 / 功能关闭）用 base.css 的 .qz-alert.is-danger */
 
 /* ---------- 页脚 ---------- */
 .qz-auth-foot {

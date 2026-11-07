@@ -1,8 +1,8 @@
 <template>
   <div ref="rootEl" class="qz-container qz-doc">
     <!-- 页头：eyebrow + h1 + 说明 + 返回胶囊（同查订单页页头） -->
-    <header class="qz-doc-head qz-reveal is-pending">
-      <div class="qz-doc-head-copy">
+    <header class="qz-page-head qz-reveal is-pending">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ eyebrow }}</span>
         <h1>{{ title }}</h1>
         <p v-if="subtitle">{{ subtitle }}</p>
@@ -68,38 +68,9 @@ onUnmounted(() => {
   max-width: 920px;
 }
 
-/* ---------- 页头 ---------- */
-.qz-doc-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-doc-head-copy {
-  min-width: 0;
-}
-
-.qz-doc-head h1 {
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
+/* ---------- 页头：base.css 的 .qz-page-head；标题 / 摘要来自后台富文本，补一条可在任意处断行 ---------- */
+.qz-doc .qz-page-head :is(h1, p) {
   overflow-wrap: anywhere;
-}
-
-.qz-doc-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-doc-head > .qz-btn {
-  flex: none;
 }
 
 /* ---------- 正文 ----------
@@ -196,13 +167,13 @@ onUnmounted(() => {
 }
 
 .qz-doc-panel :deep(.qz-doc-prose :is(pre, code)) {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-sm);
 }
 
 .qz-doc-panel :deep(.qz-doc-prose code) {
   padding: 0 0.3em;
-  border-radius: 6px;
+  border-radius: var(--qz-radius-xs);
   background: var(--qz-surface-muted);
 }
 
@@ -246,12 +217,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
-  .qz-doc-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: var(--qz-space-3);
-  }
-
   .qz-panel.qz-doc-panel {
     padding: var(--qz-space-6) var(--qz-space-4);
   }

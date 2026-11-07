@@ -1,8 +1,8 @@
 <template>
   <div ref="rootEl" class="qz-container qz-cart">
     <!-- 页头：eyebrow + h1 + 说明 + 返回 -->
-    <header class="qz-cart-head">
-      <div class="qz-cart-head-copy">
+    <header class="qz-page-head">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ t('qiaozhi.cart.eyebrow') }}</span>
         <h1>
           <span>{{ t('cart.title') }}</span>
@@ -18,9 +18,9 @@
 
     <!-- 骨架 -->
     <div v-if="loading" class="qz-cart-skeleton" aria-hidden="true">
-      <div class="qz-cart-sk-line is-lg"></div>
-      <div class="qz-cart-sk-line"></div>
-      <div class="qz-cart-sk-line is-sm"></div>
+      <div class="qz-skeleton is-lg"></div>
+      <div class="qz-skeleton is-line"></div>
+      <div class="qz-skeleton is-sm"></div>
     </div>
 
     <!-- 空态 -->
@@ -226,72 +226,10 @@ onUnmounted(() => {
   gap: var(--qz-space-5);
 }
 
-/* ---------- 页头 ---------- */
-.qz-cart-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-cart-head-copy {
-  min-width: 0;
-}
-
-.qz-cart-head h1 {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--qz-space-2);
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-cart-head h1 .qz-chip {
-  letter-spacing: normal;
-}
-
-.qz-cart-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-cart-head > .qz-btn {
-  flex: none;
-}
-
-/* ---------- 骨架 ---------- */
+/* 页头与骨架行用 base.css 的 .qz-page-head / .qz-skeleton，这里只留骨架的排布 */
 .qz-cart-skeleton {
   display: grid;
   gap: var(--qz-space-4);
-}
-
-.qz-cart-sk-line {
-  height: 18px;
-  border-radius: var(--qz-radius-pill);
-  background: var(--qz-surface-muted);
-  animation: qz-cart-pulse 1.4s ease-in-out infinite;
-}
-
-.qz-cart-sk-line.is-lg {
-  width: 80%;
-  height: 32px;
-}
-
-.qz-cart-sk-line.is-sm {
-  width: 45%;
-}
-
-@keyframes qz-cart-pulse {
-  50% {
-    opacity: 0.55;
-  }
 }
 
 /* ---------- 桌面双栏：左商品卡列表 + 右竖排结算卡 ---------- */
@@ -342,7 +280,7 @@ onUnmounted(() => {
   place-items: center;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
 }
 
@@ -411,12 +349,8 @@ onUnmounted(() => {
   justify-items: start;
 }
 
-.qz-cart-qty .qz-field-hint,
 .qz-cart-warn {
   margin: 0;
-}
-
-.qz-cart-warn {
   color: var(--qz-warning);
   font-size: var(--qz-text-xs);
   font-weight: 500;
@@ -560,12 +494,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 760px) {
-  .qz-cart-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: var(--qz-space-3);
-  }
-
   /* 手机：图缩到 88px 只陪标题行，chips 与数量/价格整行铺开 */
   .qz-card.qz-cart-item {
     grid-template-columns: 88px minmax(0, 1fr);

@@ -180,7 +180,7 @@
             </span>
           </label>
 
-          <p v-if="error" class="qz-auth-alert is-error" role="alert">{{ error }}</p>
+          <p v-if="error" class="qz-alert is-danger" role="alert">{{ error }}</p>
 
           <QzButton
             type="submit"
@@ -462,21 +462,7 @@ onUnmounted(() => {
   text-underline-offset: 3px;
 }
 
-/* 错误提示条 */
-.qz-auth-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-auth-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
+/* 错误提示条用 base.css 的 .qz-alert.is-danger */
 
 /* ---------- 页脚 ---------- */
 .qz-auth-foot {

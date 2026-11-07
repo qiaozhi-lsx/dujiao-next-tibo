@@ -1048,7 +1048,7 @@ onBeforeUnmount(() => {
   transition: filter var(--qz-duration-considered), opacity var(--qz-duration-considered);
 }
 .pay-modal__qr {
-  padding: 8px; background: var(--qz-surface);
+  padding: 8px; background: var(--qz-qr-frame);
   border-radius: var(--qz-radius-control);
 }
 .pay-modal__qr img { display: block; width: 120px; height: 120px; }

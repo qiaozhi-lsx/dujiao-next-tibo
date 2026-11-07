@@ -2,8 +2,8 @@
   <div ref="rootEl" class="qz-container qz-tfa">
     <section class="qz-panel qz-tfa-card qz-reveal is-pending">
       <!-- 页头：eyebrow + h1 + 说明 + 返回（与购物车 / 查订单页同款胶囊） -->
-      <header class="qz-tfa-head">
-        <div class="qz-tfa-head-copy">
+      <header class="qz-page-head">
+        <div class="qz-page-head-copy">
           <span class="qz-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
           <h1>{{ t('qiaozhi.tfa.title') }}</h1>
           <p>{{ t('qiaozhi.tfa.desc') }}</p>
@@ -285,39 +285,7 @@ onUnmounted(() => {
   overflow: visible;
 }
 
-/* ---------- 页头：文案 + 返回胶囊（同 Cart / GuestOrders 的页头布局，手机端胶囊挪到文案上方） ---------- */
-.qz-panel > .qz-tfa-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-tfa-head-copy {
-  display: grid;
-  gap: var(--qz-space-2);
-  min-width: 0;
-}
-
-.qz-tfa-head > .qz-btn {
-  flex: none;
-}
-
-.qz-tfa-head h1 {
-  margin: 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-tfa-head p {
-  margin: 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
+/* 页头（文案 + 返回胶囊）用 base.css 的 .qz-page-head，手机端胶囊挪到文案上方也由它负责 */
 
 /* ---------- 输入区：label 与粘贴钮同行 ---------- */
 .qz-tfa-field-head {
@@ -329,7 +297,7 @@ onUnmounted(() => {
 
 .qz-field-control.qz-tfa-secret {
   min-height: 92px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   line-height: 1.6;
 }
 
@@ -372,7 +340,7 @@ onUnmounted(() => {
 
 .qz-tfa-digit {
   color: var(--qz-text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-3xl);
   font-weight: 800;
   line-height: 1;
@@ -444,12 +412,6 @@ onUnmounted(() => {
   .qz-panel.qz-tfa-card {
     gap: var(--qz-space-4);
     padding: var(--qz-space-6) var(--qz-space-5);
-  }
-
-  .qz-panel > .qz-tfa-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: var(--qz-space-3);
   }
 }
 

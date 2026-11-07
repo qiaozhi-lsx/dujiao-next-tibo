@@ -29,10 +29,10 @@
     <div v-if="loading" class="qz-blog-grid" aria-busy="true">
       <span class="qz-sr-only" role="status">{{ t('common.loading') }}</span>
       <div v-for="i in 6" :key="i" class="qz-card qz-blog-skeleton" aria-hidden="true">
-        <span class="qz-blog-skeleton-cover"></span>
-        <span class="qz-blog-skeleton-line is-short"></span>
-        <span class="qz-blog-skeleton-line"></span>
-        <span class="qz-blog-skeleton-line"></span>
+        <span class="qz-skeleton qz-blog-skeleton-cover"></span>
+        <span class="qz-skeleton is-sm"></span>
+        <span class="qz-skeleton is-line"></span>
+        <span class="qz-skeleton is-line"></span>
       </div>
     </div>
 
@@ -262,7 +262,7 @@ const {
   transition: transform var(--qz-duration-fast) var(--qz-ease-standard);
 }
 
-/* ---------- 骨架 ---------- */
+/* ---------- 骨架：块都是 base 的 .qz-skeleton（meta 行 .is-sm、标题 / 摘要行 .is-line），这里只排布局 ---------- */
 .qz-card.qz-blog-skeleton {
   display: flex;
   flex-direction: column;
@@ -271,34 +271,10 @@ const {
   padding: var(--qz-space-3);
 }
 
-.qz-blog-skeleton-cover {
-  display: block;
+/* 封面占位跟真封面同比例同圆角：覆盖基类的 control 圆角，写成 (0,3,0) */
+.qz-skeleton.qz-blog-skeleton-cover {
   aspect-ratio: 16 / 9;
   border-radius: calc(var(--qz-radius-control) - var(--qz-space-3));
-}
-
-.qz-blog-skeleton-line {
-  display: block;
-  width: 86%;
-  height: 12px;
-  border-radius: var(--qz-radius-pill);
-}
-
-.qz-blog-skeleton-line.is-short {
-  width: 36%;
-  height: 16px;
-}
-
-.qz-blog-skeleton-cover,
-.qz-blog-skeleton-line {
-  background: var(--qz-border);
-  animation: qz-blog-pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes qz-blog-pulse {
-  50% {
-    opacity: 0.45;
-  }
 }
 
 /* ---------- 分页 ---------- */
@@ -332,11 +308,6 @@ const {
   .qz-blog-more,
   .qz-blog-more svg {
     transition: none;
-  }
-
-  .qz-blog-skeleton-cover,
-  .qz-blog-skeleton-line {
-    animation: none;
   }
 }
 </style>
