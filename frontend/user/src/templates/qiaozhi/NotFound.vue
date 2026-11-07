@@ -1,7 +1,7 @@
 <template>
   <div class="qz-container qz-404">
     <section class="qz-panel qz-404-card">
-      <span class="qz-chip qz-404-brand">
+      <span class="qz-chip">
         <Info />
         <span>{{ brandSiteName }}</span>
       </span>
@@ -50,8 +50,8 @@ const { blogEnabled } = useNavConfig()
   place-items: center;
 }
 
-/* .qz-panel.qz-404-card 写成 (0,3,0)：legacy.css 里旧分类侧栏的 .qz-panel 规则（sticky、≤760 隐藏、overflow hidden）
-   在它被删掉之前不能影响这张卡。 */
+/* .qz-panel.qz-404-card 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
 .qz-panel.qz-404-card {
   position: static;
   display: flex;
@@ -62,11 +62,6 @@ const { blogEnabled } = useNavConfig()
   padding: var(--qz-space-10) var(--qz-space-8);
   overflow: visible;
   text-align: center;
-}
-
-.qz-404-brand svg {
-  width: 12px;
-  height: 12px;
 }
 
 /* 像素块：4×4 网格，主色描出一圈 */

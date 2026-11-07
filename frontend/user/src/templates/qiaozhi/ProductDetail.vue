@@ -91,8 +91,8 @@
           </div>
 
           <template v-if="pitchLine">
-            <p id="qz-pd-desc" class="qz-pd-desc" :class="{ 'qz-pd-desc--clamp': !descExpanded }">
-              <span class="qz-pd-desc-text">{{ pitchLine }}</span>
+            <p id="qz-pd-desc" class="qz-pd-desc">
+              <span class="qz-pd-desc-text" :class="{ 'qz-pd-desc-text--clamp': !descExpanded }">{{ pitchLine }}</span>
             </p>
             <button
               type="button"
@@ -794,10 +794,9 @@ onMounted(() => {
 /* 商品详情页：控件全部来自 styles/base.css（.qz-btn / .qz-icon-btn / .qz-pill / .qz-chip / .qz-badge /
    .qz-field*），这里只放页面布局与详情页专属元素，只读 --qz-* token（无色值字面量、无 px 字号）。
 
-   选择器一律挂在页面根 .qz-pd-page 下：legacy.css 里 Cart / Payment / Checkout / 订单页仍在用的
-   .qz-pd-* 共享规则（-card / -media / -stage / -info / -price* / -desc / -detail / -skeleton…）
-   与本页元素同名且特指度同为 (0,2,0)，多一层根类让本页规则在特指度上稳赢，不依赖加载顺序；
-   凡 legacy 对这些元素声明过的属性，这里都显式声明了一遍，共享规则日后删掉时本页不会变样。 */
+   选择器一律挂在页面根 .qz-pd-page 下：多一层根类让本页规则对 base.css 的 (0,2,0) 基类在特指度上稳赢，
+   不依赖加载顺序；本页用到的每个 .qz-pd-* 元素的全部属性都在这里显式声明（支付页的同类元素已改名
+   qz-pay-*，两页互不共享规则）。 */
 
 /* ---------- 页面骨架 ---------- */
 .qz-pd-page {
@@ -809,7 +808,7 @@ onMounted(() => {
 .qz-pd-page .qz-pd-return { align-self: flex-start; }
 
 /* 骨架块都是 base.css 的 .qz-skeleton（标题 / 正文 / 小字行由 .is-lg / .is-line / .is-sm 定高，≤760 跟着 h1 换 xl）；
-   主图台与购买钮占位不与 legacy 的 .qz-pd-sk-block / .qz-pd-sk-line 同名，只在这里给尺寸。 */
+   主图台与购买钮占位（.qz-pd-sk-media / .qz-pd-sk-cta）只在这里给尺寸。 */
 .qz-pd-page .qz-pd-skeleton { display: grid; gap: var(--qz-space-4); }
 .qz-pd-page .qz-pd-sk-media { aspect-ratio: 4 / 3; max-height: 420px; }
 /* 标题骨架 = h1 行盒：页面 h1 用 body 行高（base .is-lg 默认 display 行高），首屏到真实标题不跳高 */
@@ -924,8 +923,8 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-title-row .qz-btn { flex: none; margin-right: calc(-1 * var(--qz-space-3)); }
 
-/* 信息 chips。legacy.css 的 .qz-chip（首页卡片段，待该车道删除）与 base 同特指度且后加载，
-   ≤760 会把字号压到 9px：这里钉住 base 的尺寸与字色，等 legacy 段删掉后这条即是无害重复。 */
+/* 信息 chips：钉住 base.css .qz-chip 的尺寸与字色（与 base 同值），页面根类把它提到 (0,3,0)，
+   任何同名共享规则都压不过它。 */
 .qz-pd-page .qz-pd-chip-row { display: flex; flex-wrap: wrap; gap: var(--qz-space-2); margin-top: calc(-1 * var(--qz-space-1)); }
 .qz-pd-page .qz-chip {
   min-height: 24px;
@@ -1001,7 +1000,8 @@ onMounted(() => {
   white-space: normal;
 }
 .qz-pd-page .qz-pd-desc-text { display: block; white-space: pre-line; }
-.qz-pd-page .qz-pd-desc--clamp .qz-pd-desc-text {
+/* 链上基类名：(0,4,0) 压过 .qz-pd-desc-text 的 display/white-space，不依赖源顺序 */
+.qz-pd-page .qz-pd-desc-text.qz-pd-desc-text--clamp {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

@@ -263,7 +263,11 @@ const pick = (id: number | null) => {
   padding: var(--qz-space-3) var(--qz-space-3) max(var(--qz-space-6), env(safe-area-inset-bottom));
 }
 
-/* 抽屉过渡（Vue <Transition name="qz-drawer">） */
+/* 抽屉过渡（Vue <Transition name="qz-drawer">）
+   Vue 只读根元素（.qz-drawer）自己的 transition 时长来决定何时摘掉 *-active / 卸载节点；
+   根上没有过渡时面板与遮罩的动画会被立刻打断，所以根元素要挂一条与面板同长的过渡。 */
+.qz-drawer-enter-active,
+.qz-drawer-leave-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard); }
 .qz-drawer-enter-active .qz-drawer-panel,
 .qz-drawer-leave-active .qz-drawer-panel { transition: transform var(--qz-duration-standard) var(--qz-ease-standard); }
 .qz-drawer-enter-from .qz-drawer-panel,

@@ -1,6 +1,6 @@
 <template>
   <!-- 加载中：标题未知，先铺一张骨架面板 -->
-  <div v-if="loading" class="qz-container qz-post qz-post-loading" aria-busy="true">
+  <div v-if="loading" class="qz-container qz-post-loading" aria-busy="true">
     <span class="qz-sr-only" role="status">{{ t('common.loading') }}</span>
     <div class="qz-post-skeleton-head" aria-hidden="true">
       <span class="qz-skeleton is-sm"></span>
