@@ -8,11 +8,11 @@
 
     <!-- 骨架 -->
     <div v-if="loading" class="qz-pd-skeleton" aria-hidden="true">
-      <div class="qz-pd-sk-block"></div>
-      <div class="qz-pd-sk-line is-lg"></div>
-      <div class="qz-pd-sk-line"></div>
-      <div class="qz-pd-sk-line is-sm"></div>
-      <div class="qz-pd-sk-line is-btn"></div>
+      <div class="qz-skeleton qz-pd-sk-media"></div>
+      <div class="qz-skeleton is-lg"></div>
+      <div class="qz-skeleton is-line"></div>
+      <div class="qz-skeleton is-sm"></div>
+      <div class="qz-skeleton qz-pd-sk-cta"></div>
     </div>
 
     <template v-else-if="product">
@@ -186,8 +186,8 @@
                 <strong>{{ totalParts.symbol }}{{ totalParts.major }}{{ totalParts.minor }}</strong>
               </div>
 
-              <p v-if="formError" class="qz-pd-alert is-error" role="alert">{{ formError }}</p>
-              <p v-else-if="cannotPurchaseReason" class="qz-pd-alert" role="status">{{ cannotPurchaseReason }}</p>
+              <p v-if="formError" class="qz-alert is-danger" role="alert">{{ formError }}</p>
+              <p v-else-if="cannotPurchaseReason" class="qz-alert is-warning" role="status">{{ cannotPurchaseReason }}</p>
 
               <div class="qz-pd-buttons">
                 <button
@@ -808,20 +808,13 @@ onMounted(() => {
 }
 .qz-pd-page .qz-pd-return { align-self: flex-start; }
 
+/* 骨架块都是 base.css 的 .qz-skeleton（标题 / 正文 / 小字行由 .is-lg / .is-line / .is-sm 定高，≤760 跟着 h1 换 xl）；
+   主图台与购买钮占位不与 legacy 的 .qz-pd-sk-block / .qz-pd-sk-line 同名，只在这里给尺寸。 */
 .qz-pd-page .qz-pd-skeleton { display: grid; gap: var(--qz-space-4); }
-.qz-pd-page .qz-pd-sk-block,
-.qz-pd-page .qz-pd-sk-line {
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-  animation: qz-pd-pulse 1.4s ease-in-out infinite;
-}
-.qz-pd-page .qz-pd-sk-block { aspect-ratio: 4 / 3; max-height: 420px; }
-.qz-pd-page .qz-pd-sk-line { height: 18px; }
-/* 标题骨架 = h1 行盒（2xl × 正文行高；≤760 跟着 h1 换 xl），首屏到真实标题不跳高 */
-.qz-pd-page .qz-pd-sk-line.is-lg { width: 80%; height: calc(var(--qz-text-2xl) * var(--qz-leading-body)); }
-.qz-pd-page .qz-pd-sk-line.is-sm { width: 45%; }
-.qz-pd-page .qz-pd-sk-line.is-btn { height: var(--qz-control-lg); margin-top: auto; }
-@keyframes qz-pd-pulse { 50% { opacity: .55; } }
+.qz-pd-page .qz-pd-sk-media { aspect-ratio: 4 / 3; max-height: 420px; }
+/* 标题骨架 = h1 行盒：页面 h1 用 body 行高（base .is-lg 默认 display 行高），首屏到真实标题不跳高 */
+.qz-pd-page .qz-skeleton.is-lg { line-height: var(--qz-leading-body); }
+.qz-pd-page .qz-pd-sk-cta { height: var(--qz-control-lg); margin-top: auto; }
 
 /* ---------- 左图右单 ---------- */
 .qz-pd-page .qz-pd-card {
@@ -1089,7 +1082,7 @@ onMounted(() => {
   transition: border var(--qz-duration-fast) var(--qz-ease-standard);
 }
 .qz-pd-page .qz-pd-pay-option.is-active > i { border: 5px solid var(--qz-accent); }
-.qz-pd-page .qz-pd-pay-option img { flex: none; width: 24px; height: 24px; border-radius: 6px; object-fit: contain; }
+.qz-pd-page .qz-pd-pay-option img { flex: none; width: 24px; height: 24px; border-radius: var(--qz-radius-xs); object-fit: contain; }
 /* 无 icon 的 USDT 渠道：通用币种徽标占 icon 位，不参与伸缩 */
 .qz-pd-page .qz-pd-pay-option > .qz-badge { flex: none; }
 .qz-pd-page .qz-pd-pay-option > span:not(.qz-badge) { display: grid; min-width: 0; }
@@ -1112,18 +1105,7 @@ onMounted(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* 表单提示条：默认为警示色（不可购买原因），is-error 为错误色 */
-.qz-pd-page .qz-pd-alert {
-  margin: 0;
-  padding: var(--qz-space-2) var(--qz-space-3);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-}
-.qz-pd-page .qz-pd-alert.is-error { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
+/* 表单提示条（不可购买原因 / 校验错误）用 base.css 的 .qz-alert.is-warning / .is-danger */
 
 /* 购物车图标钮（lg 圆钮）+ lg 主按钮：同为 --qz-control-lg 高，一行等高 */
 .qz-pd-page .qz-pd-buttons {
@@ -1194,7 +1176,7 @@ onMounted(() => {
   .qz-pd-page .qz-pd-media-sticky { position: static; }
   /* 单列时主图台上限随视口走（最高 480），不再被 320 硬顶压扁 4/3；骨架图块同高，加载前后不跳 */
   .qz-pd-page .qz-pd-stage,
-  .qz-pd-page .qz-pd-sk-block { max-height: min(60vh, 480px); }
+  .qz-pd-page .qz-pd-sk-media { max-height: min(60vh, 480px); }
 }
 @media (max-width: 760px) {
   /* 手机端返回钮吸在顶栏下方；桌面保持静态 */
@@ -1203,9 +1185,8 @@ onMounted(() => {
     top: calc(var(--qz-header-h) + var(--qz-space-2));
     z-index: 5;
   }
-  /* 页面 h1：桌面 2xl（28），手机 xl（22）；标题骨架同步 */
+  /* 页面 h1：桌面 2xl（28），手机 xl（22）；标题骨架（.qz-skeleton.is-lg）由 base 同步换挡 */
   .qz-pd-page .qz-pd-title-row h1 { font-size: var(--qz-text-xl); }
-  .qz-pd-page .qz-pd-sk-line.is-lg { height: calc(var(--qz-text-xl) * var(--qz-leading-body)); }
 }
 @media (max-width: 640px) {
   .qz-pd-page .qz-pd-media { padding: var(--qz-space-3); }
@@ -1219,8 +1200,6 @@ onMounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .qz-pd-page .qz-pd-sk-block,
-  .qz-pd-page .qz-pd-sk-line { animation: none; }
   .qz-pd-page .qz-pd-thumbs button,
   .qz-pd-page .qz-pd-sku-list .qz-pill,
   .qz-pd-page .qz-pd-pay-option,

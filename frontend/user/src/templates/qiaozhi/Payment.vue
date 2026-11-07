@@ -441,7 +441,7 @@ const goBack = () => {
 
 .qz-pd-pay-result { display: grid; gap: 16px; }
 .qz-pd-pay-qrbox { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: center; padding: 16px; border-radius: var(--qz-radius-control); background: var(--qz-surface-muted); border: 1px solid var(--qz-border); }
-.qz-pd-pay-qr { position: relative; width: 100%; max-width: 300px; aspect-ratio: 1 / 1; margin: 0 auto; padding: 14px; border-radius: var(--qz-radius-control); background: var(--qz-surface); display: grid; place-items: center; box-shadow: var(--qz-shadow-resting); }
+.qz-pd-pay-qr { position: relative; width: 100%; max-width: 300px; aspect-ratio: 1 / 1; margin: 0 auto; padding: 14px; border-radius: var(--qz-radius-control); background: var(--qz-qr-frame); display: grid; place-items: center; box-shadow: var(--qz-shadow-resting); }
 .qz-pd-pay-qr img { width: 100%; height: 100%; object-fit: contain; }
 .qz-pd-pay-qr-placeholder { display: grid; place-items: center; color: var(--qz-text-muted); }
 .qz-pd-pay-qr-placeholder .qz-ic-spin { width: 32px; height: 32px; }

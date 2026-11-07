@@ -1,8 +1,8 @@
 <template>
   <div ref="rootEl" class="qz-container qz-checkout">
     <!-- 页头：eyebrow + h1 + 说明 + 返回 -->
-    <header class="qz-checkout-head">
-      <div class="qz-checkout-head-copy">
+    <header class="qz-page-head">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ t('qiaozhi.checkout.eyebrow') }}</span>
         <h1>{{ t('checkout.title') }}</h1>
         <p>{{ t('qiaozhi.checkout.subtitle') }}</p>
@@ -459,8 +459,8 @@
           <!-- 提示 / 错误 -->
           <p
             v-if="checkoutAlert"
-            class="qz-checkout-alert"
-            :class="{ 'is-error': checkoutAlert.level === 'error' }"
+            class="qz-alert"
+            :class="checkoutAlert.level === 'error' ? 'is-danger' : 'is-warning'"
             role="alert"
           >
             {{ checkoutAlert.message }}
@@ -671,37 +671,7 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   gap: var(--qz-space-5);
 }
 
-/* ---------- 页头 ---------- */
-.qz-checkout-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
-
-.qz-checkout-head-copy {
-  min-width: 0;
-}
-
-.qz-checkout-head h1 {
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-checkout-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-checkout-head > .qz-btn {
-  flex: none;
-}
+/* 页头用 base.css 的 .qz-page-head，提示条用 .qz-alert */
 
 /* ---------- 双栏：左商品 + 表单，右合计 ---------- */
 .qz-checkout-layout {
@@ -780,7 +750,7 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   height: 64px;
   overflow: hidden;
   border: 1px solid var(--qz-border);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
 }
 
@@ -894,11 +864,6 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--qz-space-3);
-}
-
-.qz-checkout .qz-field-hint,
-.qz-checkout .qz-field-error {
-  margin: 0;
 }
 
 /* 已登录 / 余额已覆盖：成功色提示 */
@@ -1204,7 +1169,7 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   flex: none;
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: var(--qz-radius-xs);
   object-fit: contain;
 }
 
@@ -1241,24 +1206,6 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
   font-weight: 500;
 }
 
-/* 提示条：默认警示（不可提交原因），is-error 为错误 */
-.qz-checkout-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-checkout-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
-
 /* ---------- 响应式 ---------- */
 @media (max-width: 1023px) {
   .qz-checkout-layout {
@@ -1276,12 +1223,6 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
 }
 
 @media (max-width: 760px) {
-  .qz-checkout-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: var(--qz-space-3);
-  }
-
   .qz-panel.qz-checkout-card,
   .qz-panel.qz-checkout-summary {
     padding: var(--qz-space-4);

@@ -3,16 +3,16 @@
   <div v-if="loading" class="qz-container qz-post qz-post-loading" aria-busy="true">
     <span class="qz-sr-only" role="status">{{ t('common.loading') }}</span>
     <div class="qz-post-skeleton-head" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
+      <span class="qz-skeleton is-sm"></span>
+      <span class="qz-skeleton is-lg"></span>
+      <span class="qz-skeleton is-line"></span>
     </div>
     <section class="qz-panel qz-post-skeleton-panel" aria-hidden="true">
-      <span class="qz-post-skeleton-cover"></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
+      <span class="qz-skeleton qz-post-skeleton-cover"></span>
+      <span class="qz-skeleton is-line"></span>
+      <span class="qz-skeleton is-line"></span>
+      <span class="qz-skeleton is-line"></span>
+      <span class="qz-skeleton is-line"></span>
     </section>
   </div>
 
@@ -100,7 +100,7 @@ const {
 </script>
 
 <style scoped>
-/* ---------- 加载骨架（与 QzDocPage 同宽同节奏） ---------- */
+/* ---------- 加载骨架（与 QzDocPage 同宽同节奏）：块都是 base 的 .qz-skeleton，这里只排布局与行宽 ---------- */
 .qz-post-loading {
   display: flex;
   flex-direction: column;
@@ -108,31 +108,21 @@ const {
   max-width: 920px;
 }
 
+/* 页头骨架：eyebrow（.is-sm，收窄到 eyebrow 的宽度，(0,4,0) 压过基类的 45%）→ 标题（.is-lg）→ 副标题（.is-line） */
 .qz-post-skeleton-head {
   display: grid;
   gap: var(--qz-space-3);
 }
 
-.qz-post-skeleton-head > span,
-.qz-post-skeleton-panel > span {
-  display: block;
-  height: 14px;
-  border-radius: var(--qz-radius-pill);
-  background: var(--qz-border);
-  animation: qz-post-pulse 1.2s ease-in-out infinite;
-}
-
-.qz-post-skeleton-head > span:nth-child(1) {
+.qz-post-skeleton-head > .qz-skeleton.is-sm {
   width: 72px;
-  height: 11px;
 }
 
-.qz-post-skeleton-head > span:nth-child(2) {
+.qz-post-skeleton-head > .qz-skeleton.is-lg {
   width: 60%;
-  height: 28px;
 }
 
-.qz-post-skeleton-head > span:nth-child(3) {
+.qz-post-skeleton-head > .qz-skeleton.is-line {
   width: 44%;
 }
 
@@ -143,24 +133,17 @@ const {
   padding: var(--qz-space-8) var(--qz-space-6);
 }
 
-.qz-post-skeleton-panel > span:nth-child(3) {
+.qz-post-skeleton-panel > .qz-skeleton:nth-child(3) {
   width: 92%;
 }
 
-.qz-post-skeleton-panel > span:nth-child(5) {
+.qz-post-skeleton-panel > .qz-skeleton:nth-child(5) {
   width: 58%;
 }
 
 .qz-post-skeleton-panel > .qz-post-skeleton-cover {
   height: 220px;
   margin-bottom: var(--qz-space-3);
-  border-radius: var(--qz-radius-control);
-}
-
-@keyframes qz-post-pulse {
-  50% {
-    opacity: 0.45;
-  }
 }
 
 /* ---------- 正文 ---------- */
@@ -249,7 +232,7 @@ const {
   height: 48px;
   overflow: hidden;
   border: 1px solid var(--qz-border);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
   color: var(--qz-text-secondary);
   font-size: var(--qz-text-sm);
@@ -308,11 +291,6 @@ const {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .qz-post-skeleton-head > span,
-  .qz-post-skeleton-panel > span {
-    animation: none;
-  }
-
   .qz-post-related-item {
     transition: none;
   }

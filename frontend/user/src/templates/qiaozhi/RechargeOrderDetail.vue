@@ -1,8 +1,8 @@
 <template>
   <div ref="rootEl" class="qz-container qz-ro">
     <!-- 页头：eyebrow + h1 + 说明 + 返回 -->
-    <header class="qz-ro-head">
-      <div class="qz-ro-head-copy">
+    <header class="qz-page-head">
+      <div class="qz-page-head-copy">
         <span class="qz-eyebrow">{{ t('personalCenter.wallet.title') }}</span>
         <h1>{{ t('rechargeOrder.title') }}</h1>
         <p>{{ t('rechargeOrder.subtitle') }}</p>
@@ -15,8 +15,8 @@
 
     <!-- 骨架 -->
     <div v-if="loading" class="qz-ro-skeleton" aria-hidden="true">
-      <div class="qz-ro-sk-card"></div>
-      <div class="qz-ro-sk-card"></div>
+      <div class="qz-skeleton qz-ro-sk-card"></div>
+      <div class="qz-skeleton qz-ro-sk-card"></div>
     </div>
 
     <!-- 充值单不存在 -->
@@ -188,55 +188,18 @@ onUnmounted(() => { cleanupReveal?.() })
   max-width: 760px;
 }
 
-/* ---------- 页头 ---------- */
-.qz-ro-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--qz-space-4);
-}
+/* 页头用 base.css 的 .qz-page-head */
 
-.qz-ro-head-copy {
-  min-width: 0;
-}
-
-.qz-ro-head h1 {
-  margin: var(--qz-space-1) 0 0;
-  color: var(--qz-text);
-  font-size: var(--qz-text-2xl);
-  font-weight: 700;
-  line-height: var(--qz-leading-display);
-  letter-spacing: var(--qz-tracking-display);
-}
-
-.qz-ro-head p {
-  margin: var(--qz-space-2) 0 0;
-  color: var(--qz-text-secondary);
-  font-size: var(--qz-text-sm);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-ro-head > .qz-btn {
-  flex: none;
-}
-
-/* ---------- 骨架 ---------- */
+/* ---------- 骨架：卡块是 base 的 .qz-skeleton，这里只给尺寸 ---------- */
 .qz-ro-skeleton {
   display: grid;
   gap: var(--qz-space-4);
 }
 
-.qz-ro-sk-card {
+/* 卡块占位跟面板同圆角：覆盖基类的 control 圆角，写成 (0,3,0) */
+.qz-skeleton.qz-ro-sk-card {
   height: 150px;
   border-radius: var(--qz-radius-panel);
-  background: var(--qz-surface-muted);
-  animation: qz-ro-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes qz-ro-pulse {
-  50% {
-    opacity: 0.55;
-  }
 }
 
 /* ---------- 面板 ---------- */
@@ -266,7 +229,7 @@ onUnmounted(() => { cleanupReveal?.() })
 
 .qz-ro-no {
   color: var(--qz-text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   font-size: var(--qz-text-sm);
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -367,12 +330,13 @@ onUnmounted(() => { cleanupReveal?.() })
   font-weight: 600;
 }
 
+/* 二维码外框固定白底（--qz-qr-frame 两套主题同值），暗色下码的静区不会跟着变暗 */
 .qz-ro-qr img {
   width: 208px;
   height: 208px;
   object-fit: contain;
-  border-radius: 12px;
-  background: var(--qz-surface);
+  border-radius: var(--qz-radius-sm);
+  background: var(--qz-qr-frame);
 }
 
 .qz-ro-pay-side {
@@ -389,7 +353,7 @@ onUnmounted(() => { cleanupReveal?.() })
   gap: var(--qz-space-2);
   padding: var(--qz-space-3);
   border: 1px solid var(--qz-border);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface-muted);
 }
 
@@ -471,12 +435,6 @@ onUnmounted(() => { cleanupReveal?.() })
 
 @media (max-width: 760px) {
   .qz-ro {
-    gap: var(--qz-space-3);
-  }
-
-  .qz-ro-head {
-    flex-direction: column-reverse;
-    align-items: flex-start;
     gap: var(--qz-space-3);
   }
 
