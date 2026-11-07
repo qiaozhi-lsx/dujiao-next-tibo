@@ -49,8 +49,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Component } from 'vue'
+import { computed, nextTick, onMounted, ref, watch, type Component } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { useGlowHighlight } from '../composables/useGlowHighlight'
 
 export interface QzTabItem {
   key: string
@@ -87,8 +88,6 @@ const setTabRef = (key: string, el: HTMLButtonElement | null) => {
 
 const edges = ref({ overflow: false, left: false, right: false })
 const reduced = ref(false)
-const glowReady = ref(false) // 首帧无过渡直接摆位，之后启用弹簧滑动
-let listObserver: ResizeObserver | null = null
 
 const select = (key: string) => {
   if (key !== props.modelValue) emit('select', key)
@@ -131,24 +130,18 @@ const reveal = (el: HTMLElement | null) => {
   if (delta) scroll.scrollBy({ left: delta, behavior: reduced.value ? 'auto' : 'smooth' })
 }
 
-// 高亮滑块摆到激活项上
-const syncGlow = () => {
-  const glow = glowEl.value
-  if (!glow) return
-  const el = tabEls.get(props.modelValue)
-  if (!el) {
-    glow.style.opacity = '0'
-    return
-  }
-  glow.style.opacity = '1'
-  glow.style.width = `${el.offsetWidth}px`
-  glow.style.height = `${el.offsetHeight}px`
-  glow.style.transform = `translate(${el.offsetLeft}px, ${el.offsetTop}px)`
-}
+// 高亮滑块测位委托给 useGlowHighlight；resize 时顺带 updateEdges 维护箭头状态
+const { glowReady } = useGlowHighlight({
+  glowEl,
+  listEl,
+  extraHosts: [viewportEl],
+  getActive: () => tabEls.get(props.modelValue) ?? null,
+  deps: () => props.modelValue,
+  onResize: () => updateEdges(),
+})
 
 watch(() => props.modelValue, async () => {
   await nextTick()
-  syncGlow()
   reveal(tabEls.get(props.modelValue) ?? null)
   updateEdges()
 })
@@ -176,29 +169,10 @@ const onKeydown = (event: KeyboardEvent, key: string) => {
   select(targetKey) // 导航语义：焦点移动即切换
 }
 
-onMounted(async () => {
+onMounted(() => {
   reduced.value = typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  await nextTick()
-  syncGlow()
-  requestAnimationFrame(() => { glowReady.value = true })
   updateEdges()
-  if (typeof ResizeObserver !== 'undefined' && listEl.value) {
-    listObserver = new ResizeObserver(() => {
-      syncGlow()
-      updateEdges()
-    })
-    listObserver.observe(listEl.value)
-    if (viewportEl.value) listObserver.observe(viewportEl.value)
-  }
-  // 字体后载会改变标签宽度，就绪后补摆一次
-  if (typeof document !== 'undefined' && document.fonts) {
-    void document.fonts.ready.then(() => syncGlow())
-  }
-})
-
-onBeforeUnmount(() => {
-  listObserver?.disconnect()
 })
 </script>
 
