@@ -234,7 +234,8 @@
               <AlertTriangle />
               <span>{{ t('orderDetail.fulfillmentTruncatedHint') }}</span>
             </div>
-            <div class="qz-od-payload">
+            <!-- 待交付（payload 为空、也没有键值行）时不画空盒子 -->
+            <div v-if="unit.fulfillment.payload || payloadRows(unit.fulfillment).length" class="qz-od-payload">
               <template v-if="isFulfillmentTruncated(unit.fulfillment)">{{ unit.fulfillment.payload }}</template>
               <template v-else-if="payloadRows(unit.fulfillment).length">
                 <div v-for="(row, rowIdx) in payloadRows(unit.fulfillment)" :key="`${unit.key}-row-${rowIdx}`">

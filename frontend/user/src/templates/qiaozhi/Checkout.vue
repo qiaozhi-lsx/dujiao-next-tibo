@@ -111,7 +111,8 @@
                     :key="`${product.itemKey}-${field.key}`"
                     class="qz-field"
                   >
-                    <label class="qz-field-label" :for="manualFieldId(product.itemKey, field.key)">
+                    <!-- label 自带 id：radio / checkbox 组没有可被 for 指向的单个控件，组容器用 aria-labelledby 指回这里 -->
+                    <label class="qz-field-label" :id="`${manualFieldId(product.itemKey, field.key)}-label`" :for="manualFieldId(product.itemKey, field.key)">
                       {{ getManualFieldLabel(field) }}
                       <b v-if="field.required">*</b>
                     </label>
@@ -141,7 +142,8 @@
                     <div
                       v-else-if="field.type === 'radio'"
                       class="qz-checkout-options"
-                      :aria-labelledby="manualFieldId(product.itemKey, field.key)"
+                      role="radiogroup"
+                      :aria-labelledby="`${manualFieldId(product.itemKey, field.key)}-label`"
                     >
                       <label v-for="option in field.options" :key="option">
                         <input
@@ -158,7 +160,8 @@
                     <div
                       v-else-if="field.type === 'checkbox'"
                       class="qz-checkout-options"
-                      :aria-labelledby="manualFieldId(product.itemKey, field.key)"
+                      role="group"
+                      :aria-labelledby="`${manualFieldId(product.itemKey, field.key)}-label`"
                     >
                       <label v-for="option in field.options" :key="option">
                         <input

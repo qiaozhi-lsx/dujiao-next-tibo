@@ -26,8 +26,10 @@
      Dark takes Arc's dark values (`oklch(19% 0 0)` page etc.).
    - Added `--qz-brand-telegram` / `-whatsapp` / `-wechat` / `-qq`: third-party brand colours for the
      contact panel glyphs and their "open" buttons, plus `--qz-on-brand` (the dark ink on those fills —
-     `--qz-on-accent` is white in light mode and fails AA there). Same values in both themes (a brand
-     colour does not follow the theme); kept here so no other sheet carries a colour literal.
+     `--qz-on-accent` is white in light mode and fails AA there), and `--qz-brand-tron` / `-bsc` / `-sol`
+     (+ `-sol-2`, the gradient's second stop) / `-alipay` for the payment-network dots in PaymentModal.
+     Same values in both themes (a brand colour does not follow the theme); kept here so no other sheet
+     carries a colour literal.
    - Added `--qz-art-*`: the featured-card illustration palette (QzFeaturedCard.vue). Not an Arc concept; the
      values are the brand literals of the old sheet, declared on both scopes with dark overrides only for the
      per-variant washes and text inks. Fills / shadows are composite values, like `--qz-shadow-*`.
@@ -87,6 +89,12 @@
   --qz-brand-wechat: #07c160;
   --qz-brand-qq: #1ebafc;
   --qz-on-brand: #0a0a0a;
+  /* Payment network / wallet brands (PaymentModal chain dots): TRON red, BNB Chain yellow, Solana purple→green, Alipay blue. */
+  --qz-brand-tron: #ff060a;
+  --qz-brand-bsc: #f0b90b;
+  --qz-brand-sol: #9945ff;
+  --qz-brand-sol-2: #14f195;
+  --qz-brand-alipay: #1677ff;
   /* QR quiet-zone frame: fixed white in both themes so the code keeps a light margin on dark surfaces. */
   --qz-qr-frame: #ffffff;
   /* Elevation */
@@ -174,6 +182,11 @@
   --qz-brand-wechat: #07c160;
   --qz-brand-qq: #1ebafc;
   --qz-on-brand: #0a0a0a;
+  --qz-brand-tron: #ff060a;
+  --qz-brand-bsc: #f0b90b;
+  --qz-brand-sol: #9945ff;
+  --qz-brand-sol-2: #14f195;
+  --qz-brand-alipay: #1677ff;
   --qz-qr-frame: #ffffff;
   --qz-shadow-resting: 0 1px 2px oklch(0% 0 0 / .18);
   --qz-shadow-raised: 0 8px 22px oklch(0% 0 0 / .22);
@@ -243,10 +256,12 @@
      card codes, secrets, API keys (the CJK fallbacks keep mixed strings on one font height) */
   --qz-font-body: 'Inter Variable', "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
   --qz-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
-  /* Motion. --qz-ease-spring is a critically damped spring (never overshoots); pair it with --qz-duration-spring for transforms. */
+  /* Motion. --qz-ease-spring is a critically damped spring (never overshoots); pair it with --qz-duration-spring for transforms.
+     --qz-ease-linear is for uniform-rate semantics only (countdown / progress rings), never for UI motion. */
   --qz-ease-enter: cubic-bezier(.16,1,.3,1);
   --qz-ease-standard: cubic-bezier(.22,1,.36,1);
   --qz-ease-exit: cubic-bezier(.7,0,.84,0);
+  --qz-ease-linear: linear;
   --qz-ease-spring: linear(0, 0.0213, 0.0739, 0.1443, 0.2235, 0.305, 0.3849, 0.4606, 0.5305, 0.594, 0.6508, 0.7011, 0.7452, 0.7836, 0.8168, 0.8454, 0.8699, 0.8907, 0.9084, 0.9234, 0.9361, 0.9467, 0.9557, 0.9632, 0.9694, 0.9747, 0.979, 0.9826, 0.9857, 0.9882, 0.9902, 0.992, 0.9934, 0.9946, 0.9955, 0.9963, 1);
   --qz-duration-instant: 120ms; --qz-duration-fast: 160ms; --qz-duration-standard: 240ms; --qz-duration-considered: 480ms; --qz-duration-spring: 580ms;
   /* Keyboard focus outline colour (resolves per theme through --qz-accent-strong) */

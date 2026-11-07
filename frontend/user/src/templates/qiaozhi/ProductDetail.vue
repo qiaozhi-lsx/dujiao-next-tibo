@@ -1086,7 +1086,8 @@ onMounted(() => {
 /* 无 icon 的 USDT 渠道：通用币种徽标占 icon 位，不参与伸缩 */
 .qz-pd-page .qz-pd-pay-option > .qz-badge { flex: none; }
 .qz-pd-page .qz-pd-pay-option > span:not(.qz-badge) { display: grid; min-width: 0; }
-.qz-pd-page .qz-pd-pay-option b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+/* 标签最多两行再截断（两列格里「USDT · Ethereum」一行放不下时折行而不是省略号） */
+.qz-pd-page .qz-pd-pay-option b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600; overflow-wrap: anywhere; }
 .qz-pd-page .qz-pd-pay-option small { color: var(--qz-text-muted); font-size: var(--qz-text-xs); }
 
 .qz-pd-page .qz-pd-total {

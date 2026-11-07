@@ -357,7 +357,7 @@ onUnmounted(() => {
 }
 .qz-skeleton-card .qz-skeleton { border-radius: var(--qz-radius-xs); }
 .qz-skeleton-art { display: grid; place-items: center; height: 160px; margin-top: 6px; }
-.qz-skeleton-art > .qz-skeleton { width: 54%; height: 92px; opacity: .6; border-radius: 14px; }
+.qz-skeleton-art > .qz-skeleton { width: 54%; height: 92px; opacity: .6; border-radius: var(--qz-radius-sm); }
 .qz-skeleton-title { width: 48%; height: 24px; }
 .qz-skeleton-spec { width: 62%; height: 12px; margin-top: 2px; }
 .qz-skeleton-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }

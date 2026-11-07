@@ -51,7 +51,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   -webkit-font-smoothing: antialiased;
   text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
-  transition: background .2s, color .2s;
+  transition: background var(--qz-duration-standard) var(--qz-ease-standard), color var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .dark .qiaozhi-scope { color-scheme: dark; }
 
@@ -520,7 +520,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 /* ---------- Page fade (<Transition name="page-fade">: the back-to-top button in the layout) ----------
    App.vue declares the same pair for the RouterView; kept here so the template's own transition does
    not depend on it. Transition classes land on the element itself, hence no scope prefix. */
-.page-fade-enter-active, .page-fade-leave-active { transition: opacity .2s; }
+.page-fade-enter-active, .page-fade-leave-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard); }
 .page-fade-enter-from, .page-fade-leave-to { opacity: 0; }
 
 /* ---------- Visually hidden (screen-reader only text: live regions, sr-only headings) ----------

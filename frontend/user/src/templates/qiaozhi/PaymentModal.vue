@@ -940,7 +940,7 @@ onBeforeUnmount(() => {
   background: var(--qz-surface);
   box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-raised);
   margin-bottom: 12px;
-  transition: opacity var(--qz-duration-considered), transform var(--qz-duration-considered) var(--qz-ease-standard);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__amount-main {
   display: flex; align-items: center; gap: 10px;
@@ -954,7 +954,7 @@ onBeforeUnmount(() => {
   background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   display: grid; place-items: center;
   cursor: pointer;
-  transition: background-color var(--qz-duration-fast), color var(--qz-duration-fast);
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
 }
 .pay-modal__amount-copy:hover { background: var(--qz-accent-subtle); color: var(--qz-text); }
 .pay-modal__amount-copy svg { width: 14px; height: 14px; }
@@ -985,14 +985,14 @@ onBeforeUnmount(() => {
   background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   font-size: var(--qz-text-xs); font-weight: 700;
 }
-/* 链 / 渠道色点只在没有 logo 素材时兜底显示；没有 --qz-brand-tron/-bsc/-sol/-alipay 一类 token，
-   先借状态色区分（红 / 琥珀 / 蓝绿渐变 / 蓝），要还原品牌色时在 tokens.css 加品牌 token 再换。 */
+/* 链 / 渠道色点只在没有 logo 素材时兜底显示；颜色是 tokens.css 的固定品牌色 --qz-brand-tron / -bsc / -sol(-2) / -alipay
+   （两个主题同值，品牌色不随主题变）。 */
 .pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: var(--qz-text-muted); }
 .pay-modal__chain-logo { flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; }
-.pay-modal__chain-dot.is-tron { background: var(--qz-danger); }
-.pay-modal__chain-dot.is-bsc { background: var(--qz-warning); }
-.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, var(--qz-info), var(--qz-success)); }
-.pay-modal__chain-dot.is-alipay { background: var(--qz-info); }
+.pay-modal__chain-dot.is-tron { background: var(--qz-brand-tron); }
+.pay-modal__chain-dot.is-bsc { background: var(--qz-brand-bsc); }
+.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, var(--qz-brand-sol), var(--qz-brand-sol-2)); }
+.pay-modal__chain-dot.is-alipay { background: var(--qz-brand-alipay); }
 .pay-modal__amount-meta {
   border-top: 1px solid var(--qz-border);
   padding-top: 10px;
@@ -1016,7 +1016,7 @@ onBeforeUnmount(() => {
   margin-bottom: 12px;
   background: var(--qz-surface);
   box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-raised);
-  transition: opacity var(--qz-duration-considered), transform var(--qz-duration-considered) var(--qz-ease-standard);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__pay-head {
   display: flex; align-items: center; justify-content: center;
@@ -1035,7 +1035,7 @@ onBeforeUnmount(() => {
   color: var(--qz-success);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  transition: color var(--qz-duration-standard);
+  transition: color var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .pay-modal__cd-num.is-safe { color: var(--qz-success); }
 .pay-modal__cd-num.is-warn { color: var(--qz-warning); }
@@ -1045,7 +1045,7 @@ onBeforeUnmount(() => {
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
   margin: 0 0 8px;
-  transition: filter var(--qz-duration-considered), opacity var(--qz-duration-considered);
+  transition: filter var(--qz-duration-considered) var(--qz-ease-standard), opacity var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__qr {
   padding: 8px; background: var(--qz-qr-frame);
@@ -1099,7 +1099,7 @@ onBeforeUnmount(() => {
   background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   display: grid; place-items: center;
   cursor: pointer;
-  transition: background-color var(--qz-duration-fast), color var(--qz-duration-fast);
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
 }
 .pay-modal__addr-copy svg { width: 14px; height: 14px; }
 .pay-modal__addr-copy:hover { background: var(--qz-accent-subtle); color: var(--qz-text); }
@@ -1177,19 +1177,19 @@ onBeforeUnmount(() => {
   height: 0; margin: 0; overflow: hidden;
   font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted);
   opacity: 0;
-  transition: opacity var(--qz-duration-standard), height var(--qz-duration-standard), margin var(--qz-duration-standard);
+  transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), height var(--qz-duration-standard) var(--qz-ease-standard), margin var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .is-run .pay-modal__steps,
 .is-ok .pay-modal__steps { opacity: 1; height: 20px; margin: 4px 0 14px; }
 .pay-modal__steps span {
   display: inline-flex; align-items: center; gap: 5px;
-  transition: color var(--qz-duration-standard);
+  transition: color var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .pay-modal__steps span::before {
   content: "";
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--qz-border-strong);
-  transition: background-color var(--qz-duration-standard), transform var(--qz-duration-spring) var(--qz-ease-spring);
+  transition: background-color var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring);
 }
 .pay-modal__steps span.on { color: var(--qz-text); }
 .pay-modal__steps span.on::before { background: var(--qz-accent); transform: scale(1.3); }
@@ -1214,7 +1214,7 @@ onBeforeUnmount(() => {
   font-size: var(--qz-text-sm); font-weight: 800;
   overflow: hidden;
   transition: width var(--qz-duration-spring) var(--qz-ease-spring), height var(--qz-duration-spring) var(--qz-ease-spring),
-              border-radius var(--qz-duration-spring) var(--qz-ease-spring), background-color var(--qz-duration-considered);
+              border-radius var(--qz-duration-spring) var(--qz-ease-spring), background-color var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__go.waiting {
   gap: 8px;
@@ -1244,7 +1244,7 @@ onBeforeUnmount(() => {
   margin: -40px 0 0 -40px;
   transform: rotate(-90deg);
   opacity: 0;
-  transition: opacity var(--qz-duration-standard);
+  transition: opacity var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .is-run .pay-modal__ring,
 .is-ok .pay-modal__ring { opacity: 1; transition-delay: var(--qz-duration-standard); }
@@ -1254,7 +1254,7 @@ onBeforeUnmount(() => {
   stroke: var(--qz-accent);
   stroke-dasharray: 100;
   stroke-dashoffset: calc(100 - var(--p, 0) * 100);
-  transition: stroke var(--qz-duration-considered);
+  transition: stroke var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .is-ok .pay-modal__ring .p { stroke: var(--qz-success); }
 
@@ -1416,7 +1416,7 @@ onBeforeUnmount(() => {
 .is-rec .pay-modal__stage {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
-  transition: opacity var(--qz-duration-considered), transform var(--qz-duration-considered) var(--qz-ease-standard);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 
 /* 矮视口（如 iPhone Safari 带工具条时约 664px 高）的紧凑模式：缩小大字金额与二维码、再收一轮内边距，

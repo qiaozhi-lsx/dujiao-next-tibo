@@ -489,21 +489,21 @@ watch(() => props.disabled, (value) => {
 }
 @keyframes qz-hc-draw { to { stroke-dashoffset: 0; } }
 
-/* 文案切换：新字自下方上浮进场，旧字上移退场 */
-.qz-hc-swap-text-enter-active { transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease; }
-.qz-hc-swap-text-leave-active { transition: opacity 0.13s ease, transform 0.13s ease, filter 0.13s ease; }
+/* 文案切换：新字自下方上浮进场，旧字上移退场（与 QzButton 同一组时长 / 缓动 token） */
+.qz-hc-swap-text-enter-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-standard) var(--qz-ease-enter), filter var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-hc-swap-text-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard), filter var(--qz-duration-instant) var(--qz-ease-standard); }
 .qz-hc-swap-text-enter-from { opacity: 0; transform: translateY(0.3em); filter: blur(4px); }
 .qz-hc-swap-text-leave-to { opacity: 0; transform: translateY(-0.3em); filter: blur(4px); }
 
 /* 图标切换：缩放弹入 / 缩出 */
-.qz-hc-swap-icon-enter-active { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.34, 1.45, 0.64, 1), filter 0.2s ease; }
-.qz-hc-swap-icon-leave-active { transition: opacity 0.12s ease, transform 0.12s ease, filter 0.12s ease; }
+.qz-hc-swap-icon-enter-active { transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring), filter var(--qz-duration-standard) var(--qz-ease-standard); }
+.qz-hc-swap-icon-leave-active { transition: opacity var(--qz-duration-instant) var(--qz-ease-standard), transform var(--qz-duration-instant) var(--qz-ease-standard), filter var(--qz-duration-instant) var(--qz-ease-standard); }
 .qz-hc-swap-icon-enter-from,
 .qz-hc-swap-icon-leave-to { opacity: 0; transform: scale(0.6); filter: blur(2px); }
 
 /* 低动态：纯淡入淡出 */
 .qz-hc-fade-enter-active,
-.qz-hc-fade-leave-active { transition: opacity 0.15s ease; }
+.qz-hc-fade-leave-active { transition: opacity var(--qz-duration-fast) var(--qz-ease-standard); }
 .qz-hc-fade-enter-from,
 .qz-hc-fade-leave-to { opacity: 0; }
 

@@ -530,5 +530,9 @@ onUnmounted(() => {
     gap: var(--qz-space-5);
     padding: var(--qz-space-6) var(--qz-space-5);
   }
+  /* 与 base.css 的 .qz-page-head h1 同步降一档：手机端全站页 h1 统一为 xl */
+  .qz-auth-hero h1 {
+    font-size: var(--qz-text-xl);
+  }
 }
 </style>

@@ -14,7 +14,8 @@
  */
 export const optionalFlagOn = (complete: boolean, value: unknown): boolean => complete && value !== false
 
-/** 内联 payload 必须同时带上的可选开关键；与服务端 initialConfigFieldWhitelist 里的三键对应 */
+/** 内联 payload 必须同时带上的可选开关键；与服务端 web.InitialConfigFlagsSource 额外写入首屏配置的三键对应
+ *（initialConfigFieldWhitelist 只管 site_config 字段，这三键不在其中） */
 const inlineOptionalFlagKeys = ['nav_config', 'registration_enabled', 'email_verification_enabled'] as const
 
 /**

@@ -1,49 +1,51 @@
 <template>
   <div ref="rootEl" class="qz-container qz-pay">
     <!-- 返回 -->
-    <button type="button" class="qz-pay-back" @click="goBack">
+    <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm qz-pay-back" @click="goBack">
       <ChevronLeft />
       {{ t('payment.backToOrders') }}
     </button>
 
     <!-- 骨架 -->
     <div v-if="loading" class="qz-pay-skeleton">
-      <div class="qz-pay-sk-line is-lg"></div>
-      <div class="qz-pay-sk-line"></div>
-      <div class="qz-pay-sk-block"></div>
-      <div class="qz-pay-sk-line is-sm"></div>
-      <div class="qz-pay-sk-line is-btn"></div>
+      <div class="qz-skeleton is-lg"></div>
+      <div class="qz-skeleton is-line"></div>
+      <div class="qz-skeleton qz-pay-sk-block"></div>
+      <div class="qz-skeleton is-sm"></div>
+      <div class="qz-skeleton qz-pay-sk-btn"></div>
     </div>
 
     <!-- 游客补录凭据 -->
     <section v-else-if="showGuestAuthForm" class="qz-pay-detail">
       <h2>{{ t('payment.guestAuthTitle') }}</h2>
-      <p class="qz-pay-note is-warm" style="margin-top: 10px;">
+      <p class="qz-alert is-warning" style="margin-top: 10px;">
         <b>{{ t('payment.guestAuthHint') }}</b>
       </p>
       <form class="qz-pay-form" style="margin-top: 16px;" novalidate @submit.prevent="handleGuestAuthSubmit">
-        <div class="qz-pay-field">
-          <label for="qz-pay-guest-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-pay-guest-email">{{ t('qiaozhi.detail.email') }}<b>*</b></label>
           <input
             id="qz-pay-guest-email"
             v-model="guestAuth.email"
+            class="qz-field-control"
             type="email"
             autocomplete="email"
             :placeholder="t('qiaozhi.detail.emailPlaceholder')"
           />
         </div>
-        <div class="qz-pay-field">
-          <label for="qz-pay-guest-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-pay-guest-password">{{ t('qiaozhi.detail.orderPassword') }}<b>*</b></label>
           <input
             id="qz-pay-guest-password"
             v-model="guestAuth.order_password"
+            class="qz-field-control"
             type="password"
             autocomplete="current-password"
             :placeholder="t('qiaozhi.detail.orderPasswordPlaceholder')"
           />
         </div>
-        <p v-if="guestAuthError" class="qz-pay-form-alert is-error" role="alert">{{ guestAuthError }}</p>
-        <button type="submit" class="qz-pay-primary">
+        <p v-if="guestAuthError" class="qz-alert is-danger" role="alert">{{ guestAuthError }}</p>
+        <button type="submit" class="qz-btn qz-btn--primary qz-btn--block">
           <LogIn />
           {{ t('payment.guestAuthSubmit') }}
         </button>
@@ -54,7 +56,7 @@
     <div v-else-if="!order" class="qz-empty">
       <PackageOpen />
       <b>{{ t('payment.orderNotFound') }}</b>
-      <RouterLink :to="backLink" class="qz-pay-return">
+      <RouterLink :to="backLink" class="qz-btn qz-btn--secondary">
         <ArrowLeft />
         {{ t('payment.backToOrders') }}
       </RouterLink>
@@ -68,7 +70,7 @@
           <h2>{{ orderCanceled ? t('payment.orderCanceled') : t('payment.orderExpired') }}</h2>
           <p class="qz-pay-sub">{{ order.order_no }}</p>
         </div>
-        <RouterLink :to="backLink" class="qz-pay-return">
+        <RouterLink :to="backLink" class="qz-btn qz-btn--secondary">
           <ArrowLeft />
           {{ t('payment.backToOrders') }}
         </RouterLink>
@@ -102,8 +104,8 @@
             </p>
           </div>
           <div class="qz-pay-chips">
-            <span class="is-accent">{{ statusLabel(order.status) }}</span>
-            <span v-if="showCountdown" :class="countdownExpired ? 'is-danger' : 'is-warm'">
+            <span class="qz-badge is-accent">{{ statusLabel(order.status) }}</span>
+            <span v-if="showCountdown" class="qz-badge" :class="countdownExpired ? 'is-danger' : 'is-warning'">
               <Clock />
               <span style="font-variant-numeric: tabular-nums;">{{ countdownText }}</span>
             </span>
@@ -115,7 +117,7 @@
             <span class="qz-pay-price-sym">{{ totalParts.symbol }}</span>
             <strong>{{ totalParts.major }}{{ totalParts.minor }}</strong>
           </div>
-          <div v-if="customerFeeApplied && customerFeeAmountDisplay" class="qz-pay-price-tag is-promo">
+          <div v-if="customerFeeApplied && customerFeeAmountDisplay" class="qz-badge is-danger">
             {{ t('payment.feeAmountLabel') }} +{{ customerFeeAmountDisplay }}
           </div>
         </div>
@@ -167,18 +169,18 @@
             <p class="qz-pay-sub">{{ paymentGuideTip }}</p>
           </div>
           <div class="qz-pay-head-actions">
-            <button type="button" class="qz-pay-secondary" :disabled="loading" @click="handleRefresh">
+            <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" :disabled="loading" @click="handleRefresh">
               <RefreshCw />
               {{ t('payment.refreshStatus') }}
             </button>
-            <button type="button" class="qz-pay-secondary" @click="handleChangePaymentMethod">
+            <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" @click="handleChangePaymentMethod">
               <RotateCcw />
               {{ t('payment.changeMethod') }}
             </button>
           </div>
         </div>
 
-        <div v-if="paymentAlert" class="qz-pay-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warm'">
+        <div v-if="paymentAlert" class="qz-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warning'">
           {{ paymentAlert.message }}
         </div>
 
@@ -195,7 +197,7 @@
               <span>{{ t('payment.payableAmountLabel') }}</span>
               <strong>{{ payableAmountDisplay }}</strong>
             </p>
-            <p v-if="qrUsingPayLinkFallback" class="qz-pay-note is-warm">
+            <p v-if="qrUsingPayLinkFallback" class="qz-alert is-warning">
               <b>{{ t('payment.qrFallbackHint') }}</b>
             </p>
             <div v-if="pollingActive" class="qz-pay-polling">
@@ -214,7 +216,7 @@
             </b>
           </div>
           <div v-if="cryptoWalletAddress" class="qz-pay-crypto-action">
-            <button type="button" class="qz-pay-secondary" @click="handleCopyWalletAddress">
+            <button type="button" class="qz-btn qz-btn--secondary" @click="handleCopyWalletAddress">
               <Copy />
               {{ t('payment.copyWalletAddress') }}
             </button>
@@ -223,20 +225,20 @@
         </div>
 
         <div v-if="showPayLink" class="qz-pay-link">
-          <button type="button" class="qz-pay-primary" @click="handleOpenPayLink">
+          <button type="button" class="qz-btn qz-btn--primary" @click="handleOpenPayLink">
             <ExternalLink />
             {{ t('payment.openPayLink') }}
           </button>
-          <button type="button" class="qz-pay-secondary" @click="handleCopyPayLink">
+          <button type="button" class="qz-btn qz-btn--secondary" @click="handleCopyPayLink">
             <Copy />
             {{ t('payment.copyPayLink') }}
           </button>
           <span v-if="copied" class="qz-pay-hint is-ok">{{ t('payment.copied') }}</span>
         </div>
-        <p v-if="openedPayWindow && payLinkOpenedTip" class="qz-pay-note is-accent">
+        <p v-if="openedPayWindow && payLinkOpenedTip" class="qz-alert is-info">
           <b>{{ payLinkOpenedTip }}</b>
         </p>
-        <p v-if="showTelegramPayHint" class="qz-pay-note is-warm">
+        <p v-if="showTelegramPayHint" class="qz-alert is-warning">
           <b>{{ t('payment.telegramExternalHint') }}</b>
         </p>
       </section>
@@ -245,7 +247,7 @@
       <section v-else class="qz-pay-detail qz-pay-choose">
         <h2>{{ t('payment.channelTitle') }}</h2>
 
-        <div v-if="!configReady" class="qz-pay-note is-accent" style="margin-top: 12px;">
+        <div v-if="!configReady" class="qz-alert is-info" style="margin-top: 12px;">
           <b>{{ t('common.loading') }}</b>
         </div>
 
@@ -272,11 +274,11 @@
           </div>
 
           <!-- 缓存支付 -->
-          <div v-if="cachedPayment" class="qz-pay-alert is-warm" style="margin-top: 14px;">
+          <div v-if="cachedPayment" class="qz-alert is-warning" style="margin-top: 14px;">
             <div style="font-weight: 800; margin-bottom: 6px;">{{ t('payment.cachedTitle') }}</div>
             <div style="margin-bottom: 8px;">{{ t('payment.cachedHint', { channel: cachedChannelName }) }}</div>
             <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-              <button type="button" class="qz-pay-secondary" @click="restoreCachedPayment">
+              <button type="button" class="qz-btn qz-btn--secondary" @click="restoreCachedPayment">
                 <RotateCcw />
                 {{ t('payment.useCached') }}
               </button>
@@ -287,7 +289,7 @@
           <!-- 支付方式网格 -->
           <div v-if="!walletOnlyPayment" class="qz-pay-methods" style="margin-top: 14px;">
             <h3><Wallet />{{ t('qiaozhi.detail.payTitle') }}</h3>
-            <div v-if="!channels.length" class="qz-pay-form-alert">
+            <div v-if="!channels.length" class="qz-alert is-warning">
               {{ showBalanceOption ? t('payment.channelEmptyUseBalance') : t('payment.channelEmpty') }}
             </div>
             <div v-else class="qz-pay-channel-grid">
@@ -317,35 +319,35 @@
           </div>
 
           <!-- 提示 -->
-          <div v-if="paymentAlert" class="qz-pay-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warm'">
+          <div v-if="paymentAlert" class="qz-alert" :class="paymentAlert.level === 'error' ? 'is-danger' : 'is-warning'">
             {{ paymentAlert.message }}
           </div>
           <div
             v-else-if="!walletOnlyPayment && requiresOnlineChannel && !selectedChannel"
-            class="qz-pay-alert is-warm"
+            class="qz-alert is-warning"
           >
             {{ t('payment.selectChannelError') }}
           </div>
           <div
             v-else-if="walletOnlyPayment && expectedOnlinePayCents > 0"
-            class="qz-pay-alert is-warm"
+            class="qz-alert is-warning"
           >
             {{ t('payment.walletInsufficientHint') }}
           </div>
           <div
             v-else-if="!requiresOnlineChannel"
-            class="qz-pay-note is-accent"
+            class="qz-alert is-info"
           >
             <b>{{ t('payment.walletPayOnly') }}</b>
           </div>
 
           <div class="qz-pay-actions">
-            <button type="button" class="qz-pay-primary" :disabled="!canSubmitPayment" @click="handlePayment">
+            <button type="button" class="qz-btn qz-btn--primary" :disabled="!canSubmitPayment" @click="handlePayment">
               <Loader2 v-if="submitting" class="qz-pay-spin" />
               <CreditCard v-else />
               {{ submitting ? t('payment.submitting') : t('payment.submitButton') }}
             </button>
-            <button type="button" class="qz-pay-secondary" :disabled="loading" @click="handleRefresh">
+            <button type="button" class="qz-btn qz-btn--secondary" :disabled="loading" @click="handleRefresh">
               <RefreshCw />
               {{ t('payment.refreshStatus') }}
             </button>
@@ -411,39 +413,21 @@ const goBack = () => {
 </script>
 
 <style scoped>
-/* 支付页：全部样式在本块，class 统一 qz-pay-*（与 ProductDetail 的 qz-pd-* 不再同名）。
-   前半是本页从旧共享表接手的"外壳"规则——页面根 / 返回钮 / 骨架 / 卡片与详情面 / chips / 价签 / 提示条 /
-   主次按钮 / 游客补录表单 / 渠道选择；后半是本页自己的排版（摘要卡 / 元信息 / 商品清单 / 二维码 / 链上明细 /
-   渠道区 / 操作区）。颜色 / 字号 / 圆角 / 阴影一律读 --qz-* token（旧表的 11.5 / 12.5 / 13 / 34px 字号就近取
-   --qz-text-xs / -sm / -3xl，--amber / --red 取 --qz-warning / --qz-danger，软底是 12% 的 color-mix）；
-   骨架用 base.css 的 qz-pulse 关键帧。
-   特指度：根元素同时带 .qz-container（layout.css，(0,2,0)），这里写成 .qz-container.qz-pay 提到 (0,3,0)，
-   不依赖注入顺序。 */
+/* 支付页：控件走 base.css 基类——返回钮 / 刷新 / 换方式 / 复制 / 提交是 .qz-btn（--primary / --secondary /
+   --sm / --block），状态与倒计时是 .qz-badge.is-*，提示条是 .qz-alert.is-*，游客补录表单是 .qz-field 四件套，
+   骨架是 .qz-skeleton(.is-lg / .is-line / .is-sm)。本块只剩本页的排版：页面根 / 卡片与详情面 / 价签行 /
+   元信息 / 商品清单 / 二维码 / 链上明细 / 渠道选择 / 操作区，class 统一 qz-pay-*。颜色 / 字号 / 圆角 / 阴影 /
+   过渡一律读 --qz-* token。
+   特指度：根元素同时带 .qz-container（layout.css，(0,2,0)），这里写成 .qz-container.qz-pay 提到 (0,3,0)；
+   覆盖基类的返回钮同样串成 .qz-btn.qz-pay-back，不依赖注入顺序。 */
 
 /* ---------- 页面根：比容器窄一档，纵向堆叠 ---------- */
 .qz-container.qz-pay { width: min(1080px, 94vw); display: flex; flex-direction: column; gap: 16px; padding-top: 24px; }
 
-/* ---------- 返回钮（桌面端随滚动吸顶） ---------- */
-.qz-pay-back {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 14px 0 10px;
-  border: 1px solid var(--qz-border);
-  border-radius: var(--qz-radius-pill);
-  background: var(--qz-surface);
-  box-shadow: var(--qz-shadow-resting);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-sm);
-  font-weight: 600;
-  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
-.qz-pay-back svg { width: 15px; height: 15px; }
-.qz-pay-back:hover { color: var(--qz-accent-strong); border-color: var(--qz-border-strong); }
+/* ---------- 返回钮：.qz-btn--secondary --sm 的外观，这里只管位置（桌面端随滚动吸顶、半透明毛玻璃底） ---------- */
+.qz-btn.qz-pay-back { align-self: flex-start; }
 @media (min-width: 1024px) {
-  .qz-pay-back {
+  .qz-btn.qz-pay-back {
     position: sticky;
     top: calc(var(--qz-header-h) + 12px);
     z-index: 38;
@@ -452,19 +436,10 @@ const goBack = () => {
   }
 }
 
-/* ---------- 骨架（base.css 的 qz-pulse） ---------- */
+/* ---------- 骨架：行用 base.css 的 .qz-skeleton 变体，这里只给方块与按钮占位一个尺寸 ---------- */
 .qz-pay-skeleton { display: grid; gap: 16px; }
-.qz-pay-sk-block,
-.qz-pay-sk-line {
-  border-radius: var(--qz-radius-sm);
-  background: color-mix(in oklab, var(--qz-surface-muted) 70%, var(--qz-border));
-  animation: qz-pulse 1.4s ease-in-out infinite;
-}
 .qz-pay-sk-block { aspect-ratio: 1 / 1; max-height: 520px; }
-.qz-pay-sk-line { height: 18px; }
-.qz-pay-sk-line.is-lg { height: 32px; width: 80%; }
-.qz-pay-sk-line.is-sm { width: 45%; }
-.qz-pay-sk-line.is-btn { height: 48px; margin-top: auto; }
+.qz-pay-sk-btn { min-height: var(--qz-control-md); margin-top: auto; }
 
 /* ---------- 卡片面 / 详情面 ---------- */
 .qz-pay-card {
@@ -485,22 +460,8 @@ const goBack = () => {
 }
 .qz-pay-detail > h2 { margin-bottom: 14px; font-size: var(--qz-text-lg); font-weight: 700; color: var(--qz-text); }
 
-/* ---------- 状态 chips / 价签 ---------- */
+/* ---------- 状态徽标行 / 大价签 ---------- */
 .qz-pay-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -6px; }
-.qz-pay-chips > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 24px;
-  padding: 0 9px;
-  border-radius: 7px;
-  font-size: var(--qz-text-xs);
-  font-weight: 700;
-}
-.qz-pay-chips svg { width: 12px; height: 12px; }
-.qz-pay-chips .is-accent { background: var(--qz-accent-subtle); color: var(--qz-accent-strong); }
-.qz-pay-chips .is-warm { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning); }
-.qz-pay-chips .is-danger { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
 .qz-pay-price-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .qz-pay-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
 .qz-pay-price-sym { font-size: var(--qz-text-lg); font-weight: 800; color: var(--qz-text); }
@@ -512,119 +473,9 @@ const goBack = () => {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
-.qz-pay-price-tag {
-  align-self: center;
-  padding: 3px 8px;
-  border-radius: 7px;
-  font-size: var(--qz-text-xs);
-  font-weight: 800;
-  background: var(--qz-accent-subtle);
-  color: var(--qz-accent-strong);
-}
-.qz-pay-price-tag.is-promo { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
 
-/* ---------- 提示：note（带图标的说明）与 alert（结果 / 错误） ---------- */
-.qz-pay-note {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  padding: 10px 12px;
-  border-radius: var(--qz-radius-sm);
-  font-size: var(--qz-text-xs);
-}
-.qz-pay-note b { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
-.qz-pay-note svg { width: 14px; height: 14px; }
-.qz-pay-note.is-accent { background: var(--qz-accent-subtle); color: var(--qz-accent-strong); }
-.qz-pay-note.is-warm { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning); }
-.qz-pay-alert { padding: 10px 12px; border-radius: 11px; font-size: var(--qz-text-xs); font-weight: 700; }
-.qz-pay-alert.is-danger { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
-.qz-pay-alert.is-warm { background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning); }
-
-/* ---------- 按钮：主（渐变）/ 次（弱强调底）/ 返回链接（空态与过期态） ----------
-   三者共用胶囊圆角与按压缩放（Arc 按钮语言）；hover 上浮 1px，按压 .97。 */
-.qz-pay-primary,
-.qz-pay-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: var(--qz-control-md);
-  border-radius: var(--qz-radius-pill);
-  font-size: var(--qz-text-sm);
-  font-weight: 800;
-  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
-.qz-pay-secondary { border: 1px solid var(--qz-border-strong); background: var(--qz-accent-subtle); color: var(--qz-accent-strong); }
-.qz-pay-secondary svg { width: 17px; height: 17px; }
-.qz-pay-primary {
-  width: 100%;
-  background: linear-gradient(90deg, var(--qz-accent), var(--qz-accent-strong));
-  color: var(--qz-on-accent);
-  box-shadow: var(--qz-shadow-raised);
-}
-.qz-pay-primary:hover:not(:disabled),
-.qz-pay-secondary:hover:not(:disabled) { transform: translateY(-1px); }
-.qz-pay-primary:disabled,
-.qz-pay-secondary:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
-.qz-pay-return {
-  min-height: var(--qz-control-md);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 0;
-  border-radius: var(--qz-radius-pill);
-  padding: 10px 15px;
-  background: linear-gradient(135deg, var(--qz-accent), var(--qz-accent-strong));
-  box-shadow: var(--qz-shadow-raised);
-  color: var(--qz-on-accent);
-  font-size: var(--qz-text-xs);
-  font-weight: 700;
-  white-space: nowrap;
-  transition: transform 0.42s cubic-bezier(0.34, 1.45, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
-.qz-pay-return svg { width: 16px; height: 16px; }
-.qz-pay-return:hover { transform: translateY(-1px); }
-.qz-pay-return:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-.qz-empty .qz-pay-return { margin-top: 18px; }
-.qz-pay-return:not(:disabled):active,
-.qz-pay-back:not(:disabled):active,
-.qz-pay-secondary:not(:disabled):active,
-.qz-pay-primary:not(:disabled):active {
-  transform: scale(0.97);
-  transition: transform 0.05s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* ---------- 游客补录凭据表单 ---------- */
+/* ---------- 游客补录凭据表单（字段用 .qz-field / .qz-field-label / .qz-field-control） ---------- */
 .qz-pay-form { display: grid; gap: 10px; }
-.qz-pay-field { display: grid; gap: 4px; }
-.qz-pay-field > label { font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted); }
-.qz-pay-field > label b { margin-left: 3px; color: var(--qz-danger); }
-.qz-pay-field input {
-  width: 100%;
-  min-width: 0;
-  min-height: var(--qz-control-md);
-  padding: 9px 13px;
-  border: 1px solid var(--qz-border-strong);
-  border-radius: var(--qz-radius-sm);
-  background: var(--qz-surface);
-  color: var(--qz-text);
-  font-size: var(--qz-text-sm);
-  outline: 0;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.qz-pay-field input:focus { border-color: var(--qz-accent); box-shadow: 0 0 0 4px var(--qz-accent-subtle); }
-.qz-pay-field input::placeholder { color: var(--qz-text-muted); }
-.qz-pay-form-alert {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: var(--qz-radius-sm);
-  font-size: var(--qz-text-sm);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-}
-.qz-pay-form-alert.is-error { background: color-mix(in oklab, var(--qz-danger) 12%, transparent); color: var(--qz-danger); }
 .qz-pay-hint { margin: -4px 0 0; font-size: var(--qz-text-xs); line-height: 1.55; color: var(--qz-text-muted); }
 .qz-pay-hint.is-ok { margin: 0; color: var(--qz-accent-strong); }
 
@@ -633,7 +484,7 @@ const goBack = () => {
   display: grid;
   gap: 8px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: var(--qz-radius-control);
   background: var(--qz-surface-muted);
   border: 1px solid var(--qz-border);
 }
@@ -649,12 +500,14 @@ const goBack = () => {
   padding: 7px 10px;
   text-align: left;
   border: 1px solid var(--qz-border);
-  border-radius: 10px;
+  border-radius: var(--qz-radius-control);
   background: var(--qz-surface);
   color: var(--qz-text);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color var(--qz-duration-fast) var(--qz-ease-standard), background-color var(--qz-duration-fast) var(--qz-ease-standard);
 }
+/* 渠道按钮是支付方式卡里的内层行：圆角降一档 */
+.qz-pay-channel { border-radius: var(--qz-radius-sm); }
 .qz-pay-channel:hover:not(:disabled),
 .qz-pay-balance:hover { border-color: var(--qz-border-strong); }
 .qz-pay-channel:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -693,8 +546,6 @@ const goBack = () => {
 .qz-pay-sub { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--qz-text-sm); color: var(--qz-text-muted); }
 .qz-pay-sub code { font-family: inherit; font-weight: 700; color: var(--qz-text); font-variant-numeric: tabular-nums; }
 .qz-pay-head-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.qz-pay-head-actions .qz-pay-secondary { height: var(--qz-control-sm); padding: 0 12px; font-size: var(--qz-text-sm); }
-.qz-pay-head-actions .qz-pay-secondary svg { width: 15px; height: 15px; }
 
 .qz-pay-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding-top: 4px; border-top: 1px solid var(--qz-border); }
 .qz-pay-meta > div { display: grid; gap: 4px; min-width: 0; padding-top: 10px; }
@@ -733,7 +584,7 @@ const goBack = () => {
 .qz-pay-crypto-action { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .qz-pay-link { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.qz-pay-link .qz-pay-primary { width: auto; min-width: 200px; padding: 0 20px; }
+.qz-pay-link .qz-btn--primary { min-width: 200px; }
 
 .qz-pay-choose { display: grid; gap: 0; }
 .qz-pay-choose h2 { font-size: var(--qz-text-lg); font-weight: 700; color: var(--qz-text); margin-bottom: 4px; }
@@ -745,7 +596,6 @@ const goBack = () => {
 .qz-pay-total strong { font-size: var(--qz-text-xl); font-weight: 800; color: var(--qz-text); font-variant-numeric: tabular-nums; }
 
 .qz-pay-actions { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; margin-top: 14px; }
-.qz-pay-actions .qz-pay-primary { width: 100%; }
 
 @media (max-width: 720px) {
   .qz-pay-qrbox { grid-template-columns: minmax(0, 1fr); }

@@ -174,7 +174,7 @@ onUnmounted(() => {
     background-color var(--qz-duration-fast) var(--qz-ease-standard),
     color var(--qz-duration-fast) var(--qz-ease-standard);
 }
-.qz-qty-btn svg { width: 14px; height: 14px; }
+.qz-qty-btn svg { width: 16px; height: 16px; }
 @media (hover: hover) and (pointer: fine) {
   .qz-qty-btn:hover:where(:not([aria-disabled="true"])) { background: var(--qz-accent-subtle); }
 }

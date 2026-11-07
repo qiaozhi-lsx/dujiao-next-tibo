@@ -386,7 +386,7 @@ onUnmounted(() => {
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 94.2;
-  transition: stroke-dashoffset var(--qz-duration-standard) linear;
+  transition: stroke-dashoffset var(--qz-duration-standard) var(--qz-ease-linear);
 }
 
 .qz-tfa-ring-num {

@@ -537,7 +537,7 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
   position: absolute;
   z-index: 2;
   padding: 6px var(--qz-space-3);
-  border-radius: 12px;
+  border-radius: var(--qz-radius-sm);
   background: var(--qz-surface);
   color: var(--qz-art-duo-ink);
   font-size: var(--qz-text-sm);
@@ -657,9 +657,11 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
   opacity: 0.5;
 }
 
-/* ---------- 底部：起价 + CTA ---------- */
+/* ---------- 底部：起价 + CTA ----------
+   价格与「起」后缀钉在一行；一行放不下（en-US @1024 的「Choose a plan」）时整颗 CTA 换到下一行靠右，而不是把后缀挤到价格下面 */
 .qz-fcard-foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--qz-space-3);
@@ -681,8 +683,9 @@ const ctaText = computed(() => t('qiaozhi.card.choosePlan'))
 .qz-fcard-price small {
   color: var(--qz-text-muted);
   font-size: var(--qz-text-xs);
+  white-space: nowrap;
 }
-.qz-fcard-cta { flex: none; }
+.qz-fcard-cta { flex: none; margin-left: auto; }
 .qz-fcard-cta svg { transition: transform var(--qz-duration-standard) var(--qz-ease-standard); }
 .qz-fcard:hover .qz-fcard-cta svg { transform: translateX(3px); }
 
