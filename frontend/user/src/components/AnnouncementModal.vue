@@ -107,6 +107,7 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <Transition
+      appear
       enter-active-class="transition-opacity duration-300 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
@@ -121,6 +122,7 @@ onBeforeUnmount(() => {
       >
         <div class="fixed inset-0 bg-black/55 backdrop-blur-md" aria-hidden="true" />
         <Transition
+          appear
           enter-active-class="transition duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
           enter-from-class="opacity-0 scale-95 translate-y-3"
           enter-to-class="opacity-100 scale-100 translate-y-0"

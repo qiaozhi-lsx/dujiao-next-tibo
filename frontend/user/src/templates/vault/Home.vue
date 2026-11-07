@@ -343,7 +343,6 @@ usePageSeo({
 })
 
 onMounted(async () => {
-  if (!appStore.config) void appStore.loadConfig()
   if (isListMode.value) {
     await listInitialize()
   } else {
