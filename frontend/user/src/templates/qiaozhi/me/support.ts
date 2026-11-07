@@ -4,8 +4,7 @@ import { orderStatusLabel, orderStatusVariant, type BadgeTone } from '../../../u
 
 /**
  * qiaozhi 个人中心面板共用工具：状态徽章 tone / 文本格式化 / 会员等级名。
- * tone 对应 base.css 的 `.qz-badge.is-*`（success / warning / danger / info）；
- * `accent`（处理中）由用到它的页面补一条 `.qz-badge.is-accent`，`neutral` 不带状态类。
+ * tone 对应 base.css 的 `.qz-badge.is-*`（success / warning / danger / info / accent），`neutral` 不带状态类。
  */
 export type MeBadgeTone = BadgeTone
 

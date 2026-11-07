@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <p v-if="panelAlert" class="qz-me-alert" :class="panelAlertClass" role="alert">
+      <p v-if="panelAlert" class="qz-alert" :class="panelAlertClass" role="alert">
         {{ panelAlert.message }}
       </p>
 
@@ -120,11 +120,12 @@ const redeemCaptchaEnabled = computed(() => {
 })
 const turnstileSiteKey = computed(() => String(captchaConfig.value?.turnstile?.site_key || ''))
 
+// 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger
 const panelAlertClass = computed(() => {
   const level = panelAlert.value?.level
-  if (level === 'error') return 'is-error'
+  if (level === 'error') return 'is-danger'
   if (level === 'success') return 'is-success'
-  return ''
+  return 'is-warning'
 })
 
 const redeemedAmountText = computed(() => {
@@ -248,81 +249,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 礼品卡面板：区块 .qz-panel + .qz-section-head、表单 .qz-field 三件套、结果 .qz-badge、按钮 QzButton（styles/base.css）。 */
-.qz-me-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
+/* 礼品卡面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、表单 .qz-field 三件套、结果 .qz-badge、按钮 QzButton
+   来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts(.qz-me-form-acts) / .qz-me-sub / .qz-me-kv(-row) / .qz-me-form
+   来自 PersonalCenter.vue 的 me 共享块。这里只剩兑换结果的入场、结果头左对齐与卡密的等宽大写。
+   .qz-me-acts.qz-me-gift-success-head 写成 (0,3,0)，压过共享块的 .qz-me-acts (0,2,0)。 */
 
-.qz-panel.qz-me-sec {
-  display: flex;
-  flex-direction: column;
-  gap: var(--qz-space-4);
-}
-
-.qz-me-sec > .qz-section-head {
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.qz-section-head small {
-  display: block;
-  margin-top: var(--qz-space-1);
-  color: var(--qz-text-muted);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-acts {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--qz-space-2);
-}
-
-.qz-chip svg,
-.qz-badge svg {
-  flex: none;
-  width: 12px;
-  height: 12px;
-}
-
-/* ---------- 提示条：默认警示色，is-error 错误色，is-success 成功色 ---------- */
-.qz-me-alert {
-  margin: 0;
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border-radius: var(--qz-radius-control);
-  background: color-mix(in oklab, var(--qz-warning) 12%, transparent);
-  color: var(--qz-warning);
-  font-size: var(--qz-text-sm);
-  font-weight: 500;
-  line-height: var(--qz-leading-body);
-  overflow-wrap: anywhere;
-}
-
-.qz-me-alert.is-error {
-  background: color-mix(in oklab, var(--qz-danger) 12%, transparent);
-  color: var(--qz-danger);
-}
-
-.qz-me-alert.is-success {
-  background: color-mix(in oklab, var(--qz-success) 12%, transparent);
-  color: var(--qz-success);
-}
-
-/* ---------- 兑换结果：浅底子面板 + 键值行 ---------- */
-.qz-me-sub {
-  display: grid;
-  gap: var(--qz-space-3);
-  padding: var(--qz-space-3) var(--qz-space-4);
-  border: 1px solid var(--qz-border);
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface-muted);
-}
-
+/* ---------- 兑换结果：.qz-me-sub 入场 ---------- */
 .qz-me-gift-success {
   animation: qz-me-gift-in var(--qz-duration-considered) var(--qz-ease-enter) both;
 }
@@ -339,64 +271,21 @@ onMounted(() => {
   }
 }
 
-.qz-me-gift-success-head {
+.qz-me-acts.qz-me-gift-success-head {
   justify-content: flex-start;
 }
 
-.qz-me-kv {
-  display: grid;
-  gap: var(--qz-space-2);
-}
-
-.qz-me-kv-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--qz-space-3);
-  font-size: var(--qz-text-xs);
-  line-height: var(--qz-leading-body);
-}
-
-.qz-me-kv-row > span {
-  color: var(--qz-text-muted);
-  white-space: nowrap;
-}
-
-.qz-me-kv-row > b {
-  min-width: 0;
-  color: var(--qz-text);
-  font-weight: 600;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
 .qz-me-gift-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-/* ---------- 兑换表单 ---------- */
-.qz-me-form {
-  display: grid;
-  gap: var(--qz-space-4);
-}
-
+/* ---------- 兑换表单：卡密输入等宽大写 ---------- */
 .qz-field-control.qz-me-gift-input {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--qz-font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.qz-me-form-acts {
-  justify-content: flex-start;
-}
-
-@media (max-width: 760px) {
-  .qz-panel.qz-me-sec {
-    padding: var(--qz-space-4);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
