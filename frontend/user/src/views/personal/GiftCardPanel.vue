@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { giftCardAPI, type CaptchaPayload, type GiftCardRedeemResult } from '../../api'
 import { useAppStore } from '../../stores/app'
@@ -238,12 +238,6 @@ const submitRedeem = async () => {
     submitting.value = false
   }
 }
-
-onMounted(() => {
-  if (!appStore.config) {
-    void appStore.loadConfig()
-  }
-})
 </script>
 
 <style scoped>

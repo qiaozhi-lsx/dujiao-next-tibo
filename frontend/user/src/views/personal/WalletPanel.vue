@@ -375,7 +375,6 @@ const redirectRechargeReturn = () => {
 const initialize = async () => {
   walletAlert.value = null
   try {
-    if (!appStore.config) void appStore.loadConfig()
     await Promise.all([
       loadWallet(),
       loadTransactions(),

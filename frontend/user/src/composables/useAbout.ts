@@ -1,4 +1,4 @@
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '../stores/app'
 import { usePageSeo } from './usePageSeo'
@@ -59,10 +59,6 @@ export function useAbout() {
   const hasServices = computed(() => servicesTitle.value !== '' || serviceItems.value.length > 0)
   const hasContactLinks = computed(() => !!(contactConfig.value?.telegram || contactConfig.value?.whatsapp || contactConfig.value?.email || contactConfig.value?.support_url))
   const hasContact = computed(() => contactTitle.value !== '' || contactText.value !== '' || hasContactLinks.value)
-
-  onMounted(() => {
-    if (!appStore.config) void appStore.loadConfig()
-  })
 
   return {
     contactConfig,

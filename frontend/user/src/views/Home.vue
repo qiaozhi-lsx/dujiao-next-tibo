@@ -530,7 +530,6 @@ watch(
 )
 
 onMounted(async () => {
-  if (!appStore.config) void appStore.loadConfig()
   if (templateMode.value === 'list') {
     await Promise.all([loadBanners(), listInitialize()])
   } else {
