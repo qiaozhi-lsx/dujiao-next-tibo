@@ -259,13 +259,14 @@ import { ArrowLeftRight, CheckCircle2, CircleX, Copy, ExternalLink, Loader2 } fr
 import QRCode from 'qrcode'
 import { userOrderAPI, guestOrderAPI } from '../../api'
 import { useAppStore } from '../../stores/app'
-import { chainLabel, channelDisplayName } from '../../utils/cryptoChain'
+import { channelDisplayName } from '../../utils/cryptoChain'
 import { countdownTone } from '../../utils/countdownTone'
 import {
   bareAmountText,
   isPaidOrderStatus,
   isTerminalOrderStatus,
   parsePaidAtMs,
+  paymentChipLabel as paymentChipLabel_,
   resolvePayableCurrency,
   shouldShowFee,
 } from './utils/paymentDisplay'
@@ -439,15 +440,8 @@ const hasCryptoPayment = computed(() => Boolean(props.order?.walletAddress))
 // providerType 后端有时下发 'Epusdt' / 'EPUSDT'，大小写不敏感比较。
 const txHashSupported = computed(() => (props.order?.providerType || '').toLowerCase() === 'epusdt')
 
-const cryptoChainLabel = computed(() => (props.order?.chain ? chainLabel(props.order.chain) : ''))
-
-// 金额下方的支付方式 chip：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余显示渠道名。
-const paymentChipLabel = computed(() => {
-  if (cryptoChainLabel.value) return cryptoChainLabel.value
-  const name = (props.order?.channelName || '').trim()
-  if (!name) return ''
-  return /支付宝|alipay/i.test(name) ? 'Alipay' : channelDisplayName(name)
-})
+// 金额下方的支付方式 chip：纯函数见 utils/paymentDisplay.paymentChipLabel；实现与测试走同一口径。
+const paymentChipLabel = computed(() => paymentChipLabel_(props.order || {}))
 
 // 有素材的链用真 logo（网关同款），其余链回退色点。
 const CHAIN_LOGOS: Record<string, string> = {
