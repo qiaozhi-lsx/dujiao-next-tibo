@@ -128,8 +128,10 @@ func ChannelSuccess(c *gin.Context, data interface{}) {
 	})
 }
 
-// ChannelError 渠道 API 错误响应。
+// ChannelError 渠道 API 错误响应,一律 Cache-Control: no-store。
+// 与 Error/ErrorWithHTTPStatus 保持一致:错误响应不得被 CDN/浏览器缓存后重放。
 func ChannelError(c *gin.Context, httpStatus, statusCode int, msg, errorCode string) {
+	c.Header("Cache-Control", cacheControlNoStore)
 	c.JSON(httpStatus, ChannelResponse{
 		StatusCode: statusCode,
 		Msg:        msg,

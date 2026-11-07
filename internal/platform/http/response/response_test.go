@@ -48,3 +48,19 @@ func TestErrorWithHTTPStatus_SetsNoStoreCacheControl(t *testing.T) {
 		t.Errorf("Cache-Control = %q, want %q", got, "no-store")
 	}
 }
+
+// TestChannelError_SetsNoStoreCacheControl 验证渠道 API 错误响应与
+// Error/ErrorWithHTTPStatus 口径一致,始终覆写为 Cache-Control: no-store,
+// 避免被 CDN/浏览器当成功响应缓存并重放。
+func TestChannelError_SetsNoStoreCacheControl(t *testing.T) {
+	c, w := newTestContext(t)
+
+	ChannelError(c, http.StatusBadRequest, CodeBadRequest, "x", "bad_request")
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", w.Code)
+	}
+	if got := w.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want %q", got, "no-store")
+	}
+}
