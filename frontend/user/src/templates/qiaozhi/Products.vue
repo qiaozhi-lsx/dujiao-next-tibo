@@ -48,17 +48,7 @@
           <span>{{ filteredProducts.length }} {{ t('qiaozhi.products.catalog.unit') }}</span>
         </div>
 
-        <div v-if="loading" class="qz-grid">
-          <div v-for="i in 8" :key="i" class="qz-skeleton-card" aria-hidden="true">
-            <span class="qz-skeleton-art"><span class="qz-skeleton"></span></span>
-            <span class="qz-skeleton qz-skeleton-title"></span>
-            <span class="qz-skeleton qz-skeleton-spec"></span>
-            <div class="qz-skeleton-bottom">
-              <span class="qz-skeleton qz-skeleton-price"></span>
-              <span class="qz-skeleton qz-skeleton-action"></span>
-            </div>
-          </div>
-        </div>
+        <QzProductSkeleton v-if="loading" :count="8" />
         <div v-else-if="filteredProducts.length" class="qz-grid">
           <QzProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
         </div>
@@ -85,6 +75,7 @@ import { usePageSeo } from '../../composables/usePageSeo'
 import { buildCategoryGroups } from '../../utils/category'
 import { getImageUrl } from '../../utils/image'
 import QzProductCard from './components/QzProductCard.vue'
+import QzProductSkeleton from './components/QzProductSkeleton.vue'
 import QzCategoryPanel, { type PanelCategory } from './components/QzCategoryPanel.vue'
 import { setupReveal } from './utils/reveal'
 
@@ -344,35 +335,12 @@ onUnmounted(() => {
   gap: var(--qz-space-4);
 }
 
-/* ---------- 加载骨架：商品卡外形 + base .qz-skeleton 占位块（艺术区 / 标题 / 规格 / 价格 / 按钮） ---------- */
-.qz-skeleton-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 280px;
-  padding: var(--qz-space-5);
-  border: 1px solid var(--qz-border);
-  border-radius: var(--qz-radius-control);
-  background: var(--qz-surface);
-}
-.qz-skeleton-card .qz-skeleton { border-radius: var(--qz-radius-xs); }
-.qz-skeleton-art { display: grid; place-items: center; height: 160px; margin-top: 6px; }
-.qz-skeleton-art > .qz-skeleton { width: 54%; height: 92px; opacity: .6; border-radius: var(--qz-radius-sm); }
-.qz-skeleton-title { width: 48%; height: 24px; }
-.qz-skeleton-spec { width: 62%; height: 12px; margin-top: 2px; }
-.qz-skeleton-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
-.qz-skeleton-price { width: 28%; height: 22px; }
-.qz-skeleton-card .qz-skeleton-action { width: 86px; height: 36px; border-radius: var(--qz-radius-pill); }
-
 @media (max-width: 1120px) {
   .qz-catalog { grid-template-columns: 220px minmax(0, 1fr); }
 }
 
 @media (max-width: 760px) {
   .qz-catalog { display: block; }
-  .qz-skeleton-card { min-height: 220px; padding: var(--qz-space-4); }
-  .qz-skeleton-art { height: 110px; }
-  .qz-skeleton-art > .qz-skeleton { height: 70px; }
 
   .qz-hero {
     display: grid;
