@@ -1,17 +1,17 @@
 <template>
-  <div ref="rootEl" class="j8-container">
+  <div ref="rootEl" class="qz-container">
     <!-- 引导区 -->
-    <section class="j8-hero is-home">
-      <div class="j8-hero-copy">
-        <span class="j8-eyebrow">{{ t('qiaozhi.hero.eyebrow') }}</span>
-        <h1 class="j8-hero-title">
+    <section class="qz-hero is-home">
+      <div class="qz-hero-copy">
+        <span class="qz-eyebrow">{{ t('qiaozhi.hero.eyebrow') }}</span>
+        <h1 class="qz-hero-title">
           <span>{{ t('qiaozhi.hero.titleB') }}</span>
         </h1>
         <p>{{ t('qiaozhi.hero.subtitle') }}</p>
       </div>
-      <p class="j8-shortlink">{{ t('qiaozhi.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
-      <div class="j8-hero-actions">
-        <J8Search
+      <p class="qz-shortlink">{{ t('qiaozhi.hero.shortlink') }} <em>{{ siteDomain }}</em></p>
+      <div class="qz-hero-actions">
+        <QzSearch
           v-model="searchQuery"
           :items="searchItems"
           :label="t('qiaozhi.search.label')"
@@ -24,7 +24,7 @@
           :clear-label="t('qiaozhi.search.clear')"
           @select="onSearchSelect"
         />
-        <button type="button" class="j8-share" @click="shareSite">
+        <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" @click="shareSite">
           <Share2 />
           {{ shared ? t('qiaozhi.hero.shared') : t('qiaozhi.hero.share') }}
         </button>
@@ -32,56 +32,56 @@
     </section>
 
     <!-- 为你精选 -->
-    <section v-if="featuredProducts.length" class="j8-featured">
-      <div class="j8-section-heading">
+    <section v-if="featuredProducts.length" class="qz-featured">
+      <div class="qz-section-head">
         <div>
-          <span class="j8-eyebrow">FEATURED</span>
+          <span class="qz-eyebrow">{{ t('qiaozhi.home.featuredEyebrow') }}</span>
           <h2>{{ t('qiaozhi.featured.title') }}</h2>
         </div>
         <span>{{ featuredProducts.length + (toolsCard ? 1 : 0) }} {{ t('qiaozhi.featured.unit') }}</span>
       </div>
-      <div class="j8-featured-grid" :data-count="Math.min(featuredProducts.length, 5)">
-        <J8FeaturedCard v-for="product in featuredProducts" :key="product.id" :product="product" />
-        <J8FeaturedCard v-if="toolsCard" :product="toolsCard.product" :tools="toolsCard.tools" />
+      <div class="qz-featured-grid" :data-count="Math.min(featuredProducts.length, 5)">
+        <QzFeaturedCard v-for="product in featuredProducts" :key="product.id" :product="product" />
+        <QzFeaturedCard v-if="toolsCard" :product="toolsCard.product" :tools="toolsCard.tools" />
       </div>
     </section>
 
     <!-- 全部商品目录 -->
-    <section class="j8-catalog">
-      <J8CategoryPanel
+    <section class="qz-catalog">
+      <QzCategoryPanel
         :categories="panelCategories"
         :selected-category="selectedCategory"
         :total-count="allProducts.length"
         @select="selectedCategory = $event"
       />
       <div>
-        <div class="j8-section-heading">
+        <div class="qz-section-head">
           <div>
-            <span class="j8-eyebrow">STORE</span>
+            <span class="qz-eyebrow">{{ t('qiaozhi.home.storeEyebrow') }}</span>
             <h2>{{ activeCategoryName }}</h2>
           </div>
           <span>{{ filteredProducts.length }} {{ t('qiaozhi.catalog.unit') }}</span>
         </div>
 
-        <div v-if="loading" class="j8-grid">
-          <div v-for="i in 6" :key="i" class="j8-skeleton-card" aria-hidden="true">
-            <span class="j8-skeleton-art"><span></span></span>
-            <span class="j8-skeleton-title"></span>
-            <span class="j8-skeleton-spec"></span>
-            <div class="j8-skeleton-bottom">
-              <span class="j8-skeleton-price"></span>
-              <span class="j8-skeleton-action"></span>
+        <div v-if="loading" class="qz-grid">
+          <div v-for="i in 6" :key="i" class="qz-skeleton-card" aria-hidden="true">
+            <span class="qz-skeleton-art"><span class="qz-skeleton"></span></span>
+            <span class="qz-skeleton qz-skeleton-title"></span>
+            <span class="qz-skeleton qz-skeleton-spec"></span>
+            <div class="qz-skeleton-bottom">
+              <span class="qz-skeleton qz-skeleton-price"></span>
+              <span class="qz-skeleton qz-skeleton-action"></span>
             </div>
           </div>
         </div>
-        <div v-else-if="filteredProducts.length" class="j8-grid">
-          <J8ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
+        <div v-else-if="filteredProducts.length" class="qz-grid">
+          <QzProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
         </div>
-        <div v-else class="j8-empty">
+        <div v-else class="qz-empty">
           <PackageOpen />
           <b>{{ searchQuery ? t('products.emptyFiltered') : t('products.empty') }}</b>
           <span v-if="searchQuery || selectedCategory">
-            <button type="button" class="j8-btn-primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
+            <button type="button" class="qz-btn qz-btn--primary" @click="resetFilters">{{ t('products.clearFilters') }}</button>
           </span>
         </div>
       </div>
@@ -109,11 +109,12 @@ import { useAnnouncement, type HomeAnnouncement } from '../../composables/useAnn
 import { buildCategoryGroups } from '../../utils/category'
 import { getImageUrl } from '../../utils/image'
 import AnnouncementModal from '../../components/AnnouncementModal.vue'
-import J8FeaturedCard from './components/J8FeaturedCard.vue'
-import J8ProductCard from './components/J8ProductCard.vue'
-import J8CategoryPanel, { type PanelCategory } from './components/J8CategoryPanel.vue'
-import J8Search from './components/J8Search.vue'
+import QzFeaturedCard from './components/QzFeaturedCard.vue'
+import QzProductCard from './components/QzProductCard.vue'
+import QzCategoryPanel, { type PanelCategory } from './components/QzCategoryPanel.vue'
+import QzSearch from './components/QzSearch.vue'
 import type { SearchableItem } from './utils/searchRank'
+import { pickFeatured } from './utils/featured'
 import { setupReveal } from './utils/reveal'
 import { useQiaozhiPrice } from './utils/price'
 
@@ -192,14 +193,8 @@ const activeCategoryName = computed(() => {
 })
 
 // ==================== 精选拆分 ====================
-const FEATURED_PATTERN = /chatgpt|gpt|gemini|bard|google|^x-|x-premium|twitter|duolingo|duo|muse/i
-
-const featuredProducts = computed(() => {
-  const matched = allProducts.value.filter((p) => FEATURED_PATTERN.test(String(p.slug || '')))
-  if (matched.length) return matched.slice(0, 5)
-  // 没有任何匹配变体的商品时，用前 4 个产品做默认卡
-  return allProducts.value.slice(0, 4)
-})
+// 后台给商品打 featured / 精选 标签即入选（前 5）；一个都没打时沿用 slug 品牌正则，再回退前 4 做默认卡。
+const featuredProducts = computed(() => pickFeatured(allProducts.value))
 
 const toolsCard = computed(() => {
   if (!allProducts.value.length) return null
@@ -305,3 +300,177 @@ onUnmounted(() => {
   if (shareTimer) clearTimeout(shareTimer)
 })
 </script>
+
+<style scoped>
+/* 首页专属版式：hero、精选区、目录两栏（.qz-catalog：分类面板 + 列表）、商品网格与加载骨架。
+   卡片 / 面板 / 搜索 / 分类面板各自在组件内取样式；骨架占位块是 base.css 的 .qz-skeleton（qz-pulse），
+   这里只给卡片外形与各占位块的尺寸。hero 文案入场关键帧 qz-text-in 在本块底部（Products.vue 同款）。 */
+
+/* ---------- Hero ---------- */
+.qz-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--qz-space-8);
+  margin-bottom: var(--qz-space-5);
+}
+.qz-hero-copy { min-width: 0; }
+.qz-hero-copy p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+}
+.qz-hero-title {
+  margin: var(--qz-space-1) 0 var(--qz-space-2);
+  color: var(--qz-text);
+  font-size: var(--qz-text-3xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
+}
+.qz-hero-title > span { display: inline-block; }
+/* 入场：eyebrow / 标题 / 说明 / 操作区依次淡入 */
+.qz-hero .qz-eyebrow,
+.qz-hero-title > span,
+.qz-shortlink,
+.qz-hero-copy p,
+.qz-hero-actions {
+  animation: qz-text-in var(--qz-duration-considered) var(--qz-ease-enter) backwards;
+}
+.qz-hero-copy p { animation-delay: var(--qz-duration-instant); }
+.qz-hero-actions { animation-delay: var(--qz-duration-fast); }
+
+/* 手机端用「本站短链」替代标题文案 */
+.qz-shortlink {
+  display: none;
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xl);
+  font-weight: 700;
+  line-height: var(--qz-leading-body);
+  letter-spacing: var(--qz-tracking-display);
+  white-space: nowrap;
+}
+.qz-shortlink em { color: var(--qz-accent-strong); font-style: italic; }
+
+/* 搜索（QzSearch，sm 高）与分享（.qz-btn--secondary.qz-btn--sm）同排同高 */
+.qz-hero-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--qz-space-2);
+}
+
+/* ---------- 为你精选 ---------- */
+.qz-featured { margin: var(--qz-space-1) 0 var(--qz-space-8); }
+.qz-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+/* 1 / 2 / 4 张精选卡时两列更整齐（data-count 在网格元素上） */
+.qz-featured-grid:is([data-count="1"], [data-count="2"], [data-count="4"]) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.qz-featured-grid > .is-wide-full { grid-column: 1 / -1; }
+
+/* ---------- 目录两栏：分类面板 + 列表（≤1120 窄面板，≤760 单列、面板收成抽屉） ---------- */
+.qz-catalog {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: var(--qz-space-4);
+  align-items: start;
+}
+.qz-catalog > div { min-width: 0; }
+
+/* ---------- 商品网格 ---------- */
+.qz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qz-space-4);
+}
+
+/* ---------- 加载骨架：商品卡外形 + base .qz-skeleton 占位块（艺术区 / 标题 / 规格 / 价格 / 按钮） ---------- */
+.qz-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 280px;
+  padding: var(--qz-space-5);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+}
+.qz-skeleton-card .qz-skeleton { border-radius: var(--qz-radius-xs); }
+.qz-skeleton-art { display: grid; place-items: center; height: 160px; margin-top: 6px; }
+.qz-skeleton-art > .qz-skeleton { width: 54%; height: 92px; opacity: .6; border-radius: var(--qz-radius-sm); }
+.qz-skeleton-title { width: 48%; height: 24px; }
+.qz-skeleton-spec { width: 62%; height: 12px; margin-top: 2px; }
+.qz-skeleton-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.qz-skeleton-price { width: 28%; height: 22px; }
+.qz-skeleton-card .qz-skeleton-action { width: 86px; height: 36px; border-radius: var(--qz-radius-pill); }
+
+@media (max-width: 1120px) {
+  .qz-catalog { grid-template-columns: 220px minmax(0, 1fr); }
+}
+
+@media (max-width: 1023.98px) {
+  .qz-featured-grid,
+  .qz-featured-grid:is([data-count="1"], [data-count="2"], [data-count="4"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .qz-catalog { display: block; }
+  .qz-skeleton-card { min-height: 220px; padding: var(--qz-space-4); }
+  .qz-skeleton-art { height: 110px; }
+  .qz-skeleton-art > .qz-skeleton { height: 70px; }
+
+  .qz-hero {
+    display: grid;
+    gap: var(--qz-space-4);
+    margin-bottom: var(--qz-space-4);
+  }
+  .qz-hero-copy { display: none; }
+  .qz-shortlink { display: block; }
+  .qz-hero-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--qz-space-2);
+  }
+
+  /* 精选卡横向滑动，吸附到每张卡 */
+  .qz-featured { margin: 0 calc(-1 * var(--qz-space-3)) var(--qz-space-5); }
+  .qz-featured .qz-section-head { padding: 0 var(--qz-space-3); }
+  .qz-featured-grid,
+  .qz-featured-grid:is([data-count="1"], [data-count="2"], [data-count="4"]) {
+    display: flex;
+    gap: var(--qz-space-3);
+    overflow-x: auto;
+    padding: var(--qz-space-1) var(--qz-space-3) var(--qz-space-4);
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--qz-space-3);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .qz-featured-grid::-webkit-scrollbar { display: none; }
+  .qz-featured-grid > .qz-fcard {
+    flex: 0 0 84%;
+    scroll-snap-align: start;
+  }
+
+  .qz-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--qz-space-2);
+  }
+}
+
+/* hero 文案入场：上浮 + 去模糊 */
+@keyframes qz-text-in {
+  0% { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+</style>

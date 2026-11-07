@@ -1,46 +1,47 @@
 <template>
-  <div ref="rootEl" class="j8-container j8-auth">
-    <RouterLink to="/" class="j8-pd-back j8-reveal is-pending" :data-reveal="1">
+  <div ref="rootEl" class="qz-container qz-auth">
+    <RouterLink to="/" class="qz-btn qz-btn--secondary qz-btn--sm qz-auth-back qz-reveal is-pending" :data-reveal="1">
       <ChevronLeft />
       {{ t('auth.login.backHome') }}
     </RouterLink>
 
-    <section class="j8-auth-card j8-reveal is-pending" :data-reveal="1">
+    <section class="qz-panel qz-auth-card qz-reveal is-pending" :data-reveal="1">
       <!-- 注册关闭 -->
-      <div v-if="!registrationEnabled" class="j8-empty">
+      <div v-if="!registrationEnabled" class="qz-empty">
         <PackageOpen />
         <b>{{ t('auth.register.registrationDisabled') }}</b>
-        <RouterLink to="/auth/login" class="j8-btn-primary">
+        <RouterLink to="/auth/login" class="qz-btn qz-btn--primary">
           {{ t('auth.register.hasAccount') }}
         </RouterLink>
       </div>
 
       <template v-else>
-        <header class="j8-auth-hero">
-          <span class="j8-eyebrow">{{ t('qiaozhi.register.eyebrow') }}</span>
+        <header class="qz-auth-hero">
+          <span class="qz-eyebrow">{{ t('qiaozhi.register.eyebrow') }}</span>
           <h1>{{ t('auth.register.title') }}</h1>
           <p>{{ t('qiaozhi.register.subtitle') }}</p>
-          <small class="j8-auth-brand">{{ brandSiteName }}</small>
+          <span class="qz-chip qz-auth-brand">{{ brandSiteName }}</span>
         </header>
 
-        <form class="j8-ic" novalidate @submit.prevent="handleRegister">
+        <form class="qz-auth-form" novalidate @submit.prevent="submitRegister">
           <!-- 邮箱 -->
-          <div class="j8-ic-field">
-            <label for="qz-reg-email">{{ t('auth.register.emailLabel') }}<b>*</b></label>
-            <div v-if="emailDomainSelectionRequired" class="j8-auth-email-row">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-reg-email">{{ t('auth.register.emailLabel') }}<b>*</b></label>
+            <div v-if="emailDomainSelectionRequired" class="qz-auth-email-row">
               <input
                 id="qz-reg-email"
                 v-model="emailLocalPart"
+                class="qz-field-control"
                 type="text"
                 autocomplete="username"
                 required
                 :placeholder="t('auth.register.emailLocalPlaceholder')"
                 :aria-invalid="formValidation.hasError('email') || undefined"
+                :aria-describedby="emailDescribedBy"
                 @blur="touchRegistrationEmail"
               />
-              <J8Select
+              <QzSelect
                 v-model="selectedEmailDomain"
-                class="j8-auth-email-domain"
                 :items="allowedEmailDomains.map((domain: string) => ({ value: domain, label: '@' + domain }))"
                 @change="touchRegistrationEmail"
               />
@@ -49,20 +50,22 @@
               v-else
               id="qz-reg-email"
               v-model="email"
+              class="qz-field-control"
               type="email"
               autocomplete="username"
               required
               :placeholder="t('auth.register.emailPlaceholder')"
               :aria-invalid="formValidation.hasError('email') || undefined"
+              :aria-describedby="emailDescribedBy"
               @blur="touchRegistrationEmail"
             />
-            <p v-if="formValidation.getError('email')" class="j8-ic-error">
+            <p v-if="formValidation.getError('email')" id="qz-reg-email-err" class="qz-field-error">
               {{ formValidation.getError('email') }}
             </p>
-            <p v-else-if="emailDomainSelectionRequired" class="j8-ic-hint">
+            <p v-else-if="emailDomainSelectionRequired" id="qz-reg-email-hint" class="qz-field-hint">
               {{ t('auth.register.emailDomainSelectHint') }}
             </p>
-            <p v-else-if="emailDomainAllowlistEnabled" class="j8-ic-hint">
+            <p v-else-if="emailDomainAllowlistEnabled" id="qz-reg-email-hint" class="qz-field-hint">
               {{ allowedEmailDomains.length > 0
                 ? t('auth.register.allowedEmailDomainsHint', { domains: allowedEmailDomainsText })
                 : t('auth.register.noAllowedEmailDomainsHint') }}
@@ -70,9 +73,9 @@
           </div>
 
           <!-- 密码 -->
-          <div class="j8-ic-field">
-            <label for="qz-reg-password">{{ t('auth.register.passwordLabel') }}<b>*</b></label>
-            <div class="j8-auth-password">
+          <div class="qz-field">
+            <label class="qz-field-label" for="qz-reg-password">{{ t('auth.register.passwordLabel') }}<b>*</b></label>
+            <div class="qz-field-control qz-auth-password">
               <input
                 id="qz-reg-password"
                 v-model="password"
@@ -81,11 +84,12 @@
                 required
                 :placeholder="t('auth.register.passwordPlaceholder')"
                 :aria-invalid="formValidation.hasError('password') || undefined"
+                :aria-describedby="formValidation.hasError('password') ? 'qz-reg-password-err' : undefined"
                 @blur="formValidation.touchField('password', password)"
               />
               <button
                 type="button"
-                class="j8-auth-pass-toggle"
+                class="qz-auth-pass-toggle"
                 :aria-label="showPassword ? t('auth.common.hidePassword') : t('auth.common.showPassword')"
                 @click="showPassword = !showPassword"
               >
@@ -93,15 +97,15 @@
                 <Eye v-else />
               </button>
             </div>
-            <p v-if="formValidation.getError('password')" class="j8-ic-error">
+            <p v-if="formValidation.getError('password')" id="qz-reg-password-err" class="qz-field-error">
               {{ formValidation.getError('password') }}
             </p>
             <div
               v-else-if="password"
-              class="j8-auth-strength"
+              class="qz-auth-strength"
               :class="`is-${passwordStrength}`"
             >
-              <div class="j8-auth-strength-bars">
+              <div class="qz-auth-strength-bars" aria-hidden="true">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -111,8 +115,13 @@
           </div>
 
           <!-- 发码场景验证码 -->
-          <div v-if="emailVerificationEnabled && sendCodeCaptchaEnabled" class="j8-ic-field">
-            <label>{{ t('auth.common.captchaLabel') }}<b>*</b></label>
+          <div
+            v-if="emailVerificationEnabled && sendCodeCaptchaEnabled"
+            class="qz-field"
+            role="group"
+            aria-labelledby="qz-reg-captcha-label"
+          >
+            <span id="qz-reg-captcha-label" class="qz-field-label">{{ t('auth.common.captchaLabel') }}<b>*</b></span>
             <ImageCaptcha
               v-if="captchaProvider === 'image'"
               ref="imageCaptchaRef"
@@ -125,39 +134,39 @@
               ref="turnstileRef"
               v-model="turnstileToken"
               :site-key="turnstileSiteKey"
+              :theme="theme"
             />
           </div>
 
           <!-- 邮箱验证码 -->
-          <div v-if="emailVerificationEnabled" class="j8-ic-field j8-ic-with-action">
-            <label for="qz-reg-code">{{ t('auth.register.codeLabel') }}<b>*</b></label>
-            <div class="j8-auth-code-row">
+          <div v-if="emailVerificationEnabled" class="qz-field">
+            <label class="qz-field-label" for="qz-reg-code">{{ t('auth.register.codeLabel') }}<b>*</b></label>
+            <div class="qz-auth-code-row">
               <input
                 id="qz-reg-code"
                 v-model="code"
+                class="qz-field-control"
                 type="text"
                 autocomplete="one-time-code"
                 required
                 :placeholder="t('auth.register.codePlaceholder')"
               />
-              <button
+              <QzButton
                 type="button"
-                class="j8-auth-code-btn"
-                :disabled="sending || countdown > 0"
-                @click="handleSendCode"
+                variant="secondary"
+                :loading="sending"
+                :disabled="countdown > 0"
+                @click="sendCode"
               >
-                <Loader2 v-if="sending" class="j8-ic-spin" />
-                <span>
-                  {{ countdown > 0
-                    ? t('auth.common.countdown', { seconds: countdown })
-                    : t('auth.common.sendCode') }}
-                </span>
-              </button>
+                {{ countdown > 0
+                  ? t('auth.common.countdown', { seconds: countdown })
+                  : t('auth.common.sendCode') }}
+              </QzButton>
             </div>
           </div>
 
           <!-- 服务条款 -->
-          <label class="j8-auth-agree">
+          <label class="qz-auth-agree">
             <input v-model="agreed" type="checkbox" />
             <span>
               {{ t('auth.register.agreementPrefix') }}
@@ -171,20 +180,21 @@
             </span>
           </label>
 
-          <p v-if="error" class="j8-ic-alert is-error" role="alert">{{ error }}</p>
+          <p v-if="error" class="qz-alert is-danger" role="alert">{{ error }}</p>
 
-          <button
+          <QzButton
             type="submit"
-            class="j8-xcheck-btn j8-auth-submit"
-            :disabled="userAuthStore.loading || !agreed"
+            variant="primary"
+            class="qz-btn--block"
+            :loading="userAuthStore.loading"
+            :disabled="!agreed"
           >
-            <Loader2 v-if="userAuthStore.loading" class="j8-ic-spin" />
-            <UserPlus v-else />
+            <UserPlus v-if="!userAuthStore.loading" />
             {{ userAuthStore.loading ? t('auth.register.creating') : t('auth.register.create') }}
-          </button>
+          </QzButton>
         </form>
 
-        <footer class="j8-auth-foot">
+        <footer class="qz-auth-foot">
           <span>{{ t('qiaozhi.register.hasAccountPrefix') }}</span>
           <RouterLink to="/auth/login">{{ t('qiaozhi.register.goLogin') }}</RouterLink>
         </footer>
@@ -194,16 +204,19 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChevronLeft, Eye, EyeOff, Loader2, PackageOpen, UserPlus } from 'lucide-vue-next'
+import { ChevronLeft, Eye, EyeOff, PackageOpen, UserPlus } from 'lucide-vue-next'
 import ImageCaptcha from '../../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../../components/captcha/TurnstileCaptcha.vue'
 import { useRegister } from '../../../composables/useRegister'
+import { useTheme } from '../../../utils/theme'
 import { setupReveal } from '../utils/reveal'
-import J8Select from '../components/J8Select.vue'
+import QzButton from '../components/QzButton.vue'
+import QzSelect from '../components/QzSelect.vue'
 
 const { t } = useI18n()
+const { theme } = useTheme()
 
 const {
   userAuthStore, brandSiteName,
@@ -218,6 +231,23 @@ const {
 
 void imageCaptchaRef
 void turnstileRef
+
+// 邮箱框：有错读错误，否则读域名提示（两条提示共用一个 id，同一时刻只渲染一条）
+const emailDescribedBy = computed(() => {
+  if (formValidation.hasError('email')) return 'qz-reg-email-err'
+  if (emailDomainSelectionRequired.value || emailDomainAllowlistEnabled.value) return 'qz-reg-email-hint'
+  return undefined
+})
+
+// 按钮在 loading 时只是 aria-disabled（保留焦点），回车隐式提交 / 连点要在这里拦住，避免重复请求
+const submitRegister = () => {
+  if (userAuthStore.loading) return
+  void handleRegister()
+}
+const sendCode = () => {
+  if (sending.value || countdown.value > 0) return
+  void handleSendCode()
+}
 
 const rootEl = ref<HTMLElement | null>(null)
 let cleanupReveal: (() => void) | null = null
@@ -238,226 +268,238 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.j8-auth {
+.qz-auth {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--qz-space-4);
   max-width: 460px;
 }
-.j8-auth-card {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: 32px 28px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
-  box-shadow: var(--shadow-soft);
+
+.qz-auth-back {
+  align-self: flex-start;
 }
-.j8-auth-hero {
+
+/* .qz-panel.qz-auth-card 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
+.qz-panel.qz-auth-card {
+  position: static;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--qz-space-6);
+  padding: var(--qz-space-8) var(--qz-space-6);
+  overflow: visible;
+}
+
+/* ---------- 页头（同样串上 .qz-panel 提到 (0,3,0)） ---------- */
+.qz-panel > .qz-auth-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--qz-space-2);
+  padding: 0;
+  border-bottom: 0;
   text-align: center;
 }
-.j8-auth-hero h1 {
-  margin: 2px 0 0;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-.j8-auth-hero p {
+
+.qz-auth-hero h1 {
   margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.6;
-}
-.j8-auth-brand {
-  margin-top: 6px;
-  font-size: 11px;
+  color: var(--qz-text);
+  font-size: var(--qz-text-2xl);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
+  line-height: var(--qz-leading-display);
+  letter-spacing: var(--qz-tracking-display);
 }
-.j8-auth-email-row {
+
+.qz-auth-hero p {
+  margin: 0;
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+}
+
+.qz-auth-brand {
+  margin-top: var(--qz-space-1);
+}
+
+/* ---------- 表单 ---------- */
+.qz-auth-form {
+  display: grid;
+  gap: var(--qz-space-4);
+}
+
+.qz-auth-email-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);
-  gap: 8px;
+  gap: var(--qz-space-2);
 }
-.j8-auth-email-domain {
-  background: var(--surface);
-}
-.j8-auth-password {
-  position: relative;
-}
-.j8-auth-password input {
-  padding-right: 42px !important;
-}
-.j8-auth-pass-toggle {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  border-radius: 8px;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-.j8-auth-pass-toggle:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-.j8-auth-pass-toggle svg {
-  width: 16px;
-  height: 16px;
-}
-.j8-auth-strength {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-.j8-auth-strength-bars {
-  display: flex;
-  flex: 1 1 auto;
-  gap: 4px;
-}
-.j8-auth-strength-bars span {
-  flex: 1 1 0;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--surface-3);
-  transition: background 0.15s;
-}
-.j8-auth-strength.is-weak .j8-auth-strength-bars span:nth-child(1) {
-  background: var(--red);
-}
-.j8-auth-strength.is-medium .j8-auth-strength-bars span:nth-child(-n+2) {
-  background: var(--amber);
-}
-.j8-auth-strength.is-strong .j8-auth-strength-bars span {
-  background: var(--accent-strong);
-}
-.j8-auth-strength small {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-}
-.j8-auth-strength.is-weak small {
-  color: var(--red);
-}
-.j8-auth-strength.is-medium small {
-  color: var(--amber);
-}
-.j8-auth-strength.is-strong small {
-  color: var(--accent-strong);
-}
-.j8-auth-code-row {
+
+.qz-auth-code-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: var(--qz-space-2);
 }
-.j8-auth-code-btn {
-  min-height: 46px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
+
+/* 密码框：.qz-field-control 做外壳，里面是裸 input + 显隐按钮 */
+.qz-field-control.qz-auth-password {
+  padding-right: var(--qz-space-1);
+}
+
+.qz-auth-pass-toggle {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--qz-radius-pill);
+  background: transparent;
+  color: var(--qz-text-muted);
   cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+  transition:
+    color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard);
 }
-.j8-auth-code-btn:hover:not(:disabled) {
-  border-color: var(--accent-line);
-  background: var(--surface-2);
+
+.qz-field-control .qz-auth-pass-toggle svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
 }
-.j8-auth-code-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+
+@media (hover: hover) and (pointer: fine) {
+  .qz-auth-pass-toggle:hover {
+    color: var(--qz-text);
+    background: var(--qz-surface-muted);
+  }
 }
-.j8-auth-code-btn svg {
-  width: 14px;
-  height: 14px;
+
+.qz-auth-pass-toggle:active {
+  color: var(--qz-text);
+  background: var(--qz-surface-muted);
 }
-.j8-auth-agree {
+
+/* 密码强度：三段条 + 文字，状态色成对出现（条 + 文字） */
+.qz-auth-strength {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-3);
+}
+
+.qz-auth-strength-bars {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--qz-space-1);
+}
+
+.qz-auth-strength-bars span {
+  flex: 1 1 0;
+  height: 4px;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-border);
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+
+.qz-auth-strength.is-weak .qz-auth-strength-bars span:nth-child(1) {
+  background: var(--qz-danger);
+}
+
+.qz-auth-strength.is-medium .qz-auth-strength-bars span:nth-child(-n+2) {
+  background: var(--qz-warning);
+}
+
+.qz-auth-strength.is-strong .qz-auth-strength-bars span {
+  background: var(--qz-success);
+}
+
+.qz-auth-strength small {
+  flex: none;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  font-weight: 600;
+  line-height: var(--qz-leading-body);
+}
+
+.qz-auth-strength.is-weak small {
+  color: var(--qz-danger);
+}
+
+.qz-auth-strength.is-medium small {
+  color: var(--qz-warning);
+}
+
+.qz-auth-strength.is-strong small {
+  color: var(--qz-success);
+}
+
+/* 服务条款 */
+.qz-auth-agree {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.6;
+  gap: var(--qz-space-3);
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
   cursor: pointer;
 }
-.j8-auth-agree input {
-  margin-top: 3px;
-  width: 15px;
-  height: 15px;
-  flex: 0 0 auto;
-  accent-color: var(--accent);
+
+.qz-auth-agree input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: var(--qz-accent);
 }
-.j8-auth-agree a {
-  color: var(--accent-strong);
-  font-weight: 700;
-  text-decoration: none;
-}
-.j8-auth-agree a:hover {
+
+.qz-auth-agree a {
+  color: var(--qz-text);
+  font-weight: 600;
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
-.j8-auth-submit {
-  width: 100%;
-}
-.j8-auth-foot {
+
+/* 错误提示条用 base.css 的 .qz-alert.is-danger */
+
+/* ---------- 页脚 ---------- */
+.qz-auth-foot {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
-  color: var(--muted);
+  justify-content: center;
+  gap: var(--qz-space-1) var(--qz-space-2);
+  padding-top: var(--qz-space-5);
+  border-top: 1px solid var(--qz-border);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
 }
-.j8-auth-foot a {
-  color: var(--accent-strong);
-  font-weight: 700;
-  text-decoration: none;
-}
-.j8-auth-foot a:hover {
+
+.qz-auth-foot a {
+  color: var(--qz-text);
+  font-weight: 600;
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
+
+@media (max-width: 760px) {
+  .qz-panel.qz-auth-card {
+    gap: var(--qz-space-5);
+    padding: var(--qz-space-6) var(--qz-space-5);
+  }
+  /* 与 base.css 的 .qz-page-head h1 同步降一档：手机端全站页 h1 统一为 xl */
+  .qz-auth-hero h1 {
+    font-size: var(--qz-text-xl);
+  }
+}
+
 @media (max-width: 540px) {
-  .j8-auth-card {
-    padding: 26px 20px;
-  }
-  .j8-auth-hero h1 {
-    font-size: 22px;
-  }
-  .j8-auth-email-row {
-    grid-template-columns: 1fr;
-  }
-  .j8-auth-code-row {
-    grid-template-columns: 1fr;
+  .qz-auth-email-row,
+  .qz-auth-code-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>

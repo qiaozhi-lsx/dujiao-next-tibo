@@ -885,31 +885,22 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* 弹窗 Teleport 到 body：颜色 / 字号 / 圆角 / 阴影 / 时长全部读 body.qiaozhi-tokens 上的 --qz-* token
+   （暗色随 .dark 自动翻转），不再维护一套 --ux-* 局部变量。 */
 .pay-modal-mask {
   position: fixed; inset: 0;
-  background: rgba(10, 10, 10, 0.5);
+  background: color-mix(in oklab, var(--qz-text) 50%, transparent);
   backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
   z-index: 1200;
-  animation: pay-modal-fade .25s ease;
+  animation: pay-modal-fade var(--qz-duration-standard) var(--qz-ease-standard);
 }
+/* 暗色里 --qz-text 是近白，遮罩改用页面底色压暗（与分类抽屉遮罩同一做法） */
+.dark .pay-modal-mask { background: color-mix(in oklab, var(--qz-bg) 72%, transparent); }
 
 @keyframes pay-modal-fade { from { opacity: 0; } }
 
 .pay-modal {
-  --ux-accent: var(--accent, #0a0a0a);
-  --ux-mint: #167d3b;
-  --ux-ink-2: #57535f;
-  --ux-ink-3: #8e8a97;
-  --ux-surface: var(--surface, #fff);
-  --ux-surface-2: #f5f5f5;
-  --ux-surface-3: #ebebeb;
-  --ux-line: rgba(10, 10, 10, 0.08);
-  --ux-line-2: rgba(10, 10, 10, 0.16);
-  --ux-warn: #b06a00;
-  --ux-ease: cubic-bezier(.2, .8, .2, 1);
-  --ux-spring: cubic-bezier(.34, 1.45, .64, 1);
-
   position: relative;
   width: min(380px, calc(100vw - 32px));
   /* 目标是整个弹窗在视口内一屏放下、不出现内部滚动：等待支付态内容约 690px（英文约 720px），
@@ -920,15 +911,17 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(10, 10, 10, .18) transparent;
-  background: var(--ux-surface);
-  border-radius: 20px;
-  box-shadow: 0 30px 60px -36px rgba(40, 30, 80, 0.3), 0 0 0 1px var(--ux-line);
+  scrollbar-color: var(--qz-border-strong) transparent;
+  background: var(--qz-surface);
+  border-radius: var(--qz-radius-panel);
+  box-shadow: var(--qz-shadow-floating), 0 0 0 1px var(--qz-border);
   display: flex; flex-direction: column;
   padding: 20px;
-  color: var(--text, #0a0a0a);
-  font: 14px/1.5 -apple-system, "Segoe UI", "PingFang SC", sans-serif;
-  animation: pay-modal-rise .3s var(--ux-spring);
+  color: var(--qz-text);
+  font-family: -apple-system, "Segoe UI", "PingFang SC", sans-serif;
+  font-size: var(--qz-text-sm);
+  line-height: 1.5;
+  animation: pay-modal-rise var(--qz-duration-considered) var(--qz-ease-enter);
   outline: none;
 }
 
@@ -936,18 +929,18 @@ onBeforeUnmount(() => {
 
 .pay-modal::-webkit-scrollbar { width: 6px; height: 6px; }
 .pay-modal::-webkit-scrollbar-track { background: transparent; }
-.pay-modal::-webkit-scrollbar-thumb { background: rgba(10, 10, 10, .14); border-radius: 999px; }
-.pay-modal::-webkit-scrollbar-thumb:hover { background: rgba(10, 10, 10, .28); }
+.pay-modal::-webkit-scrollbar-thumb { background: var(--qz-border-strong); border-radius: var(--qz-radius-pill); }
+.pay-modal::-webkit-scrollbar-thumb:hover { background: var(--qz-text-muted); }
 
 /* ---- 金额卡 ---- */
 .pay-modal__amount-card {
   position: relative;
   padding: 16px 16px 14px;
-  border-radius: 18px;
-  background: var(--ux-surface);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-raised);
   margin-bottom: 12px;
-  transition: opacity .4s, transform .5s var(--ux-ease);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__amount-main {
   display: flex; align-items: center; gap: 10px;
@@ -957,30 +950,30 @@ onBeforeUnmount(() => {
 .pay-modal__amount-copy {
   flex: 0 0 auto;
   width: 28px; height: 28px;
-  border: 0; border-radius: 8px;
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   display: grid; place-items: center;
   cursor: pointer;
-  transition: background-color .15s, color .15s;
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
 }
-.pay-modal__amount-copy:hover { background: #ededed; color: #000; }
+.pay-modal__amount-copy:hover { background: var(--qz-accent-subtle); color: var(--qz-text); }
 .pay-modal__amount-copy svg { width: 14px; height: 14px; }
 .pay-modal__amount-label {
   display: block;
-  font-size: 13.5px; color: var(--ux-ink-3); font-weight: 500;
+  font-size: var(--qz-text-sm); color: var(--qz-text-muted); font-weight: 500;
   margin-bottom: 5px;
 }
 .pay-modal__fee-note {
   font-style: normal;
-  font-size: 12px; font-weight: 400;
-  color: var(--ux-ink-3);
+  font-size: var(--qz-text-xs); font-weight: 400;
+  color: var(--qz-text-muted);
 }
 .pay-modal__amount-value {
   display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
   margin-bottom: 10px;
 }
 .pay-modal__amount-value b {
-  font-size: 36px; font-weight: 700; letter-spacing: -.02em;
+  font-size: var(--qz-text-3xl); font-weight: 700; letter-spacing: -.02em;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
@@ -988,78 +981,81 @@ onBeforeUnmount(() => {
 .pay-modal__chain-chip {
   display: inline-flex; align-items: center; gap: 6px;
   height: 26px; padding: 0 11px;
-  border-radius: 999px;
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
-  font-size: 13px; font-weight: 700;
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted); color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs); font-weight: 700;
 }
-.pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: #a1a1aa; }
+/* 链 / 渠道色点只在没有 logo 素材时兜底显示；颜色是 tokens.css 的固定品牌色 --qz-brand-tron / -bsc / -sol(-2) / -alipay
+   （两个主题同值，品牌色不随主题变）。 */
+.pay-modal__chain-dot { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; background: var(--qz-text-muted); }
 .pay-modal__chain-logo { flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; }
-.pay-modal__chain-dot.is-tron { background: #ef4444; }
-.pay-modal__chain-dot.is-bsc { background: #f0b90b; }
-.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, #9945ff, #14f195); }
-.pay-modal__chain-dot.is-alipay { background: #1677ff; }
+.pay-modal__chain-dot.is-tron { background: var(--qz-brand-tron); }
+.pay-modal__chain-dot.is-bsc { background: var(--qz-brand-bsc); }
+.pay-modal__chain-dot.is-sol { background: linear-gradient(135deg, var(--qz-brand-sol), var(--qz-brand-sol-2)); }
+.pay-modal__chain-dot.is-alipay { background: var(--qz-brand-alipay); }
 .pay-modal__amount-meta {
-  border-top: 1px solid var(--ux-line);
+  border-top: 1px solid var(--qz-border);
   padding-top: 10px;
   display: flex; flex-direction: column; gap: 6px;
 }
 .pay-modal__meta-row {
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  font-size: 14px; color: var(--ux-ink-3);
+  font-size: var(--qz-text-sm); color: var(--qz-text-muted);
 }
 .pay-modal__meta-row b {
-  color: var(--ux-ink-2); font-weight: 500;
-  font-size: 14px;
+  color: var(--qz-text-secondary); font-weight: 500;
+  font-size: var(--qz-text-sm);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere; text-align: right;
 }
 
 /* ---- 支付卡 ---- */
 .pay-modal__pay-card {
-  border-radius: 18px;
+  border-radius: var(--qz-radius-control);
   padding: 16px 16px 0;
   margin-bottom: 12px;
-  background: var(--ux-surface);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
-  transition: opacity .4s, transform .5s var(--ux-ease);
+  background: var(--qz-surface);
+  box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-raised);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__pay-head {
   display: flex; align-items: center; justify-content: center;
   text-align: center;
   margin-bottom: 6px;
 }
-.pay-modal__pay-head b { font-size: 15.5px; font-weight: 500; }
+.pay-modal__pay-head b { font-size: var(--qz-text-base); font-weight: 500; }
 
-/* 倒计时在标题下方独立一行居中；字号与上下留白比最初（30px / 6 0 12）收紧，好让弹窗一屏放下。 */
+/* 倒计时在标题下方独立一行居中；字号与上下留白比最初（30px / 6 0 12）收紧，好让弹窗一屏放下。
+   四档颜色沿用 countdownTone：safe 成功色 → warn 警告色 → late 警告 / 危险各半 → critical 危险色。 */
 .pay-modal__cd-num {
   text-align: center;
   margin: 2px 0 8px;
-  font-size: 24px; font-weight: 700; line-height: 1.1;
+  font-size: var(--qz-text-xl); font-weight: 700; line-height: 1.1;
   letter-spacing: .04em;
-  color: #22c55e;
+  color: var(--qz-success);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  transition: color .3s;
+  transition: color var(--qz-duration-standard) var(--qz-ease-standard);
 }
-.pay-modal__cd-num.is-safe { color: #22c55e; }
-.pay-modal__cd-num.is-warn { color: #f59e0b; }
-.pay-modal__cd-num.is-late { color: #ea580c; }
-.pay-modal__cd-num.is-critical { color: #b02020; }
+.pay-modal__cd-num.is-safe { color: var(--qz-success); }
+.pay-modal__cd-num.is-warn { color: var(--qz-warning); }
+.pay-modal__cd-num.is-late { color: color-mix(in oklab, var(--qz-warning) 50%, var(--qz-danger)); }
+.pay-modal__cd-num.is-critical { color: var(--qz-danger); }
 
 .pay-modal__qr-wrap {
   display: flex; justify-content: center;
   margin: 0 0 8px;
-  transition: filter .4s, opacity .4s;
+  transition: filter var(--qz-duration-considered) var(--qz-ease-standard), opacity var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__qr {
-  padding: 8px; background: #fff;
-  border-radius: 8px;
+  padding: 8px; background: var(--qz-qr-frame);
+  border-radius: var(--qz-radius-control);
 }
 .pay-modal__qr img { display: block; width: 120px; height: 120px; }
 .pay-modal__qr-placeholder {
   width: 120px; height: 120px;
   display: grid; place-items: center;
-  color: var(--ux-ink-3);
+  color: var(--qz-text-muted);
 }
 .pay-modal__spin { width: 24px; height: 24px; animation: pay-modal-spin 1s linear infinite; }
 @keyframes pay-modal-spin { to { transform: rotate(360deg); } }
@@ -1070,19 +1066,19 @@ onBeforeUnmount(() => {
 .pay-modal__redirect-hint {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 10px 12px; margin-bottom: 16px;
-  border-radius: 10px;
-  background: #fff7e6; color: var(--ux-warn);
-  font-size: 12px; line-height: 1.5;
+  border-radius: var(--qz-radius-control);
+  background: color-mix(in oklab, var(--qz-warning) 12%, transparent); color: var(--qz-warning);
+  font-size: var(--qz-text-xs); line-height: 1.5;
 }
 .pay-modal__redirect-hint svg { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; }
 
 .pay-modal__addr {
   margin-top: 8px;
   padding: 10px 0 12px;
-  border-top: 1px solid var(--ux-line);
+  border-top: 1px solid var(--qz-border);
 }
 .pay-modal__addr-label {
-  font-size: 12px; color: var(--ux-ink-3); font-weight: 600;
+  font-size: var(--qz-text-xs); color: var(--qz-text-muted); font-weight: 600;
   letter-spacing: .04em;
   margin-bottom: 6px;
 }
@@ -1091,22 +1087,22 @@ onBeforeUnmount(() => {
 }
 .pay-modal__addr-body b {
   flex: 1; min-width: 0;
-  font-size: 14px; font-weight: 500;
+  font-size: var(--qz-text-sm); font-weight: 500;
   line-height: 1.6;
-  color: var(--ux-ink-2);
+  color: var(--qz-text-secondary);
   overflow-wrap: anywhere; word-break: break-all;
 }
 .pay-modal__addr-copy {
   flex-shrink: 0;
   width: 32px; height: 32px;
-  border: 0; border-radius: 8px;
-  background: var(--ux-surface-2); color: var(--ux-ink-2);
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted); color: var(--qz-text-secondary);
   display: grid; place-items: center;
   cursor: pointer;
-  transition: background-color .15s, color .15s;
+  transition: background-color var(--qz-duration-fast) var(--qz-ease-standard), color var(--qz-duration-fast) var(--qz-ease-standard);
 }
 .pay-modal__addr-copy svg { width: 14px; height: 14px; }
-.pay-modal__addr-copy:hover { background: #ededed; color: #000; }
+.pay-modal__addr-copy:hover { background: var(--qz-accent-subtle); color: var(--qz-text); }
 
 /* ---- 加密货币操作区 ---- */
 .pay-modal__crypto-actions {
@@ -1120,27 +1116,27 @@ onBeforeUnmount(() => {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   /* 两个按钮平分一行（手机上每个只有约 154px 宽），英文等长文案会折成两行：高度跟随内容而不是写死 44px，
      否则第二行会溢出按钮边框。字号与弹窗正文一致（14px），中文文案在手机宽度下也能保持一行。 */
-  flex: 1 1 0; min-width: 0; min-height: 44px;
+  flex: 1 1 0; min-width: 0; min-height: var(--qz-control-md);
   padding: 8px 10px;
-  border: 0; border-radius: 14px;
+  border: 0; border-radius: var(--qz-radius-pill);
   cursor: pointer;
-  font-size: 14px; font-weight: 500; line-height: 1.2; text-align: center;
-  background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line), 0 1px 2px rgba(0, 0, 0, .05);
+  font-size: var(--qz-text-sm); font-weight: 500; line-height: 1.2; text-align: center;
+  background: var(--qz-surface); color: var(--qz-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--qz-border), var(--qz-shadow-resting);
 }
-.pay-modal__action-btn:hover:not(:disabled) { color: #000; background: var(--ux-surface-2); }
+.pay-modal__action-btn:hover:not(:disabled) { color: var(--qz-text); background: var(--qz-surface-muted); }
 .pay-modal__action-btn.is-solid {
-  background: #343434; color: #fbfbfb;
+  background: var(--qz-accent-strong); color: var(--qz-on-accent);
   box-shadow: none;
 }
-.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: #fff; background: #262626; }
+.pay-modal__action-btn.is-solid:hover:not(:disabled) { color: var(--qz-on-accent); background: var(--qz-accent); }
 .pay-modal__action-btn:disabled { opacity: .55; cursor: not-allowed; }
 .pay-modal__action-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
 
 .pay-modal__panel {
   padding: 10px;
-  border-radius: 12px;
-  background: var(--ux-surface-2);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
   display: flex; flex-direction: column; gap: 6px;
 }
 .pay-modal__chip-list {
@@ -1148,63 +1144,63 @@ onBeforeUnmount(() => {
 }
 .pay-modal__chip {
   padding: 7px 12px;
-  border: 0; border-radius: 999px;
-  background: var(--ux-surface); color: var(--ux-ink-2);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
-  font-size: 12.5px; font-weight: 700;
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface); color: var(--qz-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--qz-border-strong);
+  font-size: var(--qz-text-xs); font-weight: 700;
   cursor: pointer;
 }
 .pay-modal__chip.is-active {
-  background: var(--ux-accent); color: #fff;
+  background: var(--qz-accent); color: var(--qz-on-accent);
   box-shadow: none;
 }
 .pay-modal__chip:disabled { cursor: default; opacity: .9; }
 .pay-modal__input {
   width: 100%; height: 40px;
-  border: 0; border-radius: 10px;
+  border: 0; border-radius: var(--qz-radius-control);
   padding: 0 12px;
-  background: var(--ux-surface);
-  box-shadow: inset 0 0 0 1px var(--ux-line-2);
-  font-size: 12.5px; color: var(--text, #0a0a0a);
+  background: var(--qz-surface);
+  box-shadow: inset 0 0 0 1px var(--qz-border-strong);
+  font-size: var(--qz-text-xs); color: var(--qz-text);
   outline: none;
 }
-.pay-modal__input:focus { box-shadow: inset 0 0 0 1.5px var(--ux-accent); }
+.pay-modal__input:focus { box-shadow: inset 0 0 0 1.5px var(--qz-accent); }
 .pay-modal__panel-msg {
   margin: 0;
-  font-size: 11.5px; color: var(--ux-mint); font-weight: 600;
+  font-size: var(--qz-text-xs); color: var(--qz-success); font-weight: 600;
   line-height: 1.5;
 }
-.pay-modal__panel-msg.is-err { color: #b02020; }
+.pay-modal__panel-msg.is-err { color: var(--qz-danger); }
 
 .pay-modal__steps {
   display: flex; gap: 14px; justify-content: center;
   height: 0; margin: 0; overflow: hidden;
-  font-size: 11.5px; font-weight: 700; color: var(--ux-ink-3);
+  font-size: var(--qz-text-xs); font-weight: 700; color: var(--qz-text-muted);
   opacity: 0;
-  transition: opacity .3s, height .3s, margin .3s;
+  transition: opacity var(--qz-duration-standard) var(--qz-ease-standard), height var(--qz-duration-standard) var(--qz-ease-standard), margin var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .is-run .pay-modal__steps,
 .is-ok .pay-modal__steps { opacity: 1; height: 20px; margin: 4px 0 14px; }
 .pay-modal__steps span {
   display: inline-flex; align-items: center; gap: 5px;
-  transition: color .3s;
+  transition: color var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .pay-modal__steps span::before {
   content: "";
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--ux-line-2);
-  transition: background-color .3s, transform .4s var(--ux-spring);
+  background: var(--qz-border-strong);
+  transition: background-color var(--qz-duration-standard) var(--qz-ease-standard), transform var(--qz-duration-spring) var(--qz-ease-spring);
 }
-.pay-modal__steps span.on { color: var(--text, #0a0a0a); }
-.pay-modal__steps span.on::before { background: var(--ux-accent); transform: scale(1.3); }
-.is-ok .pay-modal__steps span.on::before { background: var(--ux-mint); }
+.pay-modal__steps span.on { color: var(--qz-text); }
+.pay-modal__steps span.on::before { background: var(--qz-accent); transform: scale(1.3); }
+.is-ok .pay-modal__steps span.on::before { background: var(--qz-success); }
 
 .pay-modal__stage {
   position: relative;
   display: flex; align-items: center; justify-content: center;
   min-height: 34px; margin-top: 0;
   overflow: hidden;
-  transition: min-height .4s var(--ux-ease);
+  transition: min-height var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .is-run .pay-modal__stage,
 .is-ok .pay-modal__stage { min-height: 90px; }
@@ -1213,32 +1209,32 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex; align-items: center; justify-content: center;
   width: 100%; height: 52px;
-  border: 0; border-radius: 14px;
-  background: var(--ux-accent); color: #fff;
-  font-size: 14.5px; font-weight: 800;
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent); color: var(--qz-on-accent);
+  font-size: var(--qz-text-sm); font-weight: 800;
   overflow: hidden;
-  transition: width .5s var(--ux-spring), height .5s var(--ux-spring),
-              border-radius .5s var(--ux-spring), background-color .4s;
+  transition: width var(--qz-duration-spring) var(--qz-ease-spring), height var(--qz-duration-spring) var(--qz-ease-spring),
+              border-radius var(--qz-duration-spring) var(--qz-ease-spring), background-color var(--qz-duration-considered) var(--qz-ease-standard);
 }
 .pay-modal__go.waiting {
   gap: 8px;
   height: auto;
-  background: transparent; color: var(--ux-ink-3);
+  background: transparent; color: var(--qz-text-muted);
   box-shadow: none;
-  font-size: 14px; font-weight: 500;
+  font-size: var(--qz-text-sm); font-weight: 500;
 }
 .pay-modal__go.waiting span { display: inline-flex; align-items: center; gap: 8px; }
-.pay-modal__go.waiting .pay-modal__spin { width: 16px; height: 16px; color: var(--ux-ink-3); }
+.pay-modal__go.waiting .pay-modal__spin { width: 16px; height: 16px; color: var(--qz-text-muted); }
 .is-run .pay-modal__go,
 .is-ok .pay-modal__go {
   width: 56px; height: 56px; border-radius: 50%;
   pointer-events: none;
-  background: var(--ux-accent); color: #fff;
+  background: var(--qz-accent); color: var(--qz-on-accent);
   box-shadow: none;
 }
 .is-run .pay-modal__go span,
 .is-ok .pay-modal__go span { opacity: 0; }
-.is-ok .pay-modal__go { background: var(--ux-mint); }
+.is-ok .pay-modal__go { background: var(--qz-success); }
 
 .pay-modal__ring {
   pointer-events: none;
@@ -1248,38 +1244,38 @@ onBeforeUnmount(() => {
   margin: -40px 0 0 -40px;
   transform: rotate(-90deg);
   opacity: 0;
-  transition: opacity .3s;
+  transition: opacity var(--qz-duration-standard) var(--qz-ease-standard);
 }
 .is-run .pay-modal__ring,
-.is-ok .pay-modal__ring { opacity: 1; transition-delay: .25s; }
+.is-ok .pay-modal__ring { opacity: 1; transition-delay: var(--qz-duration-standard); }
 .pay-modal__ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
-.pay-modal__ring .t { stroke: var(--ux-surface-3); }
+.pay-modal__ring .t { stroke: var(--qz-border); }
 .pay-modal__ring .p {
-  stroke: var(--ux-accent);
+  stroke: var(--qz-accent);
   stroke-dasharray: 100;
   stroke-dashoffset: calc(100 - var(--p, 0) * 100);
-  transition: stroke .4s;
+  transition: stroke var(--qz-duration-considered) var(--qz-ease-standard);
 }
-.is-ok .pay-modal__ring .p { stroke: var(--ux-mint); }
+.is-ok .pay-modal__ring .p { stroke: var(--qz-success); }
 
 .pay-modal__ck {
   position: absolute;
   top: 50%; left: 50%;
   margin: -12px 0 0 -12px;
   width: 24px; height: 24px;
-  fill: none; stroke: #fff;
+  fill: none; stroke: var(--qz-on-accent);
   stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round;
   pointer-events: none;
 }
 .pay-modal__ck path {
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
-  transition: stroke-dashoffset .45s var(--ux-ease) .2s;
+  transition: stroke-dashoffset var(--qz-duration-considered) var(--qz-ease-standard) var(--qz-duration-fast);
 }
 .is-ok .pay-modal__ck path { stroke-dashoffset: 0; }
 
 .pay-modal__copied {
-  font-size: 11px; color: var(--ux-mint); font-weight: 600;
+  font-size: var(--qz-text-2xs); color: var(--qz-success); font-weight: 600;
 }
 
 /* 过期态：对齐支付网关收银台（红 ✗ + 标题 + 重新发起入口），不显示二维码与地址。 */
@@ -1287,13 +1283,13 @@ onBeforeUnmount(() => {
   display: flex; flex-direction: column; align-items: center;
   gap: 10px; padding: 34px 0 26px;
 }
-.pay-modal__expired-icon { width: 46px; height: 46px; color: #d4342a; stroke-width: 1.6; }
-.pay-modal__expired-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.pay-modal__expired-icon { width: 46px; height: 46px; color: var(--qz-danger); stroke-width: 1.6; }
+.pay-modal__expired-title { font-size: var(--qz-text-base); font-weight: 700; letter-spacing: -.01em; }
 .pay-modal__expired-btn {
-  margin-top: 4px; width: 100%; height: 44px;
-  border: 0; border-radius: 14px; cursor: pointer;
-  background: var(--ux-accent); color: #fff;
-  font-size: 14.5px; font-weight: 500;
+  margin-top: 4px; width: 100%; height: var(--qz-control-md);
+  border: 0; border-radius: var(--qz-radius-pill); cursor: pointer;
+  background: var(--qz-accent); color: var(--qz-on-accent);
+  font-size: var(--qz-text-sm); font-weight: 500;
 }
 .pay-modal__expired-btn:disabled { opacity: .55; cursor: not-allowed; }
 
@@ -1304,8 +1300,8 @@ onBeforeUnmount(() => {
   display: none;
   flex-direction: column;
   padding: 22px 18px 16px;
-  border-radius: 22px;
-  background: var(--ux-surface-2);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
   text-align: center;
   z-index: 2;
   overflow-y: auto;
@@ -1314,53 +1310,54 @@ onBeforeUnmount(() => {
   content: "";
   position: absolute; left: 0; right: 0; top: -8px;
   height: 16px;
-  background: radial-gradient(circle 8px at 8px 0, transparent 98%, var(--ux-surface-2)) 0 8px/16px 8px repeat-x;
+  background: radial-gradient(circle 8px at 8px 0, transparent 98%, var(--qz-surface-muted)) 0 8px/16px 8px repeat-x;
 }
 .is-rec .pay-modal__rec {
   display: flex;
-  animation: pay-modal-rec-in .6s var(--ux-spring) both;
+  animation: pay-modal-rec-in var(--qz-duration-spring) var(--qz-ease-spring) both;
 }
 @keyframes pay-modal-rec-in { from { transform: translateY(60px); opacity: 0; } }
 
 .pay-modal__rec-header {
-  font-size: 10px; letter-spacing: 1.3px;
-  color: var(--ux-ink-3); font-weight: 600;
+  font-size: var(--qz-text-2xs); letter-spacing: 1.3px;
+  color: var(--qz-text-muted); font-weight: 600;
   padding-bottom: 12px;
-  border-bottom: 1px dashed var(--ux-line-2);
+  border-bottom: 1px dashed var(--qz-border-strong);
   margin-bottom: 16px;
 }
 .pay-modal__rec-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px;
-  background: var(--ux-surface);
-  border-radius: 12px;
+  background: var(--qz-surface);
+  border-radius: var(--qz-radius-control);
   margin-bottom: 14px;
   text-align: left;
-  box-shadow: inset 0 0 0 1px var(--ux-line);
+  box-shadow: inset 0 0 0 1px var(--qz-border);
 }
 .pay-modal__rec-icon {
   width: 36px; height: 36px; flex-shrink: 0;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #0f0f0f, #2a2a2a);
+  border-radius: var(--qz-radius-pill);
+  background: linear-gradient(135deg, var(--qz-accent), var(--qz-accent-strong));
   display: grid; place-items: center;
-  color: #fff; font-size: 14px; font-weight: 800;
+  color: var(--qz-on-accent); font-size: var(--qz-text-sm); font-weight: 800;
 }
 .pay-modal__rec-meta { flex: 1; min-width: 0; text-align: left; }
 .pay-modal__rec-name {
-  font-size: 13px; font-weight: 700;
-  color: var(--text, #0a0a0a); margin-bottom: 2px;
+  font-size: var(--qz-text-sm); font-weight: 700;
+  color: var(--qz-text); margin-bottom: 2px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .pay-modal__rec-sub {
-  font-size: 11px; color: var(--ux-ink-3);
+  font-size: var(--qz-text-2xs); color: var(--qz-text-muted);
   display: flex; align-items: center; gap: 5px;
 }
+/* 状态点画成 6px 圆（而非 7px 的 "●" 字形），模板字号地板是 11px */
 .pay-modal__rec-sub::before {
-  content: "●"; color: var(--ux-mint); font-size: 7px;
+  content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--qz-success);
 }
 .pay-modal__rec-amt {
-  font-size: 14px; font-weight: 800;
-  color: var(--text, #0a0a0a);
+  font-size: var(--qz-text-sm); font-weight: 800;
+  color: var(--qz-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1369,8 +1366,8 @@ onBeforeUnmount(() => {
   margin: 0 auto 10px;
   border-radius: 50%;
   display: grid; place-items: center;
-  background: var(--ux-mint); color: #fff;
-  box-shadow: 0 0 0 7px color-mix(in srgb, var(--ux-mint) 16%, transparent);
+  background: var(--qz-success); color: var(--qz-on-accent);
+  box-shadow: 0 0 0 7px color-mix(in oklab, var(--qz-success) 16%, transparent);
 }
 .pay-modal__rec-check svg {
   width: 24px; height: 24px;
@@ -1380,24 +1377,24 @@ onBeforeUnmount(() => {
 
 .pay-modal__rec-title {
   display: block;
-  font-size: 17px; font-weight: 700;
+  font-size: var(--qz-text-lg); font-weight: 700;
   letter-spacing: -.03em;
 }
 
 .pay-modal__rec > p {
   margin: 4px 0 12px;
-  font-size: 12px; color: var(--ux-ink-3); line-height: 1.55;
+  font-size: var(--qz-text-xs); color: var(--qz-text-muted); line-height: 1.55;
 }
-.pay-modal__rec-email { color: var(--ux-ink-2); font-weight: 600; }
+.pay-modal__rec-email { color: var(--qz-text-secondary); font-weight: 600; }
 
 .pay-modal__rec-dl {
   display: grid; grid-template-columns: auto 1fr;
   gap: 6px 12px;
   margin: 0 0 16px;
   text-align: left;
-  font-size: 12px;
+  font-size: var(--qz-text-xs);
 }
-.pay-modal__rec-dl dt { color: var(--ux-ink-3); font-weight: 600; }
+.pay-modal__rec-dl dt { color: var(--qz-text-muted); font-weight: 600; }
 .pay-modal__rec-dl dd {
   margin: 0; text-align: right;
   font-weight: 800;
@@ -1405,10 +1402,10 @@ onBeforeUnmount(() => {
 }
 
 .pay-modal__rec-btn {
-  width: 100%; height: 44px;
-  border: 0; border-radius: 12px;
-  background: var(--ux-accent); color: #fff;
-  font-size: 13.5px; font-weight: 700;
+  width: 100%; height: var(--qz-control-md);
+  border: 0; border-radius: var(--qz-radius-pill);
+  background: var(--qz-accent); color: var(--qz-on-accent);
+  font-size: var(--qz-text-sm); font-weight: 700;
   cursor: pointer;
 }
 
@@ -1419,7 +1416,7 @@ onBeforeUnmount(() => {
 .is-rec .pay-modal__stage {
   opacity: 0; transform: translateY(-16px);
   pointer-events: none;
-  transition: opacity .4s, transform .5s var(--ux-ease);
+  transition: opacity var(--qz-duration-considered) var(--qz-ease-standard), transform var(--qz-duration-considered) var(--qz-ease-standard);
 }
 
 /* 矮视口（如 iPhone Safari 带工具条时约 664px 高）的紧凑模式：缩小大字金额与二维码、再收一轮内边距，
@@ -1428,11 +1425,11 @@ onBeforeUnmount(() => {
   .pay-modal { padding: 16px; }
   .pay-modal__amount-card { padding: 10px 14px 8px; margin-bottom: 8px; }
   .pay-modal__amount-value { margin-bottom: 6px; }
-  .pay-modal__amount-value b { font-size: 30px; }
+  .pay-modal__amount-value b { font-size: var(--qz-text-2xl); }
   .pay-modal__amount-meta { padding-top: 6px; gap: 4px; }
   .pay-modal__pay-card { padding: 14px 14px 0; margin-bottom: 8px; }
   .pay-modal__pay-head { margin-bottom: 4px; }
-  .pay-modal__cd-num { margin: 0 0 6px; font-size: 20px; }
+  .pay-modal__cd-num { margin: 0 0 6px; font-size: var(--qz-text-lg); }
   .pay-modal__qr-wrap { margin-bottom: 6px; }
   .pay-modal__qr img,
   .pay-modal__qr-placeholder { width: 96px; height: 96px; }

@@ -1,7 +1,7 @@
-/** 滚动显现系统：.j8-reveal.is-pending 进入视口后加 .is-in 播放 j8-rise，并按序错峰。 */
+/** 滚动显现系统：.qz-reveal.is-pending 进入视口后加 .is-in 播放 qz-rise，并按序错峰。 */
 export const setupReveal = (root: HTMLElement | null | undefined): (() => void) => {
   if (!root) return () => undefined
-  const els = Array.from(root.querySelectorAll<HTMLElement>('.j8-reveal.is-pending'))
+  const els = Array.from(root.querySelectorAll<HTMLElement>('.qz-reveal.is-pending'))
   if (!els.length) return () => undefined
 
   if (!('IntersectionObserver' in window)) {

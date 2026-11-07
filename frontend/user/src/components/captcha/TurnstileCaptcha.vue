@@ -21,10 +21,14 @@ declare global {
   }
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue?: string
   siteKey: string
-}>()
+  /** 组件配色；不传时沿用 Turnstile 自动跟随系统的既有行为 */
+  theme?: 'auto' | 'light' | 'dark'
+}>(), {
+  theme: 'auto',
+})
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void
@@ -75,7 +79,7 @@ const renderWidget = async () => {
   containerRef.value.innerHTML = ''
   widgetID.value = window.turnstile.render(containerRef.value, {
     sitekey: props.siteKey,
-    theme: 'auto',
+    theme: props.theme,
     callback: (token: string) => emit('update:modelValue', token || ''),
     'expired-callback': () => emit('update:modelValue', ''),
     'error-callback': () => emit('update:modelValue', ''),
@@ -89,8 +93,9 @@ const reset = () => {
   emit('update:modelValue', '')
 }
 
+// Turnstile 不支持运行时改 sitekey / theme：两者任一变化都移除旧 widget 重新 render（renderWidget 内先 remove）
 watch(
-  () => props.siteKey,
+  [() => props.siteKey, () => props.theme],
   () => {
     renderWidget().catch(() => {
       emit('update:modelValue', '')

@@ -1,41 +1,41 @@
 <template>
-  <div class="j8-me-panel">
-    <div class="j8-me-card">
-      <div class="j8-me-card-head">
+  <div class="qz-me-panel">
+    <section class="qz-panel qz-me-sec">
+      <div class="qz-section-head">
         <div>
           <h2>{{ t('personalCenter.giftCard.title') }}</h2>
           <small>{{ t('personalCenter.giftCard.subtitle') }}</small>
         </div>
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
-            <Gift />
+        <div class="qz-me-acts">
+          <span class="qz-chip">
+            <Gift aria-hidden="true" />
             {{ t('personalCenter.tabs.giftCard') }}
           </span>
         </div>
       </div>
 
-      <p v-if="panelAlert" class="j8-ic-alert panel-alert" :class="panelAlertClass" role="alert">
+      <p v-if="panelAlert" class="qz-alert" :class="panelAlertClass" role="alert">
         {{ panelAlert.message }}
       </p>
 
       <!-- 兑换结果 -->
-      <div v-if="lastRedeem" class="j8-ic-pay gift-success">
-        <div class="j8-me-card-acts">
-          <span class="j8-me-pill is-ok">
-            <Check />
+      <div v-if="lastRedeem" class="qz-me-sub qz-me-gift-success">
+        <div class="qz-me-acts qz-me-gift-success-head">
+          <span class="qz-badge is-success">
+            <Check aria-hidden="true" />
             {{ t('personalCenter.giftCard.successTitle') }}
           </span>
         </div>
-        <div class="j8-me-kv">
-          <div class="j8-me-kv-row">
+        <div class="qz-me-kv">
+          <div class="qz-me-kv-row">
             <span>{{ t('personalCenter.giftCard.successCode') }}</span>
-            <b class="gift-code">{{ String(lastRedeem.gift_card?.code || '-').toUpperCase() }}</b>
+            <b class="qz-me-gift-code">{{ String(lastRedeem.gift_card?.code || '-').toUpperCase() }}</b>
           </div>
-          <div class="j8-me-kv-row">
+          <div class="qz-me-kv-row">
             <span>{{ t('personalCenter.giftCard.successAmount') }}</span>
             <b>{{ redeemedAmountText }}</b>
           </div>
-          <div class="j8-me-kv-row">
+          <div class="qz-me-kv-row">
             <span>{{ t('personalCenter.giftCard.successBalance') }}</span>
             <b>{{ currentBalanceText }}</b>
           </div>
@@ -43,22 +43,22 @@
       </div>
 
       <!-- 兑换表单 -->
-      <form class="j8-ic" novalidate @submit.prevent="submitRedeem">
-        <div class="j8-ic-field">
-          <label for="j8-gift-code">{{ t('personalCenter.giftCard.codeLabel') }}</label>
+      <form class="qz-me-form" novalidate @submit.prevent="submitRedeem">
+        <div class="qz-field">
+          <label class="qz-field-label" for="qz-gift-code">{{ t('personalCenter.giftCard.codeLabel') }}</label>
           <input
-            id="j8-gift-code"
+            id="qz-gift-code"
             v-model="redeemForm.code"
             type="text"
             maxlength="80"
             autocomplete="off"
-            class="is-code"
+            class="qz-field-control qz-me-gift-input"
             :placeholder="t('personalCenter.giftCard.codePlaceholder')"
           />
         </div>
 
-        <div v-if="redeemCaptchaEnabled" class="j8-ic-field">
-          <label>{{ t('auth.common.captchaLabel') }}</label>
+        <div v-if="redeemCaptchaEnabled" class="qz-field" role="group" aria-labelledby="qz-gift-captcha-label">
+          <span id="qz-gift-captcha-label" class="qz-field-label">{{ t('auth.common.captchaLabel') }}</span>
           <ImageCaptcha
             v-if="captchaProvider === 'image'"
             ref="imageCaptchaRef"
@@ -74,16 +74,16 @@
           />
         </div>
 
-        <div class="gift-actions">
-          <J8Button type="submit" :loading="submitting">
+        <div class="qz-me-acts qz-me-form-acts">
+          <QzButton type="submit" :loading="submitting">
             {{ submitting ? t('personalCenter.giftCard.redeeming') : t('personalCenter.giftCard.redeemButton') }}
-          </J8Button>
-          <J8Button type="button" variant="secondary" :disabled="submitting" @click="resetForm">
+          </QzButton>
+          <QzButton type="button" variant="secondary" :disabled="submitting" @click="resetForm">
             {{ t('personalCenter.giftCard.resetButton') }}
-          </J8Button>
+          </QzButton>
         </div>
       </form>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -96,7 +96,7 @@ import { useAppStore } from '../../../stores/app'
 import type { PageAlert } from '../../../utils/alerts'
 import ImageCaptcha from '../../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../../components/captcha/TurnstileCaptcha.vue'
-import J8Button from '../components/J8Button.vue'
+import QzButton from '../components/QzButton.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -120,11 +120,12 @@ const redeemCaptchaEnabled = computed(() => {
 })
 const turnstileSiteKey = computed(() => String(captchaConfig.value?.turnstile?.site_key || ''))
 
+// 提示条 tone（base .qz-alert）：success → is-success、warning → is-warning、error → is-danger
 const panelAlertClass = computed(() => {
   const level = panelAlert.value?.level
-  if (level === 'error') return 'is-error'
-  if (level === 'success') return 'is-ok'
-  return ''
+  if (level === 'error') return 'is-danger'
+  if (level === 'success') return 'is-success'
+  return 'is-warning'
 })
 
 const redeemedAmountText = computed(() => {
@@ -248,48 +249,48 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.j8-me-panel .panel-alert {
-  margin: 0 0 12px;
+/* 礼品卡面板：区块 .qz-panel + .qz-section-head、提示条 .qz-alert、表单 .qz-field 三件套、结果 .qz-badge、按钮 QzButton
+   来自 styles/base.css；.qz-me-panel / .qz-me-sec / .qz-me-acts(.qz-me-form-acts) / .qz-me-sub / .qz-me-kv(-row) / .qz-me-form
+   来自 PersonalCenter.vue 的 me 共享块。这里只剩兑换结果的入场、结果头左对齐与卡密的等宽大写。
+   .qz-me-acts.qz-me-gift-success-head 写成 (0,3,0)，压过共享块的 .qz-me-acts (0,2,0)。 */
+
+/* ---------- 兑换结果：.qz-me-sub 入场 ---------- */
+.qz-me-gift-success {
+  animation: qz-me-gift-in var(--qz-duration-considered) var(--qz-ease-enter) both;
 }
 
-.j8-me-panel .panel-alert.is-ok {
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-}
-
-.j8-me-panel .gift-success {
-  margin-bottom: 14px;
-  animation: gift-success-burst 0.45s ease both;
-}
-
-@keyframes gift-success-burst {
-  0% {
+@keyframes qz-me-gift-in {
+  from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(var(--qz-space-2)) scale(0.98);
   }
-  100% {
+
+  to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
-.j8-me-panel .is-code {
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.qz-me-acts.qz-me-gift-success-head {
+  justify-content: flex-start;
 }
 
-.j8-me-panel .gift-code {
-  font-family: var(--font-mono);
-  text-transform: uppercase;
+.qz-me-gift-code {
+  font-family: var(--qz-font-mono);
   letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.j8-me-panel .gift-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding-top: 2px;
+/* ---------- 兑换表单：卡密输入等宽大写 ---------- */
+.qz-field-control.qz-me-gift-input {
+  font-family: var(--qz-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-me-gift-success {
+    animation: none;
+  }
 }
 </style>

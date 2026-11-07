@@ -1,86 +1,83 @@
 <template>
-  <div ref="rootEl" class="j8-container j8-xcheck-main">
-    <!-- 返回条 -->
-    <button type="button" class="j8-pd-back" @click="goBack">
-      <ChevronLeft />
-      {{ backLabel }}
-    </button>
-
-    <!-- 顶部文案 -->
-    <section class="j8-xcheck-hero">
-      <span class="j8-eyebrow">{{ t('qiaozhi.checkout.eyebrow') }}</span>
-      <h1>{{ t('checkout.title') }}</h1>
-      <p>{{ t('qiaozhi.checkout.subtitle') }}</p>
-    </section>
+  <div ref="rootEl" class="qz-container qz-checkout">
+    <!-- 页头：eyebrow + h1 + 说明 + 返回 -->
+    <header class="qz-page-head">
+      <div class="qz-page-head-copy">
+        <span class="qz-eyebrow">{{ t('qiaozhi.checkout.eyebrow') }}</span>
+        <h1>{{ t('checkout.title') }}</h1>
+        <p>{{ t('qiaozhi.checkout.subtitle') }}</p>
+      </div>
+      <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" @click="goBack">
+        <ChevronLeft />
+        {{ backLabel }}
+      </button>
+    </header>
 
     <!-- 空购物车 -->
-    <div v-if="cartItems.length === 0" class="j8-empty">
+    <div v-if="cartItems.length === 0" class="qz-empty">
       <PackageOpen />
       <b>{{ t('checkout.empty') }}</b>
       <span>{{ t('qiaozhi.checkout.emptyHint') }}</span>
-      <RouterLink to="/products" class="j8-btn-primary">{{ t('checkout.emptyAction') }}</RouterLink>
+      <RouterLink to="/products" class="qz-btn qz-btn--primary">{{ t('checkout.emptyAction') }}</RouterLink>
     </div>
 
-    <!-- 结算主体 -->
-    <div v-else class="j8-xcheck-grid">
-      <!-- 左：商品 + 表单 -->
-      <div class="j8-xcheck-left">
+    <!-- 结算主体：左商品 + 表单，右合计 -->
+    <div v-else class="qz-checkout-layout">
+      <div class="qz-checkout-main">
         <!-- 订单明细 -->
-        <section class="j8-pd-card j8-xcheck-card j8-reveal is-pending" :data-reveal="1">
-          <header class="j8-xcheck-card-head">
-            <span class="j8-eyebrow">{{ t('qiaozhi.checkout.sectionItems') }}</span>
+        <section class="qz-panel qz-checkout-card qz-reveal is-pending" :data-reveal="1">
+          <header class="qz-checkout-card-head">
+            <span class="qz-eyebrow">{{ t('qiaozhi.checkout.sectionItems') }}</span>
             <h2>{{ t('checkout.itemsTitle') }}</h2>
           </header>
-          <ul class="j8-xcheck-items">
+          <ul class="qz-checkout-items">
             <li
               v-for="item in cartItems"
               :key="cartItemKey(item)"
-              class="j8-xcheck-item"
+              class="qz-card qz-checkout-item"
               :class="{ 'is-warn': itemStockExceeded(item) }"
             >
-              <div class="j8-xcheck-item-thumb">
+              <div class="qz-checkout-thumb">
                 <img
                   v-if="checkoutItemImage(item)"
                   :src="checkoutItemImage(item)"
                   :alt="getLocalizedText(item.title)"
                   loading="lazy"
                 />
-                <span v-else class="j8-pd-logo j8-brand-icon">
-                  <b>{{ (getLocalizedText(item.title) || '·').slice(0, 1) }}</b>
-                </span>
+                <span v-else class="qz-checkout-initial" aria-hidden="true">{{ (getLocalizedText(item.title) || '·').slice(0, 1) }}</span>
               </div>
-              <div class="j8-xcheck-item-body">
+              <div class="qz-checkout-item-body">
                 <RouterLink
-                  class="j8-xcheck-item-title"
+                  class="qz-checkout-item-title"
                   :to="`/products/${item.slug}`"
                 >
                   {{ getLocalizedText(item.title) }}
                 </RouterLink>
-                <div class="j8-xcheck-item-meta">
-                  <span>{{ t('checkout.quantityLabel') }} × {{ item.quantity }}</span>
-                  <span v-if="itemSkuDisplay(item)">{{ itemSkuDisplay(item) }}</span>
+                <div class="qz-checkout-item-chips">
+                  <span class="qz-chip">{{ t('checkout.quantityLabel') }} × {{ item.quantity }}</span>
+                  <span v-if="itemSkuDisplay(item)" class="qz-chip">{{ itemSkuDisplay(item) }}</span>
                 </div>
                 <p
                   v-if="itemStockHint(item)"
-                  class="j8-xcheck-item-stock"
+                  class="qz-checkout-item-stock"
                   :class="{ 'is-warn': itemStockExceeded(item) }"
                 >
                   {{ itemStockHint(item) }}
                 </p>
               </div>
-              <div class="j8-xcheck-item-price">
-                <div
-                  class="j8-pd-price"
+              <div class="qz-checkout-item-price">
+                <span
+                  class="qz-checkout-price"
                   :class="{ 'is-discount': checkoutItemHasPriceDiscount(item) }"
                 >
                   <strong>
                     {{ checkoutItemPriceParts(item).integer }}<small>{{ checkoutItemPriceParts(item).decimal }}</small>
                   </strong>
-                  <span class="j8-xcheck-item-cur">{{ checkoutItemCurrency }}</span>
-                </div>
+                  <span class="qz-checkout-price-cur">{{ checkoutItemCurrency }}</span>
+                </span>
                 <del
                   v-if="checkoutItemHasPriceDiscount(item)"
-                  class="j8-xcheck-item-old"
+                  class="qz-checkout-price-old"
                 >
                   {{ checkoutItemOriginalPriceParts(item).integer }}{{ checkoutItemOriginalPriceParts(item).decimal }} {{ checkoutItemCurrency }}
                 </del>
@@ -90,31 +87,32 @@
         </section>
 
         <!-- 交付资料 / 游客 / 优惠码 表单 -->
-        <section class="j8-pd-card j8-xcheck-card j8-reveal is-pending" :data-reveal="1">
-          <header class="j8-xcheck-card-head">
-            <span class="j8-eyebrow">{{ t('qiaozhi.checkout.sectionInfo') }}</span>
+        <section class="qz-panel qz-checkout-card qz-reveal is-pending" :data-reveal="1">
+          <header class="qz-checkout-card-head">
+            <span class="qz-eyebrow">{{ t('qiaozhi.checkout.sectionInfo') }}</span>
             <h2>{{ t('qiaozhi.checkout.infoTitle') }}</h2>
           </header>
 
-          <form class="j8-ic" novalidate @submit.prevent="handleSubmit">
+          <form class="qz-checkout-form" novalidate @submit.prevent="handleSubmit">
             <!-- 交付信息 -->
             <template v-if="manualFormProducts.length">
               <div
                 v-for="product in manualFormProducts"
                 :key="product.itemKey"
-                class="j8-xcheck-manual"
+                class="qz-checkout-manual"
               >
                 <h3>
                   {{ manualItemTitle(product) }}
                 </h3>
-                <p class="j8-ic-hint">{{ t('checkout.manualFormTip') }}</p>
-                <div class="j8-xcheck-manual-grid">
+                <p class="qz-field-hint">{{ t('checkout.manualFormTip') }}</p>
+                <div class="qz-checkout-manual-grid">
                   <div
                     v-for="field in product.fields"
                     :key="`${product.itemKey}-${field.key}`"
-                    class="j8-ic-field"
+                    class="qz-field"
                   >
-                    <label :for="manualFieldId(product.itemKey, field.key)">
+                    <!-- label 自带 id：radio / checkbox 组没有可被 for 指向的单个控件，组容器用 aria-labelledby 指回这里 -->
+                    <label class="qz-field-label" :id="`${manualFieldId(product.itemKey, field.key)}-label`" :for="manualFieldId(product.itemKey, field.key)">
                       {{ getManualFieldLabel(field) }}
                       <b v-if="field.required">*</b>
                     </label>
@@ -122,6 +120,7 @@
                     <textarea
                       v-if="field.type === 'textarea'"
                       :id="manualFieldId(product.itemKey, field.key)"
+                      class="qz-field-control"
                       :value="getManualFieldValue(product.itemKey, field.key)"
                       rows="3"
                       :placeholder="getManualFieldPlaceholder(field)"
@@ -130,7 +129,7 @@
                       @input="setManualFieldValue(product.itemKey, field.key, ($event.target as HTMLTextAreaElement).value)"
                     ></textarea>
 
-                    <J8Select
+                    <QzSelect
                       v-else-if="field.type === 'select'"
                       :id="manualFieldId(product.itemKey, field.key)"
                       :model-value="getManualFieldValue(product.itemKey, field.key)"
@@ -142,13 +141,14 @@
 
                     <div
                       v-else-if="field.type === 'radio'"
-                      class="j8-ic-options"
-                      :aria-labelledby="manualFieldId(product.itemKey, field.key)"
+                      class="qz-checkout-options"
+                      role="radiogroup"
+                      :aria-labelledby="`${manualFieldId(product.itemKey, field.key)}-label`"
                     >
                       <label v-for="option in field.options" :key="option">
                         <input
                           type="radio"
-                          :name="`j8-ic-radio-${product.itemKey}-${field.key}`"
+                          :name="`qz-checkout-radio-${product.itemKey}-${field.key}`"
                           :value="option"
                           :checked="getManualFieldValue(product.itemKey, field.key) === option"
                           @change="setManualFieldValue(product.itemKey, field.key, option)"
@@ -159,8 +159,9 @@
 
                     <div
                       v-else-if="field.type === 'checkbox'"
-                      class="j8-ic-options"
-                      :aria-labelledby="manualFieldId(product.itemKey, field.key)"
+                      class="qz-checkout-options"
+                      role="group"
+                      :aria-labelledby="`${manualFieldId(product.itemKey, field.key)}-label`"
                     >
                       <label v-for="option in field.options" :key="option">
                         <input
@@ -176,6 +177,7 @@
                     <input
                       v-else
                       :id="manualFieldId(product.itemKey, field.key)"
+                      class="qz-field-control"
                       :type="field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : 'text'"
                       :value="getManualFieldValue(product.itemKey, field.key)"
                       :placeholder="getManualFieldPlaceholder(field)"
@@ -187,7 +189,7 @@
                     <p
                       v-if="submitAttempted && manualFieldError(product.itemKey, field.key)"
                       :id="manualFieldErrId(product.itemKey, field.key)"
-                      class="j8-ic-error"
+                      class="qz-field-error"
                     >
                       {{ manualFieldError(product.itemKey, field.key) }}
                     </p>
@@ -198,12 +200,13 @@
 
             <!-- 游客 -->
             <template v-if="!userAuthStore.isAuthenticated">
-              <div class="j8-xcheck-mode">
+              <div class="qz-checkout-mode">
                 <h3>{{ t('checkout.modeTitle') }}</h3>
-                <div class="j8-xcheck-mode-tabs" role="tablist">
+                <div class="qz-checkout-mode-tabs" role="tablist">
                   <button
                     type="button"
                     role="tab"
+                    class="qz-pill"
                     :aria-selected="checkoutMode === 'guest'"
                     :class="{ 'is-active': checkoutMode === 'guest' }"
                     @click="checkoutMode = 'guest'"
@@ -213,7 +216,7 @@
                   <RouterLink
                     to="/auth/login"
                     role="tab"
-                    class="j8-xcheck-mode-link"
+                    class="qz-pill"
                   >
                     {{ t('checkout.memberPurchase') }}
                   </RouterLink>
@@ -221,43 +224,47 @@
               </div>
 
               <template v-if="checkoutMode === 'guest'">
-                <div class="j8-ic-field">
-                  <label for="j8-xcheck-email">
-                    {{ t('qiaozhi.detail.email') }}<b>*</b>
-                  </label>
-                  <input
-                    id="j8-xcheck-email"
-                    v-model="guestEmail"
-                    type="email"
-                    autocomplete="email"
-                    :placeholder="t('checkout.guestEmailPlaceholder')"
-                    :aria-invalid="submitAttempted && !!guestEmail && !guestEmailValid"
-                    :aria-describedby="submitAttempted && !!guestEmail && !guestEmailValid ? 'j8-xcheck-email-err' : undefined"
-                  />
-                  <p
-                    v-if="submitAttempted && !!guestEmail && !guestEmailValid"
-                    id="j8-xcheck-email-err"
-                    class="j8-ic-error"
-                  >
-                    {{ t('error.email_invalid') }}
-                  </p>
+                <div class="qz-checkout-form-row">
+                  <div class="qz-field">
+                    <label class="qz-field-label" for="qz-checkout-email">
+                      {{ t('qiaozhi.detail.email') }}<b>*</b>
+                    </label>
+                    <input
+                      id="qz-checkout-email"
+                      v-model="guestEmail"
+                      class="qz-field-control"
+                      type="email"
+                      autocomplete="email"
+                      :placeholder="t('checkout.guestEmailPlaceholder')"
+                      :aria-invalid="submitAttempted && !!guestEmail && !guestEmailValid"
+                      :aria-describedby="submitAttempted && !!guestEmail && !guestEmailValid ? 'qz-checkout-email-err' : undefined"
+                    />
+                    <p
+                      v-if="submitAttempted && !!guestEmail && !guestEmailValid"
+                      id="qz-checkout-email-err"
+                      class="qz-field-error"
+                    >
+                      {{ t('error.email_invalid') }}
+                    </p>
+                  </div>
+
+                  <div class="qz-field">
+                    <label class="qz-field-label" for="qz-checkout-password">
+                      {{ t('qiaozhi.detail.orderPassword') }}<b>*</b>
+                    </label>
+                    <input
+                      id="qz-checkout-password"
+                      v-model="guestPassword"
+                      class="qz-field-control"
+                      type="password"
+                      autocomplete="new-password"
+                      :placeholder="t('checkout.guestPasswordPlaceholder')"
+                    />
+                  </div>
                 </div>
 
-                <div class="j8-ic-field">
-                  <label for="j8-xcheck-password">
-                    {{ t('qiaozhi.detail.orderPassword') }}<b>*</b>
-                  </label>
-                  <input
-                    id="j8-xcheck-password"
-                    v-model="guestPassword"
-                    type="password"
-                    autocomplete="new-password"
-                    :placeholder="t('checkout.guestPasswordPlaceholder')"
-                  />
-                </div>
-
-                <div v-if="guestCaptchaEnabled" class="j8-ic-field">
-                  <label>{{ t('auth.common.captchaLabel') }}<b>*</b></label>
+                <div v-if="guestCaptchaEnabled" class="qz-field" role="group" aria-labelledby="qz-checkout-captcha-label">
+                  <span id="qz-checkout-captcha-label" class="qz-field-label">{{ t('auth.common.captchaLabel') }}<b>*</b></span>
                   <ImageCaptcha
                     v-if="captchaProvider === 'image'"
                     ref="guestImageCaptchaRef"
@@ -273,7 +280,7 @@
                   />
                 </div>
 
-                <div class="j8-xcheck-notice">
+                <div class="qz-checkout-notice">
                   <b>{{ t('checkout.guestInstructions.title') }}</b>
                   <ul>
                     <li>{{ t('checkout.guestInstructions.email') }}</li>
@@ -282,14 +289,15 @@
                 </div>
               </template>
             </template>
-            <p v-else class="j8-ic-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
+            <p v-else class="qz-field-hint is-ok">{{ t('qiaozhi.detail.loggedInHint') }}</p>
 
             <!-- 优惠码 -->
-            <div v-if="!isResellerTenant" class="j8-ic-field j8-ic-with-action">
-              <label for="j8-xcheck-coupon">{{ t('checkout.couponTitle') }}</label>
+            <div v-if="!isResellerTenant" class="qz-field">
+              <label class="qz-field-label" for="qz-checkout-coupon">{{ t('checkout.couponTitle') }}</label>
               <input
-                id="j8-xcheck-coupon"
+                id="qz-checkout-coupon"
                 v-model="couponCode"
+                class="qz-field-control"
                 type="text"
                 autocomplete="off"
                 :placeholder="t('checkout.couponPlaceholder')"
@@ -299,69 +307,69 @@
         </section>
       </div>
 
-      <!-- 右：合计 + 支付 -->
-      <aside class="j8-xcheck-aside j8-reveal is-pending" :data-reveal="1">
-        <div class="j8-xcheck-summary">
-          <header class="j8-xcheck-card-head">
-            <span class="j8-eyebrow">{{ t('qiaozhi.checkout.sectionSummary') }}</span>
+      <!-- 右：合计 + 支付（桌面 sticky 跟随） -->
+      <aside class="qz-checkout-aside qz-reveal is-pending" :data-reveal="1">
+        <div class="qz-panel qz-checkout-summary">
+          <header class="qz-checkout-card-head">
+            <span class="qz-eyebrow">{{ t('qiaozhi.checkout.sectionSummary') }}</span>
             <h2>{{ t('checkout.submitTitle') }}</h2>
           </header>
 
-          <p class="j8-ic-hint">{{ t('checkout.submitHint') }}</p>
+          <p class="qz-field-hint">{{ t('checkout.submitHint') }}</p>
 
-          <dl class="j8-xcheck-rows">
-            <div class="j8-xcheck-row">
+          <dl class="qz-checkout-rows">
+            <div class="qz-checkout-row">
               <dt>{{ t('cart.itemsCount') }}</dt>
               <dd>{{ totalItems }}</dd>
             </div>
-            <div class="j8-xcheck-row">
+            <div class="qz-checkout-row">
               <dt>{{ t('checkout.previewOriginal') }}</dt>
               <dd>{{ formatPrice(previewOriginal, previewCurrency) }}</dd>
             </div>
             <template v-if="!isResellerTenant">
-              <div class="j8-xcheck-row">
+              <div class="qz-checkout-row">
                 <dt>{{ t('checkout.previewCoupon') }}</dt>
                 <dd :class="{ 'is-discount': hasPositiveAmount(previewCoupon) }">
                   {{ formatDiscountPrice(previewCoupon, previewCurrency) }}
                 </dd>
               </div>
-              <div class="j8-xcheck-row">
+              <div class="qz-checkout-row">
                 <dt>{{ t('checkout.previewPromotion') }}</dt>
                 <dd :class="{ 'is-discount': hasPositiveAmount(previewPromotion) }">
                   {{ formatDiscountPrice(previewPromotion, previewCurrency) }}
                 </dd>
               </div>
-              <div class="j8-xcheck-row">
+              <div class="qz-checkout-row">
                 <dt>{{ t('checkout.previewWholesale') }}</dt>
                 <dd :class="{ 'is-saving': hasPositiveAmount(previewWholesale) }">
                   {{ formatDiscountPrice(previewWholesale, previewCurrency) }}
                 </dd>
               </div>
             </template>
-            <div v-if="hasPositiveAmount(previewMemberDiscount)" class="j8-xcheck-row">
+            <div v-if="hasPositiveAmount(previewMemberDiscount)" class="qz-checkout-row">
               <dt>{{ t('checkout.previewMemberDiscount') }}</dt>
               <dd class="is-saving">-{{ formatPrice(previewMemberDiscount, previewCurrency) }}</dd>
             </div>
           </dl>
 
-          <div class="j8-ic-total">
+          <div class="qz-checkout-total">
             <span>{{ t('checkout.previewTotal') }}</span>
             <strong>{{ formatPrice(previewTotal, previewCurrency) }}</strong>
           </div>
 
-          <p v-if="previewLoading || couponRefreshing" class="j8-ic-hint">
+          <p v-if="previewLoading || couponRefreshing" class="qz-field-hint">
             {{ previewStatusText }}
           </p>
 
           <!-- 支付方式 -->
-          <div class="j8-ic-pay">
-            <h3>
+          <div class="qz-checkout-pay">
+            <h3 id="qz-checkout-pay-label">
               <Wallet />
               {{ t('checkout.paymentMethod') }}
             </h3>
 
             <!-- 钱包余额 -->
-            <label v-if="showBalanceOption" class="j8-ic-balance" :class="{ 'is-active': useBalance }">
+            <label v-if="showBalanceOption" class="qz-checkout-balance" :class="{ 'is-active': useBalance }">
               <Wallet />
               <span>
                 <b>{{ t('payment.walletBalanceLabel') }}</b>
@@ -381,7 +389,7 @@
             <!-- 钱包抵扣摘要 -->
             <ul
               v-if="showBalanceOption && useBalance"
-              class="j8-xcheck-wallet-info"
+              class="qz-checkout-wallet-info"
             >
               <li>
                 <span>{{ t('payment.walletDeductLabel') }}</span>
@@ -403,19 +411,21 @@
             <template v-if="!walletOnlyPayment">
               <div
                 v-if="requiresOnlineChannel && paymentChannels.length > 0"
-                class="j8-ic-channels"
+                class="qz-checkout-channels"
+                role="group"
+                aria-labelledby="qz-checkout-pay-label"
               >
                 <button
                   v-for="channel in paymentChannels"
                   :key="channel.id"
                   type="button"
-                  class="j8-ic-channel"
+                  class="qz-checkout-channel"
                   :class="{ 'is-active': selectedChannelId === channel.id && !isChannelDisabledForAmount(channel) }"
                   :disabled="isChannelDisabledForAmount(channel)"
                   :title="isChannelDisabledForAmount(channel) ? channelAmountLimitHint(channel) : ''"
                   @click="handleSelectChannel(channel)"
                 >
-                  <i></i>
+                  <i aria-hidden="true"></i>
                   <img
                     v-if="channel.icon"
                     :src="getImageUrl(channel.icon)"
@@ -435,7 +445,7 @@
               </div>
               <p
                 v-else-if="requiresOnlineChannel && paymentChannels.length === 0"
-                class="j8-ic-hint"
+                class="qz-field-hint"
               >
                 {{ t('checkout.noPaymentChannels') }}
               </p>
@@ -443,7 +453,7 @@
 
             <p
               v-if="!requiresOnlineChannel"
-              class="j8-ic-hint is-ok"
+              class="qz-field-hint is-ok"
             >
               {{ t('checkout.walletCoversAll') }}
             </p>
@@ -452,24 +462,25 @@
           <!-- 提示 / 错误 -->
           <p
             v-if="checkoutAlert"
-            class="j8-ic-alert"
-            :class="{ 'is-error': checkoutAlert.level === 'error' }"
+            class="qz-alert"
+            :class="checkoutAlert.level === 'error' ? 'is-danger' : 'is-warning'"
             role="alert"
           >
             {{ checkoutAlert.message }}
           </p>
 
           <!-- 提交 -->
-          <button
+          <QzButton
             type="button"
-            class="j8-xcheck-btn"
+            size="lg"
+            class="qz-btn--block"
             :disabled="!canSubmit"
+            :loading="submitting"
             @click="handleSubmit"
           >
-            <Loader2 v-if="submitting" class="j8-xcheck-spin" />
-            <CreditCard v-else />
+            <CreditCard v-if="!submitting" />
             {{ submitting ? t('checkout.submitting') : t('checkout.submitButton') }}
-          </button>
+          </QzButton>
         </div>
       </aside>
     </div>
@@ -480,13 +491,14 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ChevronLeft, CreditCard, Loader2, PackageOpen, Wallet } from 'lucide-vue-next'
+import { ChevronLeft, CreditCard, PackageOpen, Wallet } from 'lucide-vue-next'
 import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useCheckout } from '../../composables/useCheckout'
 import { useLocalized } from '../../composables/useProduct'
 import { setupReveal } from './utils/reveal'
-import J8Select from './components/J8Select.vue'
+import QzButton from './components/QzButton.vue'
+import QzSelect from './components/QzSelect.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -612,8 +624,8 @@ const manualItemTitle = (product: { title: any; skuCount: number }) => {
   return `${name} (${t('checkout.manualFormAppliesToSkuCount', { count: product.skuCount })})`
 }
 
-const manualFieldId = (itemKey: string, fieldKey: string) => `j8-mf-${itemKey}-${fieldKey}`
-const manualFieldErrId = (itemKey: string, fieldKey: string) => `j8-mf-err-${itemKey}-${fieldKey}`
+const manualFieldId = (itemKey: string, fieldKey: string) => `qz-mf-${itemKey}-${fieldKey}`
+const manualFieldErrId = (itemKey: string, fieldKey: string) => `qz-mf-err-${itemKey}-${fieldKey}`
 
 const getManualFieldValue = (itemKey: string, fieldKey: string) => {
   const value = manualFormData.value[itemKey]?.[fieldKey]
@@ -654,186 +666,598 @@ const manualFieldHasError = (itemKey: string, fieldKey: string) => {
 </script>
 
 <style scoped>
-/* qiaozhi Checkout 页面独立版式 —— 复用 ji8.css 的 j8-* 原子，仅在此补齐布局 */
-.j8-xcheck-main { padding-top: 24px; padding-bottom: 70px; }
+/* 结算页：控件全部来自 styles/base.css（.qz-btn / .qz-pill / .qz-chip / .qz-field* / .qz-card / .qz-panel / .qz-empty），
+   这里只放页面布局与结算页专属元素，只读 --qz-* token（无色值字面量、无 px 字号）。 */
+.qz-checkout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-5);
+}
 
-.j8-xcheck-grid {
+/* 页头用 base.css 的 .qz-page-head，提示条用 .qz-alert */
+
+/* ---------- 双栏：左商品 + 表单，右合计 ---------- */
+.qz-checkout-layout {
   display: grid;
-  gap: 22px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--qz-space-4);
   align-items: start;
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 960px) {
-  .j8-xcheck-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr); }
 }
 
-.j8-xcheck-left { display: grid; gap: 18px; min-width: 0; }
+.qz-checkout-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
+  min-width: 0;
+}
 
-:deep(.j8-xcheck-card) {
+.qz-checkout-aside {
+  min-width: 0;
+}
+
+/* ---------- 面板 + 段头（.qz-panel.qz-checkout-* 写成 (0,3,0)，稳压 base 的 .qz-panel 默认值） ---------- */
+.qz-panel.qz-checkout-card,
+.qz-panel.qz-checkout-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-4);
+}
+
+/* 合计卡：桌面 sticky 跟随滚动 */
+.qz-panel.qz-checkout-summary {
+  position: sticky;
+  top: calc(var(--qz-header-h) + var(--qz-space-4));
+}
+
+.qz-checkout-card-head {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  padding: 22px 22px 24px;
+  gap: var(--qz-space-1);
 }
 
-.j8-xcheck-card-head { display: grid; gap: 4px; }
-.j8-xcheck-card-head h2 {
+.qz-checkout-card-head h2 {
   margin: 0;
-  color: var(--text);
-  font-size: 20px;
+  color: var(--qz-text);
+  font-size: var(--qz-text-lg);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: var(--qz-leading-body);
 }
 
-/* 商品列表 */
-.j8-xcheck-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.j8-xcheck-item {
+/* ---------- 商品列表：图 | 标题 + chips + 库存 | 价格 ---------- */
+.qz-checkout-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qz-card.qz-checkout-item {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
-  gap: 14px;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: var(--qz-space-3);
   align-items: center;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface-2);
+  padding: var(--qz-space-3);
 }
-.j8-xcheck-item.is-warn {
-  border-color: color-mix(in srgb, var(--amber) 55%, var(--line));
-  background: var(--amber-soft);
-}
-.j8-xcheck-item-thumb {
-  width: 72px; height: 72px; border-radius: 12px; overflow: hidden;
-  display: grid; place-items: center;
-  background: var(--surface); border: 1px solid var(--line);
-}
-.j8-xcheck-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.j8-xcheck-item-thumb .j8-pd-logo { font-size: 22px; }
 
-.j8-xcheck-item-body { min-width: 0; display: grid; gap: 4px; }
-.j8-xcheck-item-title {
-  display: block; min-width: 0;
-  color: var(--text); font-size: 14px; font-weight: 700;
+/* 超出库存 / 限购的行：警示色描边 + 淡警示底 */
+.qz-card.qz-checkout-item.is-warn {
+  border-color: var(--qz-warning);
+  background: color-mix(in oklab, var(--qz-warning) 8%, var(--qz-surface));
+}
+
+.qz-checkout-thumb {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-sm);
+  background: var(--qz-surface-muted);
+}
+
+.qz-checkout-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qz-checkout-initial {
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xl);
+  font-weight: 800;
+  letter-spacing: var(--qz-tracking-display);
+}
+
+.qz-checkout-item-body {
+  display: grid;
+  gap: var(--qz-space-1);
+  min-width: 0;
+}
+
+.qz-checkout-item-title {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+  line-height: var(--qz-leading-body);
   text-decoration: none;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.j8-xcheck-item-title:hover { color: var(--accent-strong); }
-.j8-xcheck-item-meta {
-  display: flex; flex-wrap: wrap; gap: 4px 12px;
-  color: var(--muted); font-size: 12px;
-}
-.j8-xcheck-item-stock { margin: 0; font-size: 12px; color: var(--muted); }
-.j8-xcheck-item-stock.is-warn { color: var(--amber); }
-
-.j8-xcheck-item-price { text-align: right; min-width: 86px; }
-.j8-xcheck-item-price .j8-pd-price {
-  display: inline-flex; align-items: baseline; gap: 2px;
-  color: var(--text); font-variant-numeric: tabular-nums;
-}
-.j8-xcheck-item-price .j8-pd-price strong {
-  font-size: 18px; font-weight: 800; line-height: 1;
-}
-.j8-xcheck-item-price .j8-pd-price small { font-size: 12px; font-weight: 700; }
-.j8-xcheck-item-price .j8-pd-price.is-discount { color: var(--red); }
-.j8-xcheck-item-cur { margin-left: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
-.j8-xcheck-item-old {
-  display: block; margin-top: 2px;
-  color: var(--muted); font-size: 11px; text-decoration: line-through;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* 交付资料分组 */
-.j8-xcheck-manual {
-  display: grid; gap: 10px;
-  padding: 14px; border-radius: 14px;
-  background: var(--surface-2); border: 1px solid var(--line);
-}
-.j8-xcheck-manual h3 {
-  margin: 0; color: var(--text); font-size: 14px; font-weight: 800;
-}
-.j8-xcheck-manual-grid {
-  display: grid; gap: 12px;
-  grid-template-columns: 1fr;
-}
-@media (min-width: 640px) {
-  .j8-xcheck-manual-grid { grid-template-columns: 1fr 1fr; }
+.qz-checkout-item-title:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* 游客 / 模式 */
-.j8-xcheck-mode { display: grid; gap: 10px; }
-.j8-xcheck-mode h3 { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; }
-.j8-xcheck-mode-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
-.j8-xcheck-mode-tabs button,
-.j8-xcheck-mode-tabs .j8-xcheck-mode-link {
-  display: inline-flex; align-items: center;
-  height: 40px; padding: 0 16px;
-  border: 1px solid var(--line); border-radius: 12px;
-  background: var(--surface); color: var(--text);
-  font-size: 13px; font-weight: 700; text-decoration: none;
-  cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s;
+.qz-checkout-item-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--qz-space-1) var(--qz-space-2);
+  min-width: 0;
 }
-.j8-xcheck-mode-tabs button:hover,
-.j8-xcheck-mode-tabs .j8-xcheck-mode-link:hover {
-  border-color: var(--accent-line); color: var(--accent-strong);
+
+.qz-checkout-item-stock {
+  margin: 0;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
 }
-.j8-xcheck-mode-tabs button.is-active {
-  border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong);
+
+.qz-checkout-item-stock.is-warn {
+  color: var(--qz-warning);
+  font-weight: 500;
+}
+
+/* 价格：整数大字 + 小数小字，右对齐；折后价用危险色，原价划线 */
+.qz-checkout-item-price {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.qz-checkout-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--qz-space-1);
+  color: var(--qz-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-checkout-price strong {
+  font-size: var(--qz-text-lg);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: var(--qz-tracking-display);
+}
+
+.qz-checkout-price strong small {
+  font-size: var(--qz-text-xs);
+  font-weight: 700;
+}
+
+.qz-checkout-price.is-discount {
+  color: var(--qz-danger);
+}
+
+.qz-checkout-price-cur {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-2xs);
+  font-weight: 600;
+}
+
+.qz-checkout-price-old {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 表单 ---------- */
+.qz-checkout-form {
+  display: grid;
+  gap: var(--qz-space-4);
+}
+
+.qz-checkout-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qz-space-3);
+}
+
+/* 已登录 / 余额已覆盖：成功色提示 */
+.qz-checkout .qz-field-hint.is-ok {
+  color: var(--qz-success);
+  font-weight: 500;
+}
+
+/* 交付资料分组：弱化底的内嵌区块，字段两列 */
+.qz-checkout-manual {
+  display: grid;
+  gap: var(--qz-space-3);
+  padding: var(--qz-space-4);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+
+.qz-checkout-manual h3 {
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  font-weight: 700;
+  line-height: var(--qz-leading-body);
+}
+
+.qz-checkout-manual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qz-space-3);
+}
+
+/* 单选 / 多选组：与输入框等高，选项横向流式排布 */
+.qz-checkout-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qz-space-2) var(--qz-space-4);
+  min-height: var(--qz-control-md);
+  color: var(--qz-text);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
+}
+
+.qz-checkout-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  cursor: pointer;
+}
+
+.qz-checkout-options input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--qz-accent);
+}
+
+/* 购买方式：分段胶囊（.qz-pill 轨道） */
+.qz-checkout-mode {
+  display: grid;
+  gap: var(--qz-space-2);
+}
+
+.qz-checkout-mode h3 {
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xs);
+  font-weight: 600;
+  line-height: var(--qz-leading-body);
+}
+
+.qz-checkout-mode-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--qz-space-1);
+  justify-self: start;
+  padding: var(--qz-space-1);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-pill);
+  background: var(--qz-surface-muted);
 }
 
 /* 游客说明 */
-.j8-xcheck-notice {
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--accent-line);
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-  font-size: 12.5px;
-  line-height: 1.6;
+.qz-checkout-notice {
+  padding: var(--qz-space-3) var(--qz-space-4);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-accent-subtle);
+  color: var(--qz-text);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
 }
-.j8-xcheck-notice b { display: block; margin-bottom: 4px; font-size: 13px; }
-.j8-xcheck-notice ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
 
-/* 右侧合计 */
-.j8-xcheck-aside { min-width: 0; }
-.j8-xcheck-summary {
-  position: sticky;
-  top: calc(var(--site-header-height, 72px) + 16px);
+.qz-checkout-notice b {
+  display: block;
+  margin-bottom: var(--qz-space-1);
+  font-weight: 600;
+}
+
+.qz-checkout-notice ul {
   display: grid;
-  gap: 14px;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-card, 20px);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  gap: var(--qz-space-1);
+  margin: 0;
+  padding-left: var(--qz-space-4);
+  color: var(--qz-text-secondary);
+  list-style: disc;
 }
 
-.j8-xcheck-rows { display: grid; gap: 8px; margin: 0; }
-.j8-xcheck-row {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  color: var(--muted); font-size: 13px;
+/* ---------- 合计 ---------- */
+.qz-checkout-rows {
+  display: grid;
+  gap: var(--qz-space-2);
+  margin: 0;
 }
-.j8-xcheck-row dt { margin: 0; }
-.j8-xcheck-row dd {
-  margin: 0; color: var(--text);
-  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum';
+
+.qz-checkout-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  line-height: var(--qz-leading-body);
 }
-.j8-xcheck-row dd.is-discount { color: var(--red); }
-.j8-xcheck-row dd.is-saving { color: var(--accent-strong); }
+
+.qz-checkout-row dt,
+.qz-checkout-row dd {
+  margin: 0;
+}
+
+.qz-checkout-row dd {
+  color: var(--qz-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-checkout-row dd.is-discount {
+  color: var(--qz-danger);
+}
+
+.qz-checkout-row dd.is-saving {
+  color: var(--qz-success);
+}
+
+.qz-checkout-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qz-space-3);
+  padding-top: var(--qz-space-4);
+  border-top: 1px solid var(--qz-border);
+}
+
+.qz-checkout-total span {
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-sm);
+  font-weight: 600;
+}
+
+.qz-checkout-total strong {
+  color: var(--qz-text);
+  font-size: var(--qz-text-2xl);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: var(--qz-tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 支付方式：弱化面板内的卡片式单选行；选中 = 1px 强调色描边 + 弱强调底 ---------- */
+.qz-checkout-pay {
+  display: grid;
+  gap: var(--qz-space-2);
+  padding: var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+}
+
+.qz-checkout-pay h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-1);
+  margin: 0;
+  color: var(--qz-text);
+  font-size: var(--qz-text-xs);
+  font-weight: 600;
+  line-height: var(--qz-leading-body);
+}
+
+.qz-checkout-pay h3 svg {
+  width: 16px;
+  height: 16px;
+  color: var(--qz-text-muted);
+}
+
+.qz-checkout-balance,
+.qz-checkout-channel {
+  display: flex;
+  align-items: center;
+  gap: var(--qz-space-2);
+  min-height: var(--qz-control-md);
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface);
+  color: var(--qz-text);
+  box-shadow: var(--qz-shadow-resting);
+  font: inherit;
+  font-size: var(--qz-text-sm);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color var(--qz-duration-fast) var(--qz-ease-standard),
+    background-color var(--qz-duration-fast) var(--qz-ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .qz-checkout-balance:hover:where(:not(.is-active)),
+  .qz-checkout-channel:hover:where(:not(.is-active, :disabled)) {
+    border-color: var(--qz-border-strong);
+  }
+}
+
+.qz-checkout-balance.is-active,
+.qz-checkout-channel.is-active {
+  border-color: var(--qz-accent);
+  background: var(--qz-accent-subtle);
+}
+
+.qz-checkout-channel:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.qz-checkout-balance > svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--qz-text-secondary);
+}
+
+.qz-checkout-balance > span,
+.qz-checkout-channel > span {
+  display: grid;
+  min-width: 0;
+}
+
+.qz-checkout-balance b,
+.qz-checkout-channel b {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qz-checkout-balance small,
+.qz-checkout-channel small {
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+}
+
+.qz-checkout-balance em {
+  margin-left: auto;
+  color: var(--qz-warning);
+  font-size: var(--qz-text-2xs);
+  font-style: normal;
+  font-weight: 600;
+  text-align: right;
+}
+
+.qz-checkout-balance input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0 0 0 auto;
+  accent-color: var(--qz-accent);
+}
+
+.qz-checkout-channels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--qz-space-2);
+}
+
+/* 单选圆点：选中后 5px 粗描边收成实心点 */
+.qz-checkout-channel > i {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--qz-border-strong);
+  border-radius: 50%;
+  background: var(--qz-surface);
+  transition: border var(--qz-duration-fast) var(--qz-ease-standard);
+}
+
+.qz-checkout-channel.is-active > i {
+  border: 5px solid var(--qz-accent);
+}
+
+.qz-checkout-channel img {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--qz-radius-xs);
+  object-fit: contain;
+}
 
 /* 钱包抵扣摘要 */
-.j8-xcheck-wallet-info {
-  list-style: none; margin: 0; padding: 10px 12px;
-  display: grid; gap: 4px;
-  border: 1px dashed var(--line);
-  border-radius: 10px;
-  color: var(--muted); font-size: 12px;
+.qz-checkout-wallet-info {
+  display: grid;
+  gap: var(--qz-space-1);
+  margin: 0;
+  padding: var(--qz-space-2) var(--qz-space-3);
+  border: 1px dashed var(--qz-border-strong);
+  border-radius: var(--qz-radius-control);
+  color: var(--qz-text-secondary);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  list-style: none;
 }
-.j8-xcheck-wallet-info li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.j8-xcheck-wallet-info li b { color: var(--text); font-weight: 700; }
-.j8-xcheck-wallet-info li.is-warn { color: var(--amber); justify-content: flex-start; }
 
-.j8-xcheck-btn { width: 100%; }
+.qz-checkout-wallet-info li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qz-space-2);
+}
 
-/* 窄屏下取消 sticky，避免跟内容打架 */
-@media (max-width: 960px) {
-  .j8-xcheck-summary { position: static; }
+.qz-checkout-wallet-info li b {
+  color: var(--qz-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.qz-checkout-wallet-info li.is-warn {
+  justify-content: flex-start;
+  color: var(--qz-warning);
+  font-weight: 500;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1023px) {
+  .qz-checkout-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--qz-space-3);
+  }
+
+  .qz-checkout-main {
+    gap: var(--qz-space-3);
+  }
+
+  .qz-panel.qz-checkout-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .qz-panel.qz-checkout-card,
+  .qz-panel.qz-checkout-summary {
+    padding: var(--qz-space-4);
+  }
+
+  .qz-checkout-form-row,
+  .qz-checkout-manual-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 手机：图缩到 56px，价格换到标题下一行左对齐 */
+  .qz-card.qz-checkout-item {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .qz-checkout-thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .qz-checkout-item-price {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-checkout-balance,
+  .qz-checkout-channel,
+  .qz-checkout-channel > i {
+    transition: none;
+  }
 }
 </style>

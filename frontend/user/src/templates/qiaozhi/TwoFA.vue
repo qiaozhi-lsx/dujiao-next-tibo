@@ -1,15 +1,24 @@
 <template>
-  <div ref="rootEl" class="j8-container">
-    <div class="tfa-wrap">
-      <div class="tfa-card j8-reveal is-pending">
-        <span class="j8-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
-        <h1>{{ t('qiaozhi.tfa.title') }}</h1>
-        <p class="tfa-desc">{{ t('qiaozhi.tfa.desc') }}</p>
+  <div ref="rootEl" class="qz-container qz-tfa">
+    <section class="qz-panel qz-tfa-card qz-reveal is-pending">
+      <!-- 页头：eyebrow + h1 + 说明 + 返回（与购物车 / 查订单页同款胶囊） -->
+      <header class="qz-page-head">
+        <div class="qz-page-head-copy">
+          <span class="qz-eyebrow">{{ t('qiaozhi.tfa.eyebrow') }}</span>
+          <h1>{{ t('qiaozhi.tfa.title') }}</h1>
+          <p>{{ t('qiaozhi.tfa.desc') }}</p>
+        </div>
+        <RouterLink to="/" class="qz-btn qz-btn--secondary qz-btn--sm">
+          <ChevronLeft />
+          {{ t('auth.login.backHome') }}
+        </RouterLink>
+      </header>
 
-        <!-- 输入区 -->
-        <div class="tfa-field-head">
-          <label for="tfa-secret">{{ t('qiaozhi.tfa.inputLabel') }}</label>
-          <button type="button" class="tfa-paste" @click="pasteFromClipboard">
+      <!-- 输入区 -->
+      <div class="qz-field">
+        <div class="qz-tfa-field-head">
+          <label class="qz-field-label" for="tfa-secret">{{ t('qiaozhi.tfa.inputLabel') }}</label>
+          <button type="button" class="qz-btn qz-btn--secondary qz-btn--sm" @click="pasteFromClipboard">
             <ClipboardPaste />
             {{ t('qiaozhi.tfa.paste') }}
           </button>
@@ -18,58 +27,60 @@
           id="tfa-secret"
           ref="secretEl"
           v-model="secretInput"
+          class="qz-field-control qz-tfa-secret"
           rows="3"
           spellcheck="false"
           autocomplete="off"
           :placeholder="t('qiaozhi.tfa.placeholder')"
+          :aria-invalid="secretInvalid || undefined"
+          :aria-describedby="secretInvalid ? 'tfa-secret-error' : undefined"
         ></textarea>
-
-        <!-- 验证码展示 -->
-        <div class="tfa-display" :class="{ 'is-ready': parsed }">
-          <p v-if="!secretInput.trim()" class="tfa-status is-idle">{{ t('qiaozhi.tfa.idle') }}</p>
-          <p v-else-if="!parsed" class="tfa-status is-error" role="alert">{{ t('qiaozhi.tfa.invalid') }}</p>
-
-          <template v-else>
-            <div class="tfa-code" role="group" tabindex="0" :aria-label="t('qiaozhi.tfa.codeAria', { code })">
-              <span v-for="(ch, i) in codeChars" :key="i" class="tfa-digit" aria-hidden="true">{{ ch }}</span>
-            </div>
-
-            <div class="tfa-ring-row">
-              <div class="tfa-ring">
-                <svg viewBox="0 0 36 36" aria-hidden="true">
-                  <circle class="ring-bg" cx="18" cy="18" r="15" />
-                  <circle
-                    class="ring-fg"
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    :style="{ strokeDashoffset: ringOffset }"
-                  />
-                </svg>
-                <span class="tfa-ring-num">{{ secondsLeft }}</span>
-              </div>
-            </div>
-          </template>
-        </div>
-
-        <!-- 复制 -->
-        <button type="button" class="tfa-copy-btn" :disabled="!parsed" @click="copyCode">
-          <Check v-if="copied" />
-          <Copy v-else />
-          {{ copied ? t('qiaozhi.tfa.copied') : t('qiaozhi.tfa.copyFull') }}
-        </button>
-
-        <p class="tfa-hint">{{ t('qiaozhi.tfa.hint') }}</p>
       </div>
-    </div>
+
+      <!-- 验证码展示 -->
+      <div class="qz-tfa-display" :class="{ 'is-ready': parsed }">
+        <p v-if="!secretInput.trim()" class="qz-tfa-status">{{ t('qiaozhi.tfa.idle') }}</p>
+        <p v-else-if="!parsed" id="tfa-secret-error" class="qz-tfa-status is-error" role="alert">{{ t('qiaozhi.tfa.invalid') }}</p>
+
+        <template v-else>
+          <div class="qz-tfa-code" role="group" tabindex="0" :aria-label="t('qiaozhi.tfa.codeAria', { code })">
+            <span v-for="(ch, i) in codeChars" :key="i" class="qz-tfa-digit" aria-hidden="true">{{ ch }}</span>
+          </div>
+
+          <div class="qz-tfa-ring" :aria-label="t('qiaozhi.tfa.remaining', { seconds: secondsLeft })" role="timer">
+            <svg viewBox="0 0 36 36" aria-hidden="true">
+              <circle class="qz-tfa-ring-bg" cx="18" cy="18" r="15" />
+              <circle
+                class="qz-tfa-ring-fg"
+                cx="18"
+                cy="18"
+                r="15"
+                :style="{ strokeDashoffset: ringOffset }"
+              />
+            </svg>
+            <span class="qz-tfa-ring-num" aria-hidden="true">{{ secondsLeft }}</span>
+          </div>
+        </template>
+      </div>
+
+      <!-- 复制 -->
+      <QzButton variant="primary" size="lg" class="qz-btn--block" :disabled="!parsed" @click="copyCode">
+        <Check v-if="copied" />
+        <Copy v-else />
+        {{ copied ? t('qiaozhi.tfa.copied') : t('qiaozhi.tfa.copyFull') }}
+      </QzButton>
+
+      <p class="qz-tfa-hint">{{ t('qiaozhi.tfa.hint') }}</p>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, ClipboardPaste, Copy } from 'lucide-vue-next'
+import { Check, ChevronLeft, ClipboardPaste, Copy } from 'lucide-vue-next'
 import { setupReveal } from './utils/reveal'
+import QzButton from './components/QzButton.vue'
 
 const { t } = useI18n()
 
@@ -145,6 +156,7 @@ const parseSecret = (raw: string): TotpParams | null => {
 }
 
 const parsed = computed(() => parseSecret(secretInput.value))
+const secretInvalid = computed(() => Boolean(secretInput.value.trim()) && !parsed.value)
 
 // ---------- TOTP（WebCrypto HMAC） ----------
 const generateCode = async (params: TotpParams, windowIndex: number): Promise<string> => {
@@ -256,171 +268,88 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.tfa-wrap {
+.qz-tfa {
   display: grid;
   place-items: start center;
-  padding: 40px 0 60px;
 }
 
-.tfa-card {
+/* .qz-panel.qz-tfa-card 写成 (0,3,0)：base.css 的 .qz-panel 是 (0,2,0)，串上页面类靠特指度覆盖它的内边距，
+   不依赖样式注入顺序。 */
+.qz-panel.qz-tfa-card {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: var(--qz-space-5);
   width: min(560px, 100%);
-  padding: 30px 28px 26px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  padding: var(--qz-space-8) var(--qz-space-6);
+  overflow: visible;
 }
 
-.tfa-card h1 {
-  margin: 6px 0 0;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
+/* 页头（文案 + 返回胶囊）用 base.css 的 .qz-page-head，手机端胶囊挪到文案上方也由它负责 */
 
-.tfa-desc {
-  margin: 10px 0 20px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.tfa-field-head {
+/* ---------- 输入区：label 与粘贴钮同行 ---------- */
+.qz-tfa-field-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: var(--qz-space-3);
 }
 
-.tfa-field-head label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.tfa-paste {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border: 1px solid var(--accent);
-  border-radius: 9px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.15s;
-}
-
-.tfa-paste:hover {
-  background: var(--accent-strong);
-  transform: translateY(-1px);
-}
-
-.tfa-paste :deep(svg) {
-  width: 14px;
-  height: 14px;
-}
-
-.tfa-card textarea {
-  width: 100%;
+.qz-field-control.qz-tfa-secret {
   min-height: 92px;
-  padding: 14px 16px;
-  border: 1.5px solid var(--line-strong);
-  border-radius: 16px;
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--qz-font-mono);
   line-height: 1.6;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.tfa-card textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-soft);
+/* ---------- 验证码展示 ---------- */
+.qz-tfa-display {
+  display: grid;
+  place-items: center;
+  gap: var(--qz-space-4);
+  min-height: 180px;
+  padding: var(--qz-space-6) var(--qz-space-5);
+  border: 1px solid var(--qz-border);
+  border-radius: var(--qz-radius-control);
+  background: var(--qz-surface-muted);
+  transition: border-color var(--qz-duration-standard) var(--qz-ease-standard);
 }
 
-.tfa-card textarea::placeholder {
-  color: var(--muted);
+.qz-tfa-display.is-ready {
+  border-color: var(--qz-border-strong);
 }
 
-.tfa-display {
-  margin-top: 18px;
-  padding: 26px 20px 22px;
-  border: 1.5px solid var(--line);
-  border-radius: 20px;
-  background: linear-gradient(160deg, var(--surface), var(--surface-2));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  min-height: 190px;
-  transition: border-color 0.3s;
-}
-
-.tfa-display.is-ready {
-  border-color: var(--accent-line);
-}
-
-.tfa-status {
+.qz-tfa-status {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-base);
+  font-weight: 600;
+  line-height: var(--qz-leading-body);
+  text-align: center;
 }
 
-.tfa-status.is-idle {
-  color: var(--accent);
-  animation: tfa-pulse 2s ease-in-out infinite;
+.qz-tfa-status.is-error {
+  color: var(--qz-danger);
 }
 
-.tfa-status.is-error {
-  color: var(--red);
-}
-
-@keyframes tfa-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-.tfa-code {
+.qz-tfa-code {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  outline: none;
+  gap: var(--qz-space-2);
+  border-radius: var(--qz-radius-control);
 }
 
-.tfa-code:focus-visible {
-  outline: 3px solid var(--accent-soft);
-  outline-offset: 6px;
-  border-radius: 10px;
-}
-
-.tfa-digit {
-  font-family: var(--font-mono);
-  font-size: 46px;
+.qz-tfa-digit {
+  color: var(--qz-text);
+  font-family: var(--qz-font-mono);
+  font-size: var(--qz-text-3xl);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--qz-tracking-display);
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
-  filter: drop-shadow(0 2px 8px rgba(10, 10, 10, 0.12));
-  animation: tfa-code-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: qz-tfa-code-in var(--qz-duration-considered) var(--qz-ease-enter);
 }
 
-@keyframes tfa-code-in {
+@keyframes qz-tfa-code-in {
   from {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
@@ -432,93 +361,63 @@ onUnmounted(() => {
   }
 }
 
-.tfa-ring-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tfa-ring {
+/* 倒计时圆环 */
+.qz-tfa-ring {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
 }
 
-.tfa-ring svg {
+.qz-tfa-ring svg {
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
 }
 
-.ring-bg {
+.qz-tfa-ring-bg {
   fill: none;
-  stroke: var(--surface-3);
+  stroke: var(--qz-border-strong);
   stroke-width: 3;
 }
 
-.ring-fg {
+.qz-tfa-ring-fg {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--qz-accent);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 94.2;
-  transition: stroke-dashoffset 0.22s linear;
+  transition: stroke-dashoffset var(--qz-duration-standard) var(--qz-ease-linear);
 }
 
-.tfa-ring-num {
+.qz-tfa-ring-num {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text);
+  color: var(--qz-text);
+  font-size: var(--qz-text-xs);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.tfa-copy-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 50px;
-  margin-top: 16px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: var(--shadow-primary);
-  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+.qz-tfa-hint {
+  margin: 0;
+  color: var(--qz-text-muted);
+  font-size: var(--qz-text-xs);
+  line-height: var(--qz-leading-body);
+  text-align: center;
 }
 
-.tfa-copy-btn :deep(svg) {
-  width: 18px;
-  height: 18px;
+@media (max-width: 760px) {
+  .qz-panel.qz-tfa-card {
+    gap: var(--qz-space-4);
+    padding: var(--qz-space-6) var(--qz-space-5);
+  }
 }
 
-.tfa-copy-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.tfa-copy-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.985);
-}
-
-.tfa-copy-btn:disabled {
-  background: var(--surface-3);
-  color: var(--muted);
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-.tfa-hint {
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.7;
+@media (prefers-reduced-motion: reduce) {
+  .qz-tfa-digit {
+    animation: none;
+  }
 }
 </style>
