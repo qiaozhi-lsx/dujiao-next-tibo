@@ -4,6 +4,7 @@
  * 与 DOM / Vue 无关，便于 node:test 直接覆盖。
  */
 import { isCustomerSurchargePayment, resolvePaymentPresentationMode } from '../../../utils/paymentResumePolicy.ts'
+import { chainLabel, channelDisplayName } from '../../../utils/cryptoChain.ts'
 
 const trimmed = (value: unknown): string => String(value || '').trim()
 
@@ -29,7 +30,14 @@ export const PAID_ORDER_STATUSES: ReadonlySet<string> = new Set([
 
 export const isPaidOrderStatus = (s: string): boolean => PAID_ORDER_STATUSES.has(s)
 
-export const TERMINAL_ORDER_STATUSES: ReadonlySet<string> = new Set(['canceled', 'cancelled', 'expired', 'refunded'])
+export const TERMINAL_ORDER_STATUSES: ReadonlySet<string> = new Set([
+  'canceled',
+  'cancelled',
+  'expired',
+  'refunded',
+  // 部分退款单在后台也算终态（不会再回到 pending/paid），弹窗应停轮询不做无用请求。
+  'partially_refunded',
+])
 
 export const isTerminalOrderStatus = (s: string): boolean => TERMINAL_ORDER_STATUSES.has(s)
 
@@ -66,4 +74,22 @@ export const shouldOpenInlineModal = (
 /** 大字金额的裸数值：链上数量 → 实付金额 → 订单金额，不带币种。 */
 export const bareAmountText = (o: { chainAmount?: string; payableAmount?: string; amount: string }): string => {
   return trimmed(o.chainAmount) || trimmed(o.payableAmount) || trimmed(o.amount)
+}
+
+/**
+ * 金额下方的支付方式 chip 文案：
+ * 1) 优先走 channelDisplayName 把「USDT-TRC20 / usdt_trc20 / USDT (BEP20)」归一成「USDT · 链名」，
+ *    与详情页 / 结算页 / 钱包充值行同一口径（纯币种+单链才归一，带附加文字时不改）。
+ * 2) 规范化未命中时按旧规则兜底：加密单显示链名；支付宝渠道统一品牌名 Alipay；其余用管理端原名。
+ */
+export const paymentChipLabel = (o: { channelName?: string; chain?: string }): string => {
+  const name = trimmed(o.channelName)
+  if (name) {
+    const normalized = channelDisplayName(name)
+    if (normalized && normalized !== name) return normalized
+  }
+  const chainVal = trimmed(o.chain)
+  if (chainVal) return chainLabel(chainVal)
+  if (!name) return ''
+  return /支付宝|alipay/i.test(name) ? 'Alipay' : name
 }

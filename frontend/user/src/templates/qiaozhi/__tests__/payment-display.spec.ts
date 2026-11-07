@@ -10,6 +10,7 @@ import {
   isPaidOrderStatus,
   isTerminalOrderStatus,
   parsePaidAtMs,
+  paymentChipLabel,
   resolvePayableCurrency,
   shouldOpenInlineModal,
   shouldShowFee,
@@ -34,12 +35,16 @@ test('isPaidOrderStatus / isTerminalOrderStatus: 已付与终态判断', () => {
   assert.equal(isPaidOrderStatus('pending'), false)
   assert.equal(isTerminalOrderStatus('canceled'), true)
   assert.equal(isTerminalOrderStatus('expired'), true)
+  assert.equal(isTerminalOrderStatus('partially_refunded'), true)
   assert.equal(isTerminalOrderStatus('pending'), false)
 })
 
 test('PAID_ORDER_STATUSES / TERMINAL_ORDER_STATUSES: 导出集合内容与约定一致', () => {
   assert.deepEqual([...PAID_ORDER_STATUSES].sort(), ['completed', 'delivered', 'fulfilling', 'paid', 'partially_delivered'])
-  assert.deepEqual([...TERMINAL_ORDER_STATUSES].sort(), ['canceled', 'cancelled', 'expired', 'refunded'])
+  assert.deepEqual(
+    [...TERMINAL_ORDER_STATUSES].sort(),
+    ['canceled', 'cancelled', 'expired', 'partially_refunded', 'refunded'],
+  )
 })
 
 test('parsePaidAtMs: ISO 字符串与毫秒数都解析为毫秒时间戳', () => {
@@ -90,4 +95,25 @@ test('bareAmountText: chainAmount → payableAmount → amount，不带币种', 
   assert.equal(bareAmountText({ chainAmount: '13.45', payableAmount: '97.00', amount: '100.00' }), '13.45')
   assert.equal(bareAmountText({ payableAmount: '97.00', amount: '100.00' }), '97.00')
   assert.equal(bareAmountText({ amount: '100.00' }), '100.00')
+})
+
+test('paymentChipLabel: USDT 单链渠道名归一成「USDT · 链名」，与详情页 / 钱包充值行同口径', () => {
+  assert.equal(paymentChipLabel({ channelName: 'USDT-TRC20', chain: 'tron' }), 'USDT · TRON')
+  assert.equal(paymentChipLabel({ channelName: 'usdt_trc20', chain: 'tron' }), 'USDT · TRON')
+  assert.equal(paymentChipLabel({ channelName: 'USDT (BEP20)', chain: 'bsc' }), 'USDT · BSC')
+  // 带附加文字不归一时按旧规则落到链名（crypto 分支）
+  assert.equal(paymentChipLabel({ channelName: 'USDT-TRC20（推荐）', chain: 'tron' }), 'TRON')
+})
+
+test('paymentChipLabel: 支付宝/Alipay 渠道统一品牌名 Alipay', () => {
+  assert.equal(paymentChipLabel({ channelName: '支付宝' }), 'Alipay')
+  assert.equal(paymentChipLabel({ channelName: 'Alipay' }), 'Alipay')
+  assert.equal(paymentChipLabel({ channelName: '支付宝扫码' }), 'Alipay')
+})
+
+test('paymentChipLabel: 其余渠道原样返回，无 chain 也无 channelName 返回空串', () => {
+  assert.equal(paymentChipLabel({ channelName: '微信支付' }), '微信支付')
+  assert.equal(paymentChipLabel({ channelName: 'Stripe' }), 'Stripe')
+  assert.equal(paymentChipLabel({}), '')
+  assert.equal(paymentChipLabel({ chain: 'tron' }), 'TRON')
 })
