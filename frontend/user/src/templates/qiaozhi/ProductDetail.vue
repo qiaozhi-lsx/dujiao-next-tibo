@@ -170,7 +170,7 @@
                     @click="selectedChannelId = ch.id"
                   >
                     <i aria-hidden="true"></i>
-                    <!-- 左侧标识：有上传 icon 用之；USDT 渠道没传图时用通用币种徽标占位（标签已含 USDT，徽标对读屏隐藏） -->
+                    <!-- 左侧标识：有上传 icon 用之；没传图且文案看不出币种的 USDT 渠道才补通用币种徽标（对读屏隐藏） -->
                     <img v-if="ch.icon" :src="ch.icon" alt="" />
                     <span v-else-if="ch.isUsdt" class="qz-badge" aria-hidden="true">USDT</span>
                     <span>
@@ -436,14 +436,16 @@ const channels = computed(() => {
       const feeBps = Number(ch?.fee_bps ?? ch?.feeBps ?? 0)
       const name = String(ch.name || ch.channel_type || ch.provider_type || '')
       const channelType = String(ch?.channel_type || '')
+      // name 原样保留给支付弹窗 / 支付记录回填；label 只用于本页支付方式行：
+      // 渠道名纯粹是「USDT + 单一链」时统一成「USDT · 链名」，其余一律显示管理端原名（只看名字，不信 channel_type）。
+      const label = usdtDisplayLabel(name) || name
       return {
         id: Number(ch.id),
-        // name 原样保留给支付弹窗 / 支付记录回填；label 只用于本页支付方式行：
-        // 渠道名纯粹是「USDT + 单一链」时统一成「USDT · 链名」，其余一律显示管理端原名（只看名字，不信 channel_type）。
         name,
-        label: usdtDisplayLabel(name) || name,
-        // 无上传 icon 时的通用币种徽标：名字或 channel_type 里有独立的 usdt 即可（epusdt / bepusdt 不算）
-        isUsdt: hasUsdtToken(name) || hasUsdtToken(channelType),
+        label,
+        // 无上传 icon 时的通用币种徽标：只在显示文案里看不出币种（如「泰达币」）而 channel_type 是 usdt 时才补；
+        // 文案本身已含 USDT（含统一后的「USDT · 链名」）就不再重复打标。
+        isUsdt: !hasUsdtToken(label) && hasUsdtToken(channelType),
         providerType: String(ch?.provider_type || '').toLowerCase(),
         icon: ch.icon || ch.logo ? getImageUrl(String(ch.icon || ch.logo)) : '',
         feeText: feeBps > 0 ? t('qiaozhi.detail.fee', { rate: (feeBps / 100).toFixed(1) }) : '',
