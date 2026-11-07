@@ -34,12 +34,16 @@ test('isPaidOrderStatus / isTerminalOrderStatus: 已付与终态判断', () => {
   assert.equal(isPaidOrderStatus('pending'), false)
   assert.equal(isTerminalOrderStatus('canceled'), true)
   assert.equal(isTerminalOrderStatus('expired'), true)
+  assert.equal(isTerminalOrderStatus('partially_refunded'), true)
   assert.equal(isTerminalOrderStatus('pending'), false)
 })
 
 test('PAID_ORDER_STATUSES / TERMINAL_ORDER_STATUSES: 导出集合内容与约定一致', () => {
   assert.deepEqual([...PAID_ORDER_STATUSES].sort(), ['completed', 'delivered', 'fulfilling', 'paid', 'partially_delivered'])
-  assert.deepEqual([...TERMINAL_ORDER_STATUSES].sort(), ['canceled', 'cancelled', 'expired', 'refunded'])
+  assert.deepEqual(
+    [...TERMINAL_ORDER_STATUSES].sort(),
+    ['canceled', 'cancelled', 'expired', 'partially_refunded', 'refunded'],
+  )
 })
 
 test('parsePaidAtMs: ISO 字符串与毫秒数都解析为毫秒时间戳', () => {

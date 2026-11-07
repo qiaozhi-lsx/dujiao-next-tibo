@@ -29,7 +29,14 @@ export const PAID_ORDER_STATUSES: ReadonlySet<string> = new Set([
 
 export const isPaidOrderStatus = (s: string): boolean => PAID_ORDER_STATUSES.has(s)
 
-export const TERMINAL_ORDER_STATUSES: ReadonlySet<string> = new Set(['canceled', 'cancelled', 'expired', 'refunded'])
+export const TERMINAL_ORDER_STATUSES: ReadonlySet<string> = new Set([
+  'canceled',
+  'cancelled',
+  'expired',
+  'refunded',
+  // 部分退款单在后台也算终态（不会再回到 pending/paid），弹窗应停轮询不做无用请求。
+  'partially_refunded',
+])
 
 export const isTerminalOrderStatus = (s: string): boolean => TERMINAL_ORDER_STATUSES.has(s)
 
