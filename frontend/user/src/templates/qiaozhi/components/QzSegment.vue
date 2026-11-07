@@ -20,7 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ref } from 'vue'
+import { useGlowHighlight } from '../composables/useGlowHighlight'
 
 export interface QzSegmentItem {
   key: string
@@ -44,32 +45,17 @@ const setRef = (key: string, el: HTMLButtonElement | null) => {
   else btnEls.delete(key)
 }
 
-const glowReady = ref(false)
-let observer: ResizeObserver | null = null
-
 const select = (key: string) => {
   if (key === props.modelValue) return
   emit('update:modelValue', key)
   emit('change', key)
 }
 
-const syncGlow = () => {
-  const glow = glowEl.value
-  if (!glow) return
-  const el = btnEls.get(props.modelValue)
-  if (!el) {
-    glow.style.opacity = '0'
-    return
-  }
-  glow.style.opacity = '1'
-  glow.style.width = `${el.offsetWidth}px`
-  glow.style.height = `${el.offsetHeight}px`
-  glow.style.transform = `translate(${el.offsetLeft}px, ${el.offsetTop}px)`
-}
-
-watch(() => props.modelValue, async () => {
-  await nextTick()
-  syncGlow()
+// 高亮滑块测位委托给 useGlowHighlight；host 默认取 glowEl.parentElement
+const { glowReady } = useGlowHighlight({
+  glowEl,
+  getActive: () => btnEls.get(props.modelValue) ?? null,
+  deps: () => props.modelValue,
 })
 
 const onKeydown = (event: KeyboardEvent, key: string) => {
@@ -88,26 +74,6 @@ const onKeydown = (event: KeyboardEvent, key: string) => {
   btnEls.get(targetKey)?.focus({ preventScroll: true })
   select(targetKey)
 }
-
-onMounted(async () => {
-  await nextTick()
-  syncGlow()
-  requestAnimationFrame(() => { glowReady.value = true })
-  if (typeof ResizeObserver !== 'undefined') {
-    const host = glowEl.value?.parentElement ?? null
-    if (host) {
-      observer = new ResizeObserver(() => syncGlow())
-      observer.observe(host)
-    }
-  }
-  if (typeof document !== 'undefined' && document.fonts) {
-    void document.fonts.ready.then(() => syncGlow())
-  }
-})
-
-onBeforeUnmount(() => {
-  observer?.disconnect()
-})
 </script>
 
 <style>
