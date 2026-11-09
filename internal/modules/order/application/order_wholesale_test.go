@@ -713,3 +713,54 @@ func TestBuildOrderResultValidatesManualFormRestoredByUpstreamSync(t *testing.T)
 		t.Fatalf("expected submission snapshot, got %#v", result.Plans[0].Item.ManualFormSubmissionJSON)
 	}
 }
+
+// defer_manual_form：仅单项「上游交付 + 非空表单」订单允许跳过校验，固化 schema 快照并留空提交值。
+func TestBuildOrderResultDeferManualForm(t *testing.T) {
+	fixture := setupWholesaleOrderFixture(t, "defer_manual_form", nil, nil, nil)
+	fixture.product.FulfillmentType = constants.FulfillmentTypeUpstream
+	fixture.product.ManualFormSchemaJSON = jsonmap.JSON{"fields": []interface{}{map[string]interface{}{
+		"key": "session_json", "type": "textarea", "required": true,
+	}}}
+	if err := fixture.db.Save(&fixture.product).Error; err != nil {
+		t.Fatalf("save product failed: %v", err)
+	}
+	items := []CreateOrderItem{{ProductID: fixture.product.ID, SKUID: fixture.sku.ID, Quantity: 1}}
+
+	// 不延后：必填缺失，被拒绝（行为不变）。
+	if _, err := fixture.svc.buildOrderResult(orderCreateParams{Items: items}); err == nil {
+		t.Fatal("expected missing required form to be rejected without defer")
+	}
+
+	result, err := fixture.svc.buildOrderResult(orderCreateParams{Items: items, DeferManualForm: true})
+	if err != nil {
+		t.Fatalf("buildOrderResult with defer failed: %v", err)
+	}
+	item := result.Plans[0].Item
+	if len(item.ManualFormSchemaSnapshotJSON) == 0 {
+		t.Fatal("expected schema snapshot to be stored")
+	}
+	if len(item.ManualFormSubmissionJSON) != 0 {
+		t.Fatalf("expected empty submission, got %#v", item.ManualFormSubmissionJSON)
+	}
+
+	// 多项订单拒绝延后。
+	_, err = fixture.svc.buildOrderResult(orderCreateParams{
+		Items: []CreateOrderItem{
+			{ProductID: fixture.product.ID, SKUID: fixture.sku.ID, Quantity: 1},
+			{ProductID: fixture.product.ID + 999, SKUID: fixture.sku.ID, Quantity: 1},
+		},
+		DeferManualForm: true,
+	})
+	if !errors.Is(err, ErrDeferManualFormInvalid) {
+		t.Fatalf("expected ErrDeferManualFormInvalid for multi-item, got %v", err)
+	}
+
+	// 上游商品但没有表单：无可延后内容，拒绝。
+	fixture.product.ManualFormSchemaJSON = jsonmap.JSON{}
+	if err := fixture.db.Save(&fixture.product).Error; err != nil {
+		t.Fatalf("save product failed: %v", err)
+	}
+	if _, err := fixture.svc.buildOrderResult(orderCreateParams{Items: items, DeferManualForm: true}); !errors.Is(err, ErrDeferManualFormInvalid) {
+		t.Fatalf("expected ErrDeferManualFormInvalid for upstream product without form, got %v", err)
+	}
+}

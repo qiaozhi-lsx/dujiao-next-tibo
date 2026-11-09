@@ -14,31 +14,33 @@ import (
 
 // Product 是公开商品响应。
 type Product struct {
-	ID                   uint              `json:"id"`
-	CategoryID           uint              `json:"category_id"`
-	Slug                 string            `json:"slug"`
-	SeoMeta              jsonmap.JSON      `json:"seo_meta"`
-	Title                jsonmap.JSON      `json:"title"`
-	Description          jsonmap.JSON      `json:"description"`
-	Content              jsonmap.JSON      `json:"content"`
-	PriceAmount          money.Amount      `json:"price_amount"`
-	WholesalePrices      []WholesalePrice  `json:"wholesale_prices,omitempty"`
-	Images               jsonslice.Strings `json:"images"`
-	Tags                 jsonslice.Strings `json:"tags"`
-	PurchaseType         string            `json:"purchase_type"`
-	MinPurchaseQuantity  int               `json:"min_purchase_quantity"`
-	MaxPurchaseQuantity  int               `json:"max_purchase_quantity"`
-	StockDisplayMode     string            `json:"stock_display_mode"`
-	StockDisplay         string            `json:"stock_display"`
-	StockRangeMin        *int              `json:"stock_range_min,omitempty"`
-	StockRangeMax        *int              `json:"stock_range_max,omitempty"`
-	StockQuantityHidden  bool              `json:"stock_quantity_hidden"`
-	FulfillmentType      string            `json:"fulfillment_type"`
-	ManualFormSchema     jsonmap.JSON      `json:"manual_form_schema"`
-	ManualStockAvailable int               `json:"manual_stock_available"`
-	AutoStockAvailable   int64             `json:"auto_stock_available"`
-	StockStatus          string            `json:"stock_status"`
-	IsSoldOut            bool              `json:"is_sold_out"`
+	ID                  uint              `json:"id"`
+	CategoryID          uint              `json:"category_id"`
+	Slug                string            `json:"slug"`
+	SeoMeta             jsonmap.JSON      `json:"seo_meta"`
+	Title               jsonmap.JSON      `json:"title"`
+	Description         jsonmap.JSON      `json:"description"`
+	Content             jsonmap.JSON      `json:"content"`
+	PriceAmount         money.Amount      `json:"price_amount"`
+	WholesalePrices     []WholesalePrice  `json:"wholesale_prices,omitempty"`
+	Images              jsonslice.Strings `json:"images"`
+	Tags                jsonslice.Strings `json:"tags"`
+	PurchaseType        string            `json:"purchase_type"`
+	MinPurchaseQuantity int               `json:"min_purchase_quantity"`
+	MaxPurchaseQuantity int               `json:"max_purchase_quantity"`
+	StockDisplayMode    string            `json:"stock_display_mode"`
+	StockDisplay        string            `json:"stock_display"`
+	StockRangeMin       *int              `json:"stock_range_min,omitempty"`
+	StockRangeMax       *int              `json:"stock_range_max,omitempty"`
+	StockQuantityHidden bool              `json:"stock_quantity_hidden"`
+	FulfillmentType     string            `json:"fulfillment_type"`
+	ManualFormSchema    jsonmap.JSON      `json:"manual_form_schema"`
+	// FulfillAfterPayment 为 true 表示支付后再填写开通信息（上游交付 + 非空表单；不暴露 upstream 类型）。
+	FulfillAfterPayment  bool   `json:"fulfill_after_payment"`
+	ManualStockAvailable int    `json:"manual_stock_available"`
+	AutoStockAvailable   int64  `json:"auto_stock_available"`
+	StockStatus          string `json:"stock_status"`
+	IsSoldOut            bool   `json:"is_sold_out"`
 
 	PaymentChannelIDs []uint `json:"payment_channel_ids,omitempty"`
 

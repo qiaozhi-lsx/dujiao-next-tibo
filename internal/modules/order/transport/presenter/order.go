@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dujiao-next/internal/constants"
 	fulfillmentdomain "github.com/dujiao-next/internal/modules/fulfillment/domain"
 	orderdomain "github.com/dujiao-next/internal/modules/order/domain"
 
@@ -42,6 +43,7 @@ func NewOrderSummary(o *orderdomain.Order) OrderSummary {
 	}
 	for _, item := range o.Items {
 		resp := newOrderItemResp(&item)
+		resp.FulfillInfoPending = fulfillInfoPending(o.Status, &item)
 		resp.Instructions = nil
 		s.Items = append(s.Items, resp)
 	}
@@ -123,6 +125,7 @@ func NewOrderDetail(o *orderdomain.Order) OrderDetail {
 	paid := o.PaidAt != nil
 	for _, item := range o.Items {
 		resp := newOrderItemResp(&item)
+		resp.FulfillInfoPending = fulfillInfoPending(o.Status, &item)
 		if !paid {
 			resp.Instructions = nil
 		}
@@ -171,10 +174,32 @@ type OrderItemResp struct {
 	FulfillmentType          string            `json:"fulfillment_type"`
 	ManualFormSchemaSnapshot jsonmap.JSON      `json:"manual_form_schema_snapshot"`
 	ManualFormSubmission     jsonmap.JSON      `json:"manual_form_submission"`
+	// FulfillInfoPending 支付后补填开通信息：订单已付款、上游交付、表单快照非空且尚未提交。
+	FulfillInfoPending bool `json:"fulfill_info_pending"`
 	// Instructions 交付使用说明（多语言 raw JSON，与 Title 字段契约一致，由前端按 locale 解析）。
 	// 仅在订单已付款时填充，未付款订单会在 NewOrderDetail 中置 nil；列表场景（NewOrderSummary）永远为 nil。
 	// 注意：渠道 API（channel_order.go）为服务端消费者（如 Telegram Bot），那里返回已按 locale 解析的字符串而非 raw JSON。
 	Instructions jsonmap.JSON `json:"instructions,omitempty"`
+}
+
+// fulfillInfoPending 订单为 paid、上游交付、表单快照有字段且提交值为空。
+func fulfillInfoPending(orderStatus string, item *orderdomain.OrderItem) bool {
+	if orderStatus != constants.OrderStatusPaid || item.FulfillmentType != constants.FulfillmentTypeUpstream {
+		return false
+	}
+	return manualFormSnapshotHasFields(item.ManualFormSchemaSnapshotJSON) && len(item.ManualFormSubmissionJSON) == 0
+}
+
+func manualFormSnapshotHasFields(schema jsonmap.JSON) bool {
+	switch fields := schema["fields"].(type) {
+	case []interface{}:
+		return len(fields) > 0
+	case []jsonmap.JSON:
+		return len(fields) > 0
+	case []map[string]interface{}:
+		return len(fields) > 0
+	}
+	return false
 }
 
 func newOrderItemResp(item *orderdomain.OrderItem) OrderItemResp {

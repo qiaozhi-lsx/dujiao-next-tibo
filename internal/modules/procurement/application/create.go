@@ -64,6 +64,12 @@ func (s *Service) createProcurementForSingleOrder(order *procurementdomain.Local
 	}
 	item := order.Items[0]
 
+	// 延后填写开通信息的订单项：表单尚未提交，等 SubmitFulfillInfo 之后再创建采购单。
+	if isFormPending(item) {
+		logger.Infow("procurement_create_skipped_form_pending", "local_order_id", order.ID)
+		return nil
+	}
+
 	// 查找商品映射
 	connectionID, found, err := s.mappingRepo.FindConnectionID(item.ProductID)
 	if err != nil {

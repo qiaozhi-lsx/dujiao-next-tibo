@@ -16,6 +16,7 @@ import (
 	orderdomain "github.com/dujiao-next/internal/modules/order/domain"
 	orderriskdomain "github.com/dujiao-next/internal/modules/orderrisk/domain"
 	"github.com/dujiao-next/internal/persistence/gormutil"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -528,6 +529,13 @@ func (r *Store) UpdateStatus(id uint, status string, updates map[string]interfac
 	}
 	updates["status"] = status
 	return r.db.Model(&orderdomain.Order{}).Where("orders.deleted_at IS NULL AND id = ?", id).Updates(updates).Error
+}
+
+// UpdateItemManualFormSubmission 写入订单项的人工交付表单提交值（支付后延后填写）。
+func (r *Store) UpdateItemManualFormSubmission(itemID uint, submission jsonmap.JSON) error {
+	return r.db.Model(&orderdomain.OrderItem{}).
+		Where("order_items.deleted_at IS NULL AND id = ?", itemID).
+		Updates(map[string]interface{}{"manual_form_submission_json": submission, "updated_at": time.Now()}).Error
 }
 
 // ListByUser 获取用户订单列表

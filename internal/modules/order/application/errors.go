@@ -35,6 +35,7 @@ var (
 	ErrRefundRecordCreateFailed   = errors.New("refund record create failed")
 	ErrCardSecretInsufficient     = errors.New("card secret insufficient")
 	ErrManualStockInsufficient    = errors.New("manual stock insufficient")
+	ErrDeferManualFormInvalid     = errors.New("defer manual form invalid")
 	ErrQueueUnavailable           = errors.New("queue unavailable")
 	ErrResellerProductNotListed   = productcontract.ErrResellerProductNotListed
 	ErrResellerCouponNotAllowed   = errors.New("reseller coupon not allowed")

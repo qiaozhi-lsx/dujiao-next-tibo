@@ -1,6 +1,10 @@
 package application
 
-import procurementcontract "github.com/dujiao-next/internal/modules/procurement/contract"
+import (
+	"sync"
+
+	procurementcontract "github.com/dujiao-next/internal/modules/procurement/contract"
+)
 
 type Options struct {
 	Repository         procurementcontract.Repository
@@ -26,6 +30,11 @@ type Service struct {
 	downstreamCallback procurementcontract.DownstreamCallbackEnqueuer
 	botNotifier        procurementcontract.BotFulfillmentNotifier
 	notifications      procurementcontract.FailureNotifier
+
+	// fulfillMu 按订单 ID 分片串行化「保存开通信息 + 创建采购单」，防止同一订单并发重复提交。
+	fulfillMu [64]sync.Mutex
+	// progressCache 缓存上游实时进度（procurement order ID → progressCacheEntry），合并多端轮询。
+	progressCache sync.Map
 }
 
 var _ procurementcontract.UseCase = (*Service)(nil)

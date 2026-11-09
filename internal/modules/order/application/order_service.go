@@ -146,6 +146,7 @@ type CreateOrderInput struct {
 	AffiliateVisitorKey string
 	ClientIP            string
 	ManualFormData      map[string]jsonmap.JSON
+	DeferManualForm     bool // 延后填写人工/上游表单（仅允许单项上游带表单商品）
 	SkipRiskControl     bool // 完全跳过风控（下游订单）
 	SkipIPRiskControl   bool // 跳过 IP 维度风控（渠道/Bot 订单）
 }
@@ -162,6 +163,7 @@ type CreateGuestOrderInput struct {
 	AffiliateVisitorKey string
 	ClientIP            string
 	ManualFormData      map[string]jsonmap.JSON
+	DeferManualForm     bool
 }
 
 // CreateOrderItem 创建订单项输入
@@ -237,6 +239,7 @@ func (s *OrderService) CreateOrder(input CreateOrderInput) (*orderdomain.Order, 
 		AffiliateVisitorKey: input.AffiliateVisitorKey,
 		ClientIP:            input.ClientIP,
 		ManualFormData:      input.ManualFormData,
+		DeferManualForm:     input.DeferManualForm,
 		SkipRiskControl:     input.SkipRiskControl,
 		SkipIPRiskControl:   input.SkipIPRiskControl,
 	})
@@ -266,6 +269,7 @@ func (s *OrderService) CreateGuestOrder(input CreateGuestOrderInput) (*orderdoma
 		ClientIP:            input.ClientIP,
 		IsGuest:             true,
 		ManualFormData:      input.ManualFormData,
+		DeferManualForm:     input.DeferManualForm,
 	})
 }
 
@@ -286,6 +290,7 @@ type orderCreateParams struct {
 	IsGuest                  bool
 	ManualFormData           map[string]jsonmap.JSON
 	SkipManualFormCheck      bool
+	DeferManualForm          bool
 	SkipRiskControl          bool
 	SkipIPRiskControl        bool
 }

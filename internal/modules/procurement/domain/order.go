@@ -79,6 +79,7 @@ type LocalOrder struct {
 }
 
 type LocalOrderItem struct {
+	ID                       uint         `json:"-"`
 	ProductID                uint         `json:"product_id"`
 	SKUID                    uint         `json:"sku_id"`
 	Title                    jsonmap.JSON `json:"title"`
@@ -88,4 +89,6 @@ type LocalOrderItem struct {
 	TotalPrice               money.Amount `json:"total_price"`
 	FulfillmentType          string       `json:"fulfillment_type"`
 	ManualFormSubmissionJSON jsonmap.JSON `json:"manual_form_submission"`
+	// ManualFormSchemaSnapshotJSON 下单时固化的人工交付表单 schema 快照
+	ManualFormSchemaSnapshotJSON jsonmap.JSON `json:"manual_form_schema_snapshot"`
 }
