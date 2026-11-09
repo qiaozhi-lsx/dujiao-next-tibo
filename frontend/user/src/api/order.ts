@@ -51,6 +51,11 @@ export const userOrderAPI = {
     detail: (orderNo: string, options?: any) => userApi.get(`/orders/${encodeURIComponent(orderNo)}`, options),
     cancel: (orderNo: string) => userApi.post(`/orders/${encodeURIComponent(orderNo)}/cancel`),
     downloadFulfillment: (orderNo: string) => userApi.get(`/orders/${encodeURIComponent(orderNo)}/fulfillment/download`, { blob: true }),
+    // 支付后补填开通信息 / 查询开通进度（silentBusinessError：由弹窗自行展示错误）
+    submitFulfillInfo: (orderNo: string, manualFormData: Record<string, any>) =>
+        userApi.post(`/orders/${encodeURIComponent(orderNo)}/fulfill-info`, { manual_form_data: manualFormData }, { silentBusinessError: true }),
+    fulfillProgress: (orderNo: string) =>
+        userApi.get(`/orders/${encodeURIComponent(orderNo)}/fulfill-progress`, { silentBusinessError: true }),
 }
 
 export const guestOrderAPI = {
@@ -64,6 +69,14 @@ export const guestOrderAPI = {
     detail: (orderNo: string, params: GuestAuthInput, options?: any) => {
         const request = withGuestAuth(params, options)
         return userApi.get(`/guest/orders/${encodeURIComponent(orderNo)}`, { ...request.options, params: request.payload })
+    },
+    submitFulfillInfo: (orderNo: string, params: GuestAuthInput, manualFormData: Record<string, any>) => {
+        const request = withGuestAuth({ ...params, manual_form_data: manualFormData }, { silentBusinessError: true })
+        return userApi.post(`/guest/orders/${encodeURIComponent(orderNo)}/fulfill-info`, request.payload, request.options)
+    },
+    fulfillProgress: (orderNo: string, params: GuestAuthInput) => {
+        const request = withGuestAuth(params, { silentBusinessError: true })
+        return userApi.get(`/guest/orders/${encodeURIComponent(orderNo)}/fulfill-progress`, { ...request.options, params: request.payload })
     },
     downloadFulfillment: (orderNo: string, params: GuestAuthInput) => {
         const request = withGuestAuth(params, { blob: true })

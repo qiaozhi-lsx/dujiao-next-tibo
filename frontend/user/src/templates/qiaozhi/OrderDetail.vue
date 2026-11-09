@@ -63,6 +63,15 @@
             {{ t('orderDetail.cancel') }}
           </QzButton>
         </div>
+        <div v-if="hasFulfillPending || isFulfillProcuring" class="qz-od-actions-bar">
+          <p v-if="hasFulfillPending" class="qz-field-hint">{{ t('qiaozhi.fulfill.pendingHint') }}</p>
+          <QzButton v-if="hasFulfillPending" size="sm" @click="fulfillOpen = true">
+            {{ t('qiaozhi.fulfill.fillInfo') }}
+          </QzButton>
+          <QzButton v-else size="sm" variant="secondary" @click="fulfillOpen = true">
+            {{ t('qiaozhi.fulfill.viewProgress') }}
+          </QzButton>
+        </div>
       </section>
 
       <!-- DELIVERY · 交付详情 -->
@@ -182,6 +191,13 @@
         {{ t('qiaozhi.orderDetail.helpOrderNo') }} <b>{{ order.order_no }}</b>
       </p>
     </template>
+
+    <QzFulfillDialog
+      v-if="order"
+      v-model:open="fulfillOpen"
+      :order-no="order.order_no"
+      @view-order="fulfillOpen = false"
+    />
   </div>
 </template>
 
@@ -197,7 +213,9 @@ import { useAppStore } from '../../stores/app'
 import { useOrderDetail } from '../../composables/useOrderDetail'
 import { setupReveal } from './utils/reveal'
 import QzButton from './components/QzButton.vue'
+import QzFulfillDialog from './components/QzFulfillDialog.vue'
 import QzOrderDeliveryUnit from './components/QzOrderDeliveryUnit.vue'
+import { orderHasFulfillInfoPending, orderIsFulfillProcuring } from './utils/fulfillDialog'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -211,6 +229,15 @@ const {
   refundReasonText, showRefundRecordsCard, refundRecords, showTimeCard,
   fulfillmentCopied, handleCopyFulfillment,
 } = useOrderDetail()
+
+// 支付后补填开通信息 / 查看开通进度（上游表单商品）
+const fulfillOpen = ref(false)
+const hasFulfillPending = computed(() => orderHasFulfillInfoPending(order.value) && order.value?.status === 'paid')
+const isFulfillProcuring = computed(() => orderIsFulfillProcuring(order.value))
+// 关闭弹窗后重新拉取订单：状态 / 表单提交值可能已变化。
+watch(fulfillOpen, (opened, wasOpened) => {
+  if (wasOpened && !opened) debouncedLoadOrder()
+})
 
 const toneClass = (status?: string | null) => {
   switch (statusVariant(status || '')) {

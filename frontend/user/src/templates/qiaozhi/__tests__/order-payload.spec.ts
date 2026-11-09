@@ -3,7 +3,7 @@
 // Picked up by pnpm run test via the shim at tests/qiaozhiOrderPayload.test.ts.
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildCreateAndPayPayload, hasManualFormFields } from '../utils/orderPayload.ts'
+import { buildCreateAndPayPayload, hasManualFormFields, isFulfillAfterPayment } from '../utils/orderPayload.ts'
 
 test('buildCreateAndPayPayload: 登录用户只带 items / channel_id / 分销归因，不带游客字段', () => {
   const payload = buildCreateAndPayPayload({
@@ -72,4 +72,23 @@ test('hasManualFormFields: 空字段 / 缺失 / 空对象 / null 均为 false', 
   assert.equal(hasManualFormFields(undefined), false)
   assert.equal(hasManualFormFields({}), false)
   assert.equal(hasManualFormFields(null), false)
+})
+
+test('buildCreateAndPayPayload: deferManualForm 为 true 时带 defer_manual_form，否则不出现', () => {
+  const deferred = buildCreateAndPayPayload({
+    items: [{ product_id: 1 }], channelId: 3, affiliateCode: '', affiliateVisitorKey: '', deferManualForm: true,
+  })
+  assert.equal(deferred.defer_manual_form, true)
+  const normal = buildCreateAndPayPayload({
+    items: [{ product_id: 1 }], channelId: 3, affiliateCode: '', affiliateVisitorKey: '',
+  })
+  assert.equal('defer_manual_form' in normal, false)
+})
+
+test('isFulfillAfterPayment: 仅 fulfill_after_payment === true 的商品为 true', () => {
+  assert.equal(isFulfillAfterPayment({ fulfill_after_payment: true }), true)
+  assert.equal(isFulfillAfterPayment({ fulfill_after_payment: false }), false)
+  assert.equal(isFulfillAfterPayment({ manual_form_schema: { fields: [{ key: 'a' }] } }), false)
+  assert.equal(isFulfillAfterPayment(null), false)
+  assert.equal(isFulfillAfterPayment(undefined), false)
 })
