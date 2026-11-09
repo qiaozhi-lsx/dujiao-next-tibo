@@ -23,6 +23,7 @@ import (
 	paymentapp "github.com/dujiao-next/internal/modules/payment/application"
 	paymentqueue "github.com/dujiao-next/internal/modules/payment/infrastructure/queueadapter"
 	procurementapp "github.com/dujiao-next/internal/modules/procurement/application"
+	procurementfulfill "github.com/dujiao-next/internal/modules/procurement/application/fulfill"
 	procurementmapping "github.com/dujiao-next/internal/modules/procurement/infrastructure/mappingreader"
 	procurementnotification "github.com/dujiao-next/internal/modules/procurement/infrastructure/notificationadapter"
 	procurementorder "github.com/dujiao-next/internal/modules/procurement/infrastructure/orderreader"
@@ -124,6 +125,14 @@ func (c *Container) initIntegrationServices() {
 		DownstreamCallback: c.DownstreamCallbackService,
 		BotNotifier:        c.FulfillmentService,
 		Notifications:      procurementnotification.New(c.NotificationService),
+	})
+	c.ProcurementFulfillService = procurementfulfill.New(procurementfulfill.Options{
+		Repository:      c.ProcurementOrderRepo,
+		Orders:          procurementorder.New(c.OrderStore),
+		ProductMappings: procurementmapping.NewProducts(c.ProductMappingRepo),
+		SKUMappings:     procurementmapping.NewSKUs(c.SKUMappingRepo),
+		Connections:     procurementupstream.New(c.SiteConnectionService),
+		Creator:         c.ProcurementOrderService,
 	})
 	c.ReconciliationService = reconciliationapp.NewService(reconciliationapp.Options{
 		Jobs: c.ReconciliationJobRepo, Items: c.ReconciliationItemRepo,

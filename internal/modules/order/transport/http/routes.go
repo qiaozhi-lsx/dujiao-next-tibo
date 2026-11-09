@@ -68,6 +68,32 @@ func RegisterGuestReadRoutes(guest gin.IRoutes, handler *GuestHandler) {
 	guest.GET("/orders/:order_no/fulfillment/download", handler.DownloadGuestFulfillment)
 }
 
+// RegisterUserFulfillRoutes 注册前台用户「开通信息 / 开通进度」路由。
+// writeLimit 是提交接口额外叠加的限流中间件（会触发上游预检，需比读接口更严）。
+func RegisterUserFulfillRoutes(user gin.IRoutes, handler *FulfillHandler, writeLimit gin.HandlerFunc) {
+	if user == nil || handler == nil {
+		panic("order user fulfill routes: required dependency is nil")
+	}
+	user.POST("/orders/:order_no/fulfill-info", writeLimit, handler.SubmitUserFulfillInfo)
+	user.GET("/orders/:order_no/fulfill-progress", handler.GetUserFulfillProgress)
+}
+
+// RegisterGuestFulfillReadRoute 注册游客开通进度查询路由（挂在游客读限流组）。
+func RegisterGuestFulfillReadRoute(guest gin.IRoutes, handler *FulfillHandler) {
+	if guest == nil || handler == nil {
+		panic("order guest fulfill read route: required dependency is nil")
+	}
+	guest.GET("/orders/:order_no/fulfill-progress", handler.GetGuestFulfillProgress)
+}
+
+// RegisterGuestFulfillWriteRoute 注册游客提交开通信息路由（挂在游客写限流组）。
+func RegisterGuestFulfillWriteRoute(guest gin.IRoutes, handler *FulfillHandler) {
+	if guest == nil || handler == nil {
+		panic("order guest fulfill write route: required dependency is nil")
+	}
+	guest.POST("/orders/:order_no/fulfill-info", handler.SubmitGuestFulfillInfo)
+}
+
 // RegisterUserPreviewRoute 注册前台用户订单预览路由。
 func RegisterUserPreviewRoute(user gin.IRoutes, handler *PreviewHandler) {
 	if user == nil || handler == nil {

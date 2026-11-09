@@ -256,6 +256,14 @@
       @submit-tx-hash="handleSubmitPaymentTxHash"
       @renew-payment="handleRenewPayment"
     />
+
+    <!-- 支付后填写开通信息 + 开通进度（上游表单商品） -->
+    <QzFulfillDialog
+      v-model:open="showFulfillDialog"
+      :order-no="fulfillOrderNo"
+      :guest-credentials="fulfillGuestCredentials"
+      @view-order="goToFulfillOrder"
+    />
   </div>
 </template>
 
@@ -281,9 +289,10 @@ import ImageCaptcha from '../../components/captcha/ImageCaptcha.vue'
 import TurnstileCaptcha from '../../components/captcha/TurnstileCaptcha.vue'
 import { useQiaozhiPrice } from './utils/price'
 import { shouldOpenInlineModal } from './utils/paymentDisplay'
-import { buildCreateAndPayPayload, hasManualFormFields } from './utils/orderPayload'
+import { buildCreateAndPayPayload, hasManualFormFields, isFulfillAfterPayment } from './utils/orderPayload'
 import PaymentModal, { type PaymentModalItem, type PaymentModalOrder } from './PaymentModal.vue'
 import QzButton from './components/QzButton.vue'
+import QzFulfillDialog from './components/QzFulfillDialog.vue'
 import QzQtyStepper from './components/QzQtyStepper.vue'
 
 const route = useRoute()
@@ -548,9 +557,30 @@ const buildPaymentOrderPayload = (
   }
 }
 
+// 支付后填写开通信息弹窗（fulfill_after_payment 商品）：会话等敏感内容只留在弹窗内存里。
+const showFulfillDialog = ref(false)
+const fulfillOrderNo = ref('')
+const fulfillGuestCredentials = ref<{ email: string; order_password: string } | null>(null)
+
+const goToFulfillOrder = () => {
+  showFulfillDialog.value = false
+  if (!fulfillOrderNo.value) return
+  const sn = encodeURIComponent(fulfillOrderNo.value)
+  router.push(fulfillGuestCredentials.value?.email ? `/guest/orders/${sn}` : `/orders/${sn}`)
+}
+
 const handlePaymentPaid = (order: PaymentModalOrder) => {
   showPaymentModal.value = false
   if (!order?.sn) return
+  if (isFulfillAfterPayment(product.value)) {
+    // 不跳订单页：直接在当页弹出「填写开通信息」，提交后接着展示开通进度。
+    fulfillOrderNo.value = order.sn
+    fulfillGuestCredentials.value = order.guestCredentials?.email
+      ? { email: order.guestCredentials.email, order_password: order.guestCredentials.order_password }
+      : null
+    showFulfillDialog.value = true
+    return
+  }
   const sn = encodeURIComponent(order.sn)
   if (order.guestCredentials?.email) {
     router.push(`/guest/orders/${sn}`)
@@ -698,7 +728,9 @@ const submitOrder = async () => {
   // 手动表单商品需在结算页填写交付资料，商品页直接下单会被后端拒绝：
   // 改走 classic 的 buy-now 路径（buyNowStore + /checkout?mode=buynow）。
   // 放在游客表单校验之前：结算页会自己收集游客邮箱/密码/验证码，这里不必先填一遍。
-  if (hasManualFormFields(product.value?.manual_form_schema)) {
+  // 上游表单商品（fulfill_after_payment）例外：与自动发货商品一样走当页下单，支付后再弹窗填写。
+  const deferManualForm = isFulfillAfterPayment(product.value)
+  if (hasManualFormFields(product.value?.manual_form_schema) && !deferManualForm) {
     buyNow()
     return
   }
@@ -726,6 +758,7 @@ const submitOrder = async () => {
         channelId: selectedChannelId.value,
         affiliateCode,
         affiliateVisitorKey,
+        deferManualForm,
       }))
       payData = res.data?.data
     } else {
@@ -734,6 +767,7 @@ const submitOrder = async () => {
         channelId: selectedChannelId.value,
         affiliateCode,
         affiliateVisitorKey,
+        deferManualForm,
         guest: {
           email: guestEmailInput,
           orderPassword: guestPasswordInput,

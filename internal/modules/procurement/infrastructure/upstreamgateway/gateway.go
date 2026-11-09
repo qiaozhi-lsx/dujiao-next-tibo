@@ -2,6 +2,9 @@ package upstreamgateway
 
 import (
 	"context"
+	"errors"
+	"sync"
+	"time"
 
 	procurementcontract "github.com/dujiao-next/internal/modules/procurement/contract"
 	siteconnectiondomain "github.com/dujiao-next/internal/modules/siteconnection/domain"
@@ -13,8 +16,18 @@ type Provider interface {
 	GetAdapter(connection *siteconnectiondomain.Connection) (upstream.Adapter, error)
 }
 
+// capabilityTTL 上游能力缓存时间：能力随上游升级才会变化，几分钟的滞后可接受。
+const capabilityTTL = 5 * time.Minute
+
+type capabilityEntry struct {
+	caps      []string
+	expiresAt time.Time
+}
+
 type Gateway struct {
 	provider Provider
+	mu       sync.Mutex
+	caps     map[uint]capabilityEntry
 }
 
 var _ procurementcontract.ConnectionProvider = (*Gateway)(nil)
@@ -23,7 +36,7 @@ func New(provider Provider) *Gateway {
 	if provider == nil {
 		panic("procurement upstream gateway: provider is nil")
 	}
-	return &Gateway{provider: provider}
+	return &Gateway{provider: provider, caps: make(map[uint]capabilityEntry)}
 }
 
 func (g *Gateway) Open(connectionID uint) (procurementcontract.UpstreamConnection, error) {
@@ -35,12 +48,29 @@ func (g *Gateway) Open(connectionID uint) (procurementcontract.UpstreamConnectio
 	if err != nil {
 		return nil, err
 	}
-	return &session{connection: connection, adapter: adapter}, nil
+	return &session{connection: connection, adapter: adapter, gateway: g}, nil
+}
+
+func (g *Gateway) cachedCapabilities(connectionID uint) ([]string, bool) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	entry, ok := g.caps[connectionID]
+	if !ok || time.Now().After(entry.expiresAt) {
+		return nil, false
+	}
+	return entry.caps, true
+}
+
+func (g *Gateway) storeCapabilities(connectionID uint, caps []string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.caps[connectionID] = capabilityEntry{caps: caps, expiresAt: time.Now().Add(capabilityTTL)}
 }
 
 type session struct {
 	connection *siteconnectiondomain.Connection
 	adapter    upstream.Adapter
+	gateway    *Gateway
 }
 
 var _ procurementcontract.UpstreamConnection = (*session)(nil)
@@ -82,6 +112,78 @@ func (s *session) GetOrder(ctx context.Context, orderID uint) (*procurementcontr
 
 func (s *session) CancelOrder(ctx context.Context, orderID uint) error {
 	return s.adapter.CancelOrder(ctx, orderID)
+}
+
+// Capabilities 通过（缓存的）ping 获取上游可选能力；ping 失败时返回空并短期缓存，避免每次轮询都打上游。
+func (s *session) Capabilities(ctx context.Context) []string {
+	if caps, ok := s.gateway.cachedCapabilities(s.connection.ID); ok {
+		return caps
+	}
+	result, err := s.adapter.Ping(ctx)
+	if err != nil || result == nil {
+		s.gateway.storeCapabilities(s.connection.ID, nil)
+		return nil
+	}
+	s.gateway.storeCapabilities(s.connection.ID, result.Capabilities)
+	return result.Capabilities
+}
+
+func (s *session) CheckSession(ctx context.Context, skuID uint, sessionJSON string) (*procurementcontract.SessionCheckResult, error) {
+	result, err := s.adapter.CheckSession(ctx, skuID, sessionJSON)
+	if err != nil {
+		return nil, mapCapabilityError(err)
+	}
+	out := &procurementcontract.SessionCheckResult{
+		Valid: result.Valid, CanOpen: result.CanOpen, Message: result.Message,
+	}
+	if result.ReasonCode != nil {
+		out.ReasonCode = *result.ReasonCode
+	}
+	if result.Account != nil {
+		out.Account = &procurementcontract.SessionAccount{
+			EmailMasked: result.Account.EmailMasked, PlanType: result.Account.PlanType, IsActive: result.Account.IsActive,
+		}
+		if result.Account.ExpiresAt != nil {
+			out.Account.ExpiresAt = *result.Account.ExpiresAt
+		}
+	}
+	return out, nil
+}
+
+func (s *session) GetOrderProgress(ctx context.Context, upstreamOrderID uint) (*procurementcontract.UpstreamProgress, error) {
+	result, err := s.adapter.GetOrderProgress(ctx, upstreamOrderID)
+	if err != nil {
+		return nil, mapCapabilityError(err)
+	}
+	out := &procurementcontract.UpstreamProgress{
+		Status: result.Status, Percent: result.Percent, Terminal: result.Terminal,
+		Steps: make([]procurementcontract.ProgressStep, 0, len(result.Steps)),
+	}
+	for _, step := range result.Steps {
+		out.Steps = append(out.Steps, procurementcontract.ProgressStep{Key: step.Key, Label: step.Label})
+	}
+	if result.Step != nil {
+		out.Step = &procurementcontract.ProgressCurrentStep{
+			Index: result.Step.Index, Total: result.Step.Total, Key: result.Step.Key, Label: result.Step.Label,
+		}
+	}
+	if result.Outcome != nil {
+		out.Outcome = *result.Outcome
+	}
+	if result.Message != nil {
+		out.Message = *result.Message
+	}
+	if result.PollAfterMs != nil {
+		out.PollAfterMs = *result.PollAfterMs
+	}
+	return out, nil
+}
+
+func mapCapabilityError(err error) error {
+	if errors.Is(err, upstream.ErrCapabilityUnsupported) {
+		return procurementcontract.ErrCapabilityUnsupported
+	}
+	return err
 }
 
 func fromUpstreamFulfillment(value *upstream.UpstreamFulfillment) *procurementcontract.Fulfillment {

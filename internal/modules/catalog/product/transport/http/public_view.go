@@ -39,6 +39,15 @@ type publicProductView struct {
 	AutoStockAvailable   int64
 	StockStatus          string
 	IsSoldOut            bool
+	// FulfillAfterPayment 在装饰库存（会改写展示用 FulfillmentType）之前，由原始商品计算。
+	FulfillAfterPayment bool
+}
+
+// isFulfillAfterPayment 上游交付且带非空人工表单：下单时可先不填，支付后再补开通信息。
+func isFulfillAfterPayment(product *productdomain.Product) bool {
+	return product != nil &&
+		strings.TrimSpace(product.FulfillmentType) == constants.FulfillmentTypeUpstream &&
+		len(product.ManualFormSchemaJSON) > 0
 }
 
 // toProductResp 将内部计算结构转换为公共 DTO
@@ -95,6 +104,7 @@ func (v *publicProductView) toProductResp() productpresenter.Product {
 		StockQuantityHidden:  productDisplay.QuantityHidden,
 		FulfillmentType:      v.Product.FulfillmentType,
 		ManualFormSchema:     v.Product.ManualFormSchemaJSON,
+		FulfillAfterPayment:  v.FulfillAfterPayment,
 		ManualStockAvailable: domaincatalog.MaskStockInt(mode, v.ManualStockAvailable),
 		AutoStockAvailable:   domaincatalog.MaskStockInt64(mode, v.AutoStockAvailable),
 		StockStatus:          v.StockStatus,
@@ -141,7 +151,7 @@ func (h *PublicHandler) decoratePublicProduct(product *productdomain.Product, pr
 		return productpresenter.Product{}, nil
 	}
 
-	item := publicProductView{Product: *product}
+	item := publicProductView{Product: *product, FulfillAfterPayment: isFulfillAfterPayment(product)}
 	displayPrice := resolvePublicDisplayPrice(product)
 	displaySKUID := resolvePublicDisplaySKUID(product)
 	item.Product.PriceAmount = displayPrice
@@ -280,7 +290,7 @@ func (h *PublicHandler) decoratePublicProductForTenant(
 	}
 	productCopy.SKUs = filteredSKUs
 
-	item := publicProductView{Product: productCopy}
+	item := publicProductView{Product: productCopy, FulfillAfterPayment: isFulfillAfterPayment(&productCopy)}
 	h.decorateProductStock(&productCopy, &item)
 	skuViews := make([]publicSKUView, 0, len(productCopy.SKUs))
 	for _, sku := range productCopy.SKUs {

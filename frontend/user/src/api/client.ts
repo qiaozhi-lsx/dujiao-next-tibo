@@ -159,7 +159,11 @@ function createClient(injectAuth: boolean) {
                 window.location.href = '/auth/login'
             }
             console.error('HTTP Error:', message)
-            return Promise.reject(new Error(message))
+            // 保留 HTTP 状态码与业务 data，调用方可据此展示结构化错误（如开通信息预检 422 / 冲突 409）。
+            const httpError = new Error(message) as Error & { status?: number; data?: any }
+            httpError.status = status
+            httpError.data = data?.data
+            return Promise.reject(httpError)
         }
 
         // Business error check

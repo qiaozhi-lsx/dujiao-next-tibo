@@ -64,6 +64,7 @@ type CreateOrderAndPayRequest struct {
 	AffiliateCode       string                  `json:"affiliate_code"`
 	AffiliateVisitorKey string                  `json:"affiliate_visitor_key"`
 	ManualFormData      map[string]jsonmap.JSON `json:"manual_form_data"`
+	DeferManualForm     bool                    `json:"defer_manual_form"`
 	ChannelID           uint                    `json:"channel_id"`
 	UseBalance          bool                    `json:"use_balance"`
 }
@@ -77,6 +78,7 @@ type CreateGuestOrderAndPayRequest struct {
 	AffiliateCode       string                            `json:"affiliate_code"`
 	AffiliateVisitorKey string                            `json:"affiliate_visitor_key"`
 	ManualFormData      map[string]jsonmap.JSON           `json:"manual_form_data"`
+	DeferManualForm     bool                              `json:"defer_manual_form"`
 	CaptchaPayload      captchahttp.CaptchaPayloadRequest `json:"captcha_payload"`
 	ChannelID           uint                              `json:"channel_id"`
 }
@@ -183,6 +185,7 @@ func (h *CreateHandler) CreateOrderAndPay(c *gin.Context) {
 		AffiliateVisitorKey: req.AffiliateVisitorKey,
 		ClientIP:            c.ClientIP(),
 		ManualFormData:      req.ManualFormData,
+		DeferManualForm:     req.DeferManualForm,
 	})
 	if err != nil {
 		respondUserOrderCreateError(c, err)
@@ -225,6 +228,7 @@ func (h *CreateHandler) CreateGuestOrderAndPay(c *gin.Context) {
 		AffiliateVisitorKey: req.AffiliateVisitorKey,
 		ClientIP:            c.ClientIP(),
 		ManualFormData:      req.ManualFormData,
+		DeferManualForm:     req.DeferManualForm,
 	})
 	if err != nil {
 		respondGuestOrderCreateError(c, err)

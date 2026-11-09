@@ -38,6 +38,7 @@ var (
 	ErrProductNotAvailable       = errors.New("product not available")
 	ErrResellerCouponNotAllowed  = errors.New("reseller coupon not allowed")
 	ErrQueueUnavailable          = errors.New("queue unavailable")
+	ErrDeferManualFormInvalid    = errors.New("defer manual form invalid")
 	ErrRiskIPBlacklisted         = errors.New("risk: ip blacklisted")
 	ErrRiskClientIPUnavailable   = errors.New("risk: client ip unavailable")
 	ErrRiskTooManyPendingOrders  = errors.New("risk: too many pending orders")
@@ -123,6 +124,7 @@ type CreateOrderInput struct {
 	AffiliateVisitorKey string
 	ClientIP            string
 	ManualFormData      map[string]jsonmap.JSON
+	DeferManualForm     bool
 }
 
 // CreateGuestOrderInput 游客订单预览输入。
@@ -137,6 +139,7 @@ type CreateGuestOrderInput struct {
 	AffiliateVisitorKey string
 	ClientIP            string
 	ManualFormData      map[string]jsonmap.JSON
+	DeferManualForm     bool
 }
 
 // OrderPreview 订单金额预览。
@@ -340,6 +343,7 @@ var userOrderCommonErrorRules = []mappedError{
 	{target: productdomain.ErrMaxPurchaseExceeded, code: response.CodeBadRequest, key: "error.product_max_purchase_exceeded"},
 	{target: productdomain.ErrMinPurchaseNotMet, code: response.CodeBadRequest, key: "error.product_min_purchase_not_met"},
 	{target: ErrManualStockInsufficient, code: response.CodeBadRequest, key: "error.manual_stock_insufficient"},
+	{target: ErrDeferManualFormInvalid, code: response.CodeBadRequest, key: "error.defer_manual_form_invalid"},
 	{target: cardsecretapp.ErrInsufficient, code: response.CodeBadRequest, key: "error.card_secret_insufficient"},
 	{target: ErrOrderCurrencyMismatch, code: response.CodeBadRequest, key: "error.order_currency_mismatch"},
 	{target: productcontract.ErrProductPriceInvalid, code: response.CodeBadRequest, key: "error.product_price_invalid"},
@@ -389,6 +393,7 @@ var guestOrderCommonErrorRules = []mappedError{
 	{target: productdomain.ErrPurchaseQuantityInvalid, code: response.CodeBadRequest, key: "error.order_item_invalid"},
 	{target: ErrInvalidOrderAmount, code: response.CodeBadRequest, key: "error.order_amount_invalid"},
 	{target: ErrManualStockInsufficient, code: response.CodeBadRequest, key: "error.manual_stock_insufficient"},
+	{target: ErrDeferManualFormInvalid, code: response.CodeBadRequest, key: "error.defer_manual_form_invalid"},
 	{target: cardsecretapp.ErrInsufficient, code: response.CodeBadRequest, key: "error.card_secret_insufficient"},
 	{target: ErrOrderCurrencyMismatch, code: response.CodeBadRequest, key: "error.order_currency_mismatch"},
 	{target: productcontract.ErrProductPriceInvalid, code: response.CodeBadRequest, key: "error.product_price_invalid"},

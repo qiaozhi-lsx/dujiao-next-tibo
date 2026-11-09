@@ -13,6 +13,7 @@ type Handlers struct {
 	Guest       *ordertransport.GuestHandler
 	Preview     *ordertransport.PreviewHandler
 	Create      *ordertransport.CreateHandler
+	Fulfill     *ordertransport.FulfillHandler
 }
 
 // New assembles order transports and their composition-boundary adapters.
@@ -46,6 +47,11 @@ func New(c *container.Container) Handlers {
 			orderUserPaymentChannelAdapter{payments: c.PaymentService},
 			orderGuestCreateCaptchaAdapter{captcha: c.CaptchaService},
 			orderPaymentCreatorAdapter{payments: c.PaymentService},
+		),
+		Fulfill: ordertransport.NewFulfillHandler(
+			orderUserQueryAdapter{orders: c.OrderService},
+			orderGuestQueryAdapter{orders: c.OrderService},
+			c.ProcurementFulfillService,
 		),
 	}
 }

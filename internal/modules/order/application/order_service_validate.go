@@ -48,6 +48,10 @@ func (s *OrderService) buildOrderResult(input orderCreateParams) (*orderBuildRes
 	if len(mergedItems) == 0 {
 		return nil, ErrInvalidOrderItem
 	}
+	// 延后填写表单只允许单商品订单；商品是否支持在逐项校验里判断。
+	if input.DeferManualForm && len(mergedItems) != 1 {
+		return nil, ErrDeferManualFormInvalid
+	}
 
 	var plans []childOrderPlan
 	var orderItems []orderdomain.OrderItem
@@ -216,7 +220,17 @@ func (s *OrderService) buildOrderResult(input orderCreateParams) (*orderBuildRes
 
 		manualSchemaSnapshot := jsonmap.JSON{}
 		manualSubmission := jsonmap.JSON{}
-		if !input.SkipManualFormCheck && (fulfillmentType == constants.FulfillmentTypeManual ||
+		if input.DeferManualForm {
+			// 仅「上游交付且带表单」的商品可延后填写：固化 schema 快照，提交值留空，支付后再补。
+			if fulfillmentType != constants.FulfillmentTypeUpstream || len(product.ManualFormSchemaJSON) == 0 {
+				return nil, ErrDeferManualFormInvalid
+			}
+			normalizedSchema, err := manualform.NormalizeSchema(product.ManualFormSchemaJSON)
+			if err != nil {
+				return nil, err
+			}
+			manualSchemaSnapshot = normalizedSchema
+		} else if !input.SkipManualFormCheck && (fulfillmentType == constants.FulfillmentTypeManual ||
 			(fulfillmentType == constants.FulfillmentTypeUpstream && len(product.ManualFormSchemaJSON) > 0)) {
 			submission := resolveManualFormSubmission(manualFormData, product.ID, sku.ID)
 			normalizedSchema, normalizedSubmission, err := manualform.ValidateAndNormalize(product.ManualFormSchemaJSON, submission)

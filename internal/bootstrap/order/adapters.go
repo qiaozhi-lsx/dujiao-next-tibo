@@ -333,6 +333,7 @@ func (a orderCreateAdapter) CreateOrder(input ordertransport.CreateOrderInput) (
 		AffiliateVisitorKey: input.AffiliateVisitorKey,
 		ClientIP:            input.ClientIP,
 		ManualFormData:      input.ManualFormData,
+		DeferManualForm:     input.DeferManualForm,
 	})
 	return order, mapOrderTransportError(err)
 }
@@ -349,6 +350,7 @@ func (a orderCreateAdapter) CreateGuestOrder(input ordertransport.CreateGuestOrd
 		AffiliateVisitorKey: input.AffiliateVisitorKey,
 		ClientIP:            input.ClientIP,
 		ManualFormData:      input.ManualFormData,
+		DeferManualForm:     input.DeferManualForm,
 	})
 	return order, mapOrderTransportError(err)
 }
@@ -508,6 +510,7 @@ func mapOrderTransportError(err error) error {
 		{orderapp.ErrInvalidEmail, ordertransport.ErrInvalidEmail},
 		{orderapp.ErrProductPurchaseNotAllowed, ordertransport.ErrProductPurchaseNotAllowed},
 		{orderapp.ErrManualStockInsufficient, ordertransport.ErrManualStockInsufficient},
+		{orderapp.ErrDeferManualFormInvalid, ordertransport.ErrDeferManualFormInvalid},
 		{orderapp.ErrOrderCurrencyMismatch, ordertransport.ErrOrderCurrencyMismatch},
 		{orderapp.ErrProductNotAvailable, ordertransport.ErrProductNotAvailable},
 		{orderapp.ErrResellerCouponNotAllowed, ordertransport.ErrResellerCouponNotAllowed},

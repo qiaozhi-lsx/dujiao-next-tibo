@@ -156,6 +156,42 @@ func (a *DujiaoNextAdapter) GetOrder(ctx context.Context, orderID uint) (*Upstre
 	return &result, nil
 }
 
+// CheckSession 开通前预检会话。上游 404（旧版本无此路径）归一化为 ErrCapabilityUnsupported。
+func (a *DujiaoNextAdapter) CheckSession(ctx context.Context, skuID uint, sessionJSON string) (*SessionCheckResult, error) {
+	body := struct {
+		SKUID       uint   `json:"sku_id"`
+		SessionJSON string `json:"session_json"`
+	}{SKUID: skuID, SessionJSON: sessionJSON}
+	var result SessionCheckResult
+	if err := a.doRequest(ctx, http.MethodPost, "/api/v1/upstream/session/check", body, &result); err != nil {
+		return nil, mapCapabilityError(err, false)
+	}
+	return &result, nil
+}
+
+// GetOrderProgress 查询上游订单开通进度。路径不存在的 404 归一化为 ErrCapabilityUnsupported；
+// 上游明确返回 order_not_found 时保留原错误。
+func (a *DujiaoNextAdapter) GetOrderProgress(ctx context.Context, upstreamOrderID uint) (*OrderProgress, error) {
+	path := fmt.Sprintf("/api/v1/upstream/orders/%d/progress", upstreamOrderID)
+	var result OrderProgress
+	if err := a.doRequest(ctx, http.MethodGet, path, nil, &result); err != nil {
+		return nil, mapCapabilityError(err, true)
+	}
+	return &result, nil
+}
+
+// mapCapabilityError 将可选能力路径上的 404 映射为 ErrCapabilityUnsupported。
+func mapCapabilityError(err error, keepOrderNotFound bool) error {
+	var ue *upstreamHTTPError
+	if errors.As(err, &ue) && ue.Status == http.StatusNotFound {
+		if keepOrderNotFound && ue.Code == "order_not_found" {
+			return err
+		}
+		return ErrCapabilityUnsupported
+	}
+	return err
+}
+
 // CancelOrder 取消采购单
 func (a *DujiaoNextAdapter) CancelOrder(ctx context.Context, orderID uint) error {
 	path := fmt.Sprintf("/api/v1/upstream/orders/%d/cancel", orderID)

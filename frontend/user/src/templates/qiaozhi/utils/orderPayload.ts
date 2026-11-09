@@ -19,6 +19,8 @@ export type CreateAndPayPayloadInput = {
   affiliateVisitorKey: string
   /** 游客下单时传入；登录用户省略 */
   guest?: CreateAndPayGuestInput
+  /** 上游表单商品：先下单支付，支付后再填写开通信息（后端校验仅允许单项 fulfill_after_payment 商品） */
+  deferManualForm?: boolean
 }
 
 /**
@@ -32,6 +34,9 @@ export const buildCreateAndPayPayload = (input: CreateAndPayPayloadInput): Recor
     affiliate_code: input.affiliateCode || undefined,
     affiliate_visitor_key: input.affiliateVisitorKey || undefined,
   }
+  if (input.deferManualForm) {
+    payload.defer_manual_form = true
+  }
   if (input.guest) {
     payload.email = input.guest.email
     payload.order_password = input.guest.orderPassword
@@ -39,6 +44,13 @@ export const buildCreateAndPayPayload = (input: CreateAndPayPayloadInput): Recor
   }
   return payload
 }
+
+/**
+ * 商品是否「支付后再填写开通信息」（后端 fulfill_after_payment）：上游交付 + 非空表单。
+ * 这类商品走商品页内嵌下单 + 支付后弹窗，而不是结算页。
+ */
+export const isFulfillAfterPayment = (product: unknown): boolean =>
+  !!product && typeof product === 'object' && (product as { fulfill_after_payment?: unknown }).fulfill_after_payment === true
 
 /**
  * 商品是否配置了手动表单字段（product.manual_form_schema.fields 非空）。

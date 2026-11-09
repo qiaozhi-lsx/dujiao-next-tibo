@@ -22,6 +22,14 @@ var (
 	// 旧版上游对下架商品返回 product_unavailable，新版改为 200 + is_active=false；
 	// 此错误仅作为旧版兼容兜底使用。
 	ErrUpstreamProductUnavailable = errors.New("upstream product unavailable")
+	// ErrCapabilityUnsupported 上游不支持所请求的可选能力（未声明 capability，或路径返回 404）
+	ErrCapabilityUnsupported = errors.New("upstream capability unsupported")
+)
+
+// 上游可选能力标识（ping 的 capabilities 字段）
+const (
+	CapabilityOrderProgress = "order_progress"
+	CapabilitySessionCheck  = "session_check"
 )
 
 // PingResult 连接测试结果
@@ -32,6 +40,55 @@ type PingResult struct {
 	Balance         string                 `json:"balance"`
 	Currency        string                 `json:"currency"`
 	MemberLevel     map[string]interface{} `json:"member_level,omitempty"`
+	// Capabilities 上游声明支持的可选能力；旧上游不返回该字段
+	Capabilities []string `json:"capabilities,omitempty"`
+}
+
+// SessionAccount 会话预检返回的账号摘要
+type SessionAccount struct {
+	EmailMasked string  `json:"email_masked"`
+	PlanType    string  `json:"plan_type"`
+	IsActive    bool    `json:"is_active"`
+	ExpiresAt   *string `json:"expires_at"`
+}
+
+// SessionCheckResult 会话预检结果
+type SessionCheckResult struct {
+	OK         bool            `json:"ok"`
+	Valid      bool            `json:"valid"`
+	CanOpen    bool            `json:"can_open"`
+	ReasonCode *string         `json:"reason_code"`
+	Message    string          `json:"message"`
+	Account    *SessionAccount `json:"account"`
+}
+
+// ProgressStep 上游进度步骤定义
+type ProgressStep struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
+}
+
+// ProgressCurrentStep 上游当前步骤
+type ProgressCurrentStep struct {
+	Index int    `json:"index"`
+	Total int    `json:"total"`
+	Key   string `json:"key"`
+	Label string `json:"label"`
+}
+
+// OrderProgress 上游订单开通进度
+type OrderProgress struct {
+	OK          bool                 `json:"ok"`
+	OrderID     uint                 `json:"order_id"`
+	Status      string               `json:"status"`
+	Steps       []ProgressStep       `json:"steps"`
+	Step        *ProgressCurrentStep `json:"step"`
+	Percent     int                  `json:"percent"`
+	Terminal    bool                 `json:"terminal"`
+	Outcome     *string              `json:"outcome"`
+	Message     *string              `json:"message"`
+	StageTimes  map[string]string    `json:"stage_times,omitempty"`
+	PollAfterMs *int                 `json:"poll_after_ms"`
 }
 
 // ListProductsOpts 商品列表参数
@@ -168,6 +225,12 @@ type Adapter interface {
 
 	// CancelOrder 取消采购单
 	CancelOrder(ctx context.Context, orderID uint) error
+
+	// CheckSession 开通前预检会话（可选能力 session_check；不支持返回 ErrCapabilityUnsupported）
+	CheckSession(ctx context.Context, skuID uint, sessionJSON string) (*SessionCheckResult, error)
+
+	// GetOrderProgress 查询上游订单开通进度（可选能力 order_progress；不支持返回 ErrCapabilityUnsupported）
+	GetOrderProgress(ctx context.Context, upstreamOrderID uint) (*OrderProgress, error)
 
 	// DownloadImage 下载图片到本地
 	DownloadImage(ctx context.Context, imageURL string) (localPath string, err error)

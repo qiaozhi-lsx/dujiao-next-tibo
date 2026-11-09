@@ -11,6 +11,7 @@ import (
 
 	"github.com/dujiao-next/internal/constants"
 	settingsapp "github.com/dujiao-next/internal/modules/settings/application"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 
 	"github.com/shopspring/decimal"
 )
@@ -129,6 +130,24 @@ func shouldMarkFulfilling(order *orderdomain.Order) bool {
 	}
 	if len(order.Items) == 0 {
 		return false
+	}
+	// 上游交付且表单（开通信息）尚未填写：保持 paid，等客户填写并提交采购后再进入 fulfilling。
+	for _, item := range order.Items {
+		if strings.TrimSpace(item.FulfillmentType) != constants.FulfillmentTypeUpstream || len(item.ManualFormSubmissionJSON) > 0 {
+			continue
+		}
+		formFields := 0
+		switch fields := item.ManualFormSchemaSnapshotJSON["fields"].(type) {
+		case []interface{}:
+			formFields = len(fields)
+		case []jsonmap.JSON:
+			formFields = len(fields)
+		case []map[string]interface{}:
+			formFields = len(fields)
+		}
+		if formFields > 0 {
+			return false
+		}
 	}
 	for _, item := range order.Items {
 		fulfillmentType := strings.TrimSpace(item.FulfillmentType)

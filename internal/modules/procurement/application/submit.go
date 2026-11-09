@@ -122,6 +122,10 @@ func (s *Service) SubmitToUpstream(procurementOrderID uint) error {
 	_ = s.orderRepo.UpdateStatus(localOrder.ID, constants.OrderStatusFulfilling, map[string]interface{}{
 		"updated_at": now,
 	})
+	// 延后填写开通信息的订单支付时保持 paid，提交后才进入 fulfilling：同步父订单状态。
+	if localOrder.ParentID != nil && s.orderLifecycle != nil {
+		_, _ = s.orderLifecycle.SyncParentStatus(*localOrder.ParentID, now)
+	}
 
 	// 入队轮询任务（30s 延迟，作为回调的 fallback）
 	if s.queue != nil {

@@ -57,6 +57,7 @@ func registerStorefrontRoutes(
 	guestOrderHandler *ordertransport.GuestHandler,
 	orderPreviewHandler *ordertransport.PreviewHandler,
 	orderCreateHandler *ordertransport.CreateHandler,
+	orderFulfillHandler *ordertransport.FulfillHandler,
 	paymentLatestHandler *paymenttransport.LatestHandler,
 	paymentWriteHandler *paymenttransport.WriteHandler,
 	userWalletHandler *wallettransport.UserHandler,
@@ -94,6 +95,7 @@ func registerStorefrontRoutes(
 	{
 		ordertransport.RegisterGuestPreviewRoute(guestRead, orderPreviewHandler)
 		ordertransport.RegisterGuestReadRoutes(guestRead, guestOrderHandler)
+		ordertransport.RegisterGuestFulfillReadRoute(guestRead, orderFulfillHandler)
 		paymenttransport.RegisterGuestLatestRoute(guestRead, paymentLatestHandler)
 	}
 	guestWrite := guest.Group("")
@@ -101,6 +103,7 @@ func registerStorefrontRoutes(
 	{
 		ordertransport.RegisterGuestCreateRoute(guestWrite, orderCreateHandler)
 		ordertransport.RegisterGuestCreateAndPayRoute(guestWrite, orderCreateHandler)
+		ordertransport.RegisterGuestFulfillWriteRoute(guestWrite, orderFulfillHandler)
 		paymenttransport.RegisterGuestWriteRoutes(guestWrite, paymentWriteHandler, middleware.RateLimitMiddleware(redisClient, txHashRule, middleware.KeyByIP))
 	}
 
@@ -140,6 +143,9 @@ func registerStorefrontRoutes(
 		ordertransport.RegisterUserPaymentChannelsRoute(user, userOrderHandler)
 		ordertransport.RegisterUserReadRoutes(user, userOrderHandler)
 		ordertransport.RegisterUserCancelRoute(user, userOrderHandler)
+		// 支付后补填开通信息 / 查询开通进度：读限流 + 提交接口更严的写限流（均按用户+IP 计数）。
+		userFulfill := user.Group("", middleware.RateLimitMiddleware(redisClient, guestReadRule, middleware.KeyByUserIDAndIP))
+		ordertransport.RegisterUserFulfillRoutes(userFulfill, orderFulfillHandler, middleware.RateLimitMiddleware(redisClient, guestWriteRule, middleware.KeyByUserIDAndIP))
 		paymenttransport.RegisterUserWriteRoutes(user, paymentWriteHandler, middleware.RateLimitMiddleware(redisClient, txHashRule, middleware.KeyByIP))
 		paymenttransport.RegisterUserLatestRoute(user, paymentLatestHandler)
 		wallettransport.RegisterUserRoutes(user, userWalletHandler)

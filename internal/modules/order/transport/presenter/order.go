@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dujiao-next/internal/constants"
 	fulfillmentdomain "github.com/dujiao-next/internal/modules/fulfillment/domain"
 	orderdomain "github.com/dujiao-next/internal/modules/order/domain"
 
@@ -14,17 +15,19 @@ import (
 
 // OrderSummary 订单列表响应（精简字段）
 type OrderSummary struct {
-	OrderNo                 string          `json:"order_no"`
-	Status                  string          `json:"status"`
-	Currency                string          `json:"currency"`
-	DiscountAmount          money.Amount    `json:"discount_amount"`
-	MemberDiscountAmount    money.Amount    `json:"member_discount_amount"`
-	PromotionDiscountAmount money.Amount    `json:"promotion_discount_amount"`
-	WholesaleDiscountAmount money.Amount    `json:"wholesale_discount_amount"`
-	TotalAmount             money.Amount    `json:"total_amount"`
-	CreatedAt               time.Time       `json:"created_at"`
-	Items                   []OrderItemResp `json:"items,omitempty"`
-	Children                []OrderSummary  `json:"children,omitempty"`
+	OrderNo                 string       `json:"order_no"`
+	Status                  string       `json:"status"`
+	Currency                string       `json:"currency"`
+	DiscountAmount          money.Amount `json:"discount_amount"`
+	MemberDiscountAmount    money.Amount `json:"member_discount_amount"`
+	PromotionDiscountAmount money.Amount `json:"promotion_discount_amount"`
+	WholesaleDiscountAmount money.Amount `json:"wholesale_discount_amount"`
+	TotalAmount             money.Amount `json:"total_amount"`
+	CreatedAt               time.Time    `json:"created_at"`
+	// FulfillInfoPending 本单（或任一子订单）有待填写开通信息的订单项。
+	FulfillInfoPending bool            `json:"fulfill_info_pending"`
+	Items              []OrderItemResp `json:"items,omitempty"`
+	Children           []OrderSummary  `json:"children,omitempty"`
 }
 
 // NewOrderSummary 从 orderdomain.Order 构造 OrderSummary
@@ -42,11 +45,14 @@ func NewOrderSummary(o *orderdomain.Order) OrderSummary {
 	}
 	for _, item := range o.Items {
 		resp := newOrderItemResp(&item)
+		resp.FulfillInfoPending = fulfillInfoPending(o.Status, &item)
+		s.FulfillInfoPending = s.FulfillInfoPending || resp.FulfillInfoPending
 		resp.Instructions = nil
 		s.Items = append(s.Items, resp)
 	}
 	for i := range o.Children {
 		child := NewOrderSummary(&o.Children[i])
+		s.FulfillInfoPending = s.FulfillInfoPending || child.FulfillInfoPending
 		s.Children = append(s.Children, child)
 	}
 	return s
@@ -86,6 +92,8 @@ type OrderDetail struct {
 	Items                    []OrderItemResp   `json:"items,omitempty"`
 	Fulfillment              *FulfillmentResp  `json:"fulfillment,omitempty"`
 	Children                 []OrderDetail     `json:"children,omitempty"`
+	// FulfillInfoPending 本单（或任一子订单）有待填写开通信息的订单项；父订单的订单项在子订单上，前端读这个汇总值。
+	FulfillInfoPending bool `json:"fulfill_info_pending"`
 }
 
 // OrderRefundResp 用户侧订单退款记录响应
@@ -123,6 +131,8 @@ func NewOrderDetail(o *orderdomain.Order) OrderDetail {
 	paid := o.PaidAt != nil
 	for _, item := range o.Items {
 		resp := newOrderItemResp(&item)
+		resp.FulfillInfoPending = fulfillInfoPending(o.Status, &item)
+		d.FulfillInfoPending = d.FulfillInfoPending || resp.FulfillInfoPending
 		if !paid {
 			resp.Instructions = nil
 		}
@@ -133,7 +143,9 @@ func NewOrderDetail(o *orderdomain.Order) OrderDetail {
 		d.Fulfillment = &fr
 	}
 	for i := range o.Children {
-		d.Children = append(d.Children, NewOrderDetail(&o.Children[i]))
+		child := NewOrderDetail(&o.Children[i])
+		d.FulfillInfoPending = d.FulfillInfoPending || child.FulfillInfoPending
+		d.Children = append(d.Children, child)
 	}
 	return d
 }
@@ -171,10 +183,32 @@ type OrderItemResp struct {
 	FulfillmentType          string            `json:"fulfillment_type"`
 	ManualFormSchemaSnapshot jsonmap.JSON      `json:"manual_form_schema_snapshot"`
 	ManualFormSubmission     jsonmap.JSON      `json:"manual_form_submission"`
+	// FulfillInfoPending 支付后补填开通信息：订单已付款、上游交付、表单快照非空且尚未提交。
+	FulfillInfoPending bool `json:"fulfill_info_pending"`
 	// Instructions 交付使用说明（多语言 raw JSON，与 Title 字段契约一致，由前端按 locale 解析）。
 	// 仅在订单已付款时填充，未付款订单会在 NewOrderDetail 中置 nil；列表场景（NewOrderSummary）永远为 nil。
 	// 注意：渠道 API（channel_order.go）为服务端消费者（如 Telegram Bot），那里返回已按 locale 解析的字符串而非 raw JSON。
 	Instructions jsonmap.JSON `json:"instructions,omitempty"`
+}
+
+// fulfillInfoPending 订单为 paid、上游交付、表单快照有字段且提交值为空。
+func fulfillInfoPending(orderStatus string, item *orderdomain.OrderItem) bool {
+	if orderStatus != constants.OrderStatusPaid || item.FulfillmentType != constants.FulfillmentTypeUpstream {
+		return false
+	}
+	return manualFormSnapshotHasFields(item.ManualFormSchemaSnapshotJSON) && len(item.ManualFormSubmissionJSON) == 0
+}
+
+func manualFormSnapshotHasFields(schema jsonmap.JSON) bool {
+	switch fields := schema["fields"].(type) {
+	case []interface{}:
+		return len(fields) > 0
+	case []jsonmap.JSON:
+		return len(fields) > 0
+	case []map[string]interface{}:
+		return len(fields) > 0
+	}
+	return false
 }
 
 func newOrderItemResp(item *orderdomain.OrderItem) OrderItemResp {

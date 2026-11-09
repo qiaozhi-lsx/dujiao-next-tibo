@@ -12,6 +12,7 @@ import (
 	resellercontract "github.com/dujiao-next/internal/modules/reseller/contract"
 	resellerdomain "github.com/dujiao-next/internal/modules/reseller/domain"
 	walletcontract "github.com/dujiao-next/internal/modules/wallet/contract"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 	"github.com/dujiao-next/internal/shared/money"
 )
 
@@ -50,6 +51,7 @@ type Store interface {
 	CountPendingMemberByRiskIP(riskIP string) (int64, error)
 	SumPendingGuestQuantityByRiskIP(riskIP string, productIDs []uint) (map[uint]int64, error)
 	UpdateFields(id uint, updates map[string]interface{}) error
+	UpdateItemManualFormSubmission(itemID uint, submission jsonmap.JSON) error
 	UpdateChildrenStatus(parentID uint, targetStatus string, now time.Time) (int64, error)
 	UpdateFieldsWhereWalletPaid(id uint, updates map[string]interface{}) (int64, error)
 	GetByIDForUpdate(id uint) (*orderdomain.Order, error)

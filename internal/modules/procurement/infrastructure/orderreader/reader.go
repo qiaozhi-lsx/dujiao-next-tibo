@@ -4,12 +4,14 @@ import (
 	orderdomain "github.com/dujiao-next/internal/modules/order/domain"
 	procurementcontract "github.com/dujiao-next/internal/modules/procurement/contract"
 	procurementdomain "github.com/dujiao-next/internal/modules/procurement/domain"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 )
 
 type Source interface {
 	GetByID(id uint) (*orderdomain.Order, error)
 	GetByIDs(ids []uint) ([]orderdomain.Order, error)
 	UpdateStatus(id uint, status string, updates map[string]interface{}) error
+	UpdateItemManualFormSubmission(itemID uint, submission jsonmap.JSON) error
 }
 
 type Reader struct {
@@ -46,6 +48,10 @@ func (r *Reader) GetByIDs(ids []uint) ([]procurementdomain.LocalOrder, error) {
 	return result, nil
 }
 
+func (r *Reader) SaveManualFormSubmission(itemID uint, submission jsonmap.JSON) error {
+	return r.source.UpdateItemManualFormSubmission(itemID, submission)
+}
+
 func (r *Reader) UpdateStatus(id uint, status string, updates map[string]interface{}) error {
 	return r.source.UpdateStatus(id, status, updates)
 }
@@ -61,6 +67,7 @@ func MapOrder(order orderdomain.Order) procurementdomain.LocalOrder {
 	}
 	for _, item := range order.Items {
 		result.Items = append(result.Items, procurementdomain.LocalOrderItem{
+			ID: item.ID, ManualFormSchemaSnapshotJSON: item.ManualFormSchemaSnapshotJSON,
 			ProductID: item.ProductID, SKUID: item.SKUID,
 			Title: item.TitleJSON, SKUSnapshot: item.SKUSnapshotJSON,
 			CostPrice: item.CostPrice, Quantity: item.Quantity, TotalPrice: item.TotalPrice,

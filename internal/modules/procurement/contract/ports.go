@@ -4,6 +4,7 @@ import (
 	"time"
 
 	procurementdomain "github.com/dujiao-next/internal/modules/procurement/domain"
+	"github.com/dujiao-next/internal/shared/jsonmap"
 )
 
 type Repository interface {
@@ -21,6 +22,8 @@ type OrderRepository interface {
 	GetByID(id uint) (*procurementdomain.LocalOrder, error)
 	GetByIDs(ids []uint) ([]procurementdomain.LocalOrder, error)
 	UpdateStatus(id uint, status string, updates map[string]interface{}) error
+	// SaveManualFormSubmission 写入订单项的人工交付表单提交值（延后填写场景）。
+	SaveManualFormSubmission(itemID uint, submission jsonmap.JSON) error
 }
 
 type ProductMappingReader interface {
