@@ -73,9 +73,11 @@ type fulfillFixture struct {
 	order   *orderdomain.Order
 	calls   *[]string
 	checkOK *bool
-	caps    *[]string
-	server  *httptest.Server
-	connID  uint
+	// checkOverride 非空时接管 session/check 的响应（模拟不可用 / 报错 / 429）。
+	checkOverride *func(w http.ResponseWriter)
+	caps          *[]string
+	server        *httptest.Server
+	connID        uint
 }
 
 // newFulfillFixture 构造一个 paid 订单：单个上游交付项，带 session_json 必填表单快照、提交值为空。
@@ -93,6 +95,7 @@ func newFulfillFixture(t *testing.T, orderNo string, caps []string) *fulfillFixt
 	}
 	f := &fulfillFixture{db: db, order: order, calls: &[]string{}, checkOK: new(bool), caps: &caps}
 	*f.checkOK = true
+	f.checkOverride = new(func(w http.ResponseWriter))
 	f.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		*f.calls = append(*f.calls, r.Method+" "+r.URL.Path)
 		w.Header().Set("Content-Type", "application/json")
@@ -100,6 +103,10 @@ func newFulfillFixture(t *testing.T, orderNo string, caps []string) *fulfillFixt
 		case "/api/v1/upstream/ping":
 			_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "site_name": "up", "capabilities": *f.caps})
 		case "/api/v1/upstream/session/check":
+			if *f.checkOverride != nil {
+				(*f.checkOverride)(w)
+				return
+			}
 			if *f.checkOK {
 				_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "valid": true, "can_open": true, "reason_code": nil, "message": "ok", "account": nil})
 				return
@@ -288,5 +295,38 @@ func TestGetFulfillProgress_Phases(t *testing.T) {
 	p, _ = g.svc.GetFulfillProgress(ctx, g.order.ID)
 	if p.Phase != procurementcontract.FulfillPhaseCompleted || !p.Terminal {
 		t.Fatalf("expected completed, got %#v", p)
+	}
+}
+
+// 客户已付款：预检不可用（check_unavailable）、上游报错或 429 时都不能拦住提交。
+func TestSubmitFulfillInfo_PrecheckUnavailableDoesNotBlock(t *testing.T) {
+	cases := map[string]func(w http.ResponseWriter){
+		"check_unavailable": func(w http.ResponseWriter) {
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"ok": true, "valid": false, "can_open": false, "reason_code": "check_unavailable", "message": "暂时无法核验", "account": nil,
+			})
+		},
+		"server_error": func(w http.ResponseWriter) { w.WriteHeader(http.StatusInternalServerError) },
+		"rate_limited": func(w http.ResponseWriter) {
+			w.WriteHeader(http.StatusTooManyRequests)
+			_ = json.NewEncoder(w).Encode(map[string]any{"ok": false, "error_code": "rate_limited"})
+		},
+	}
+	i := 0
+	for name, handler := range cases {
+		i++
+		t.Run(name, func(t *testing.T) {
+			f := newFulfillFixture(t, "FULFILL-UNAVAIL-00"+string(rune('0'+i)), []string{"session_check"})
+			*f.checkOverride = handler
+			if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+				t.Fatalf("precheck unavailable must not block: %v", err)
+			}
+			if !f.called("/session/check") {
+				t.Fatal("expected session check to be attempted")
+			}
+			if f.submission()["session_json"] != "abc" || f.procCount() != 1 {
+				t.Fatalf("submission must be saved and procurement created: %#v procs=%d", f.submission(), f.procCount())
+			}
+		})
 	}
 }

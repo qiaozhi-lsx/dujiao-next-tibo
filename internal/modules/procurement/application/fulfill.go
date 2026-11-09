@@ -19,9 +19,13 @@ const (
 	capabilityOrderProgress = "order_progress"
 	capabilitySessionCheck  = "session_check"
 
-	sessionFormKey          = "session_json"
-	progressCacheTTL        = 2 * time.Second
-	upstreamProbeTimeout    = 8 * time.Second
+	sessionFormKey       = "session_json"
+	progressCacheTTL     = 2 * time.Second
+	upstreamProbeTimeout = 8 * time.Second
+	// sessionCheckTimeout 会话预检可能要实际访问 OpenAI，给足时间；超时同样不阻塞客户。
+	sessionCheckTimeout = 20 * time.Second
+	// reasonCheckUnavailable 上游表示「暂时无法核验」，不能当作会话无效。
+	reasonCheckUnavailable  = "check_unavailable"
 	defaultSubmittingPollMs = 2000
 	defaultProcessingPollMs = 3000
 )
@@ -183,11 +187,14 @@ func (s *Service) precheckSession(ctx context.Context, item procurementdomain.Lo
 	if err != nil || connection == nil {
 		return nil
 	}
-	probeCtx, cancel := context.WithTimeout(ctx, upstreamProbeTimeout)
-	defer cancel()
-	if !hasCapability(connection.Capabilities(probeCtx), capabilitySessionCheck) {
+	capCtx, capCancel := context.WithTimeout(ctx, upstreamProbeTimeout)
+	supported := hasCapability(connection.Capabilities(capCtx), capabilitySessionCheck)
+	capCancel()
+	if !supported {
 		return nil
 	}
+	probeCtx, cancel := context.WithTimeout(ctx, sessionCheckTimeout)
+	defer cancel()
 	result, err := connection.CheckSession(probeCtx, upstreamSKUID, sessionJSON)
 	if err != nil {
 		if !errors.Is(err, procurementcontract.ErrCapabilityUnsupported) {
@@ -197,6 +204,11 @@ func (s *Service) precheckSession(ctx context.Context, item procurementdomain.Lo
 		return nil
 	}
 	if result == nil || result.CanOpen {
+		return nil
+	}
+	// 客户已付款：上游只是暂时核验不了时放行，由采购提交阶段兜底。
+	if result.ReasonCode == reasonCheckUnavailable {
+		logger.Warnw("procurement_session_check_unavailable", "product_id", item.ProductID)
 		return nil
 	}
 	return &procurementcontract.SessionCheckRejectedError{
