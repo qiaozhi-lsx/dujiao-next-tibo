@@ -51,7 +51,7 @@ func New(c *container.Container) Handlers {
 		Fulfill: ordertransport.NewFulfillHandler(
 			orderUserQueryAdapter{orders: c.OrderService},
 			orderGuestQueryAdapter{orders: c.OrderService},
-			c.ProcurementOrderService,
+			c.ProcurementFulfillService,
 		),
 	}
 }

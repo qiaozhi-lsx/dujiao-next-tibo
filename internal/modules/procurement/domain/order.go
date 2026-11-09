@@ -78,6 +78,27 @@ type LocalOrder struct {
 	Children       []LocalOrder     `json:"children,omitempty"`
 }
 
+// HasFormSnapshot 订单项是上游交付且固化了非空表单 schema（支付后需要填写开通信息的商品）。
+func (i LocalOrderItem) HasFormSnapshot() bool {
+	if strings.TrimSpace(i.FulfillmentType) != "upstream" {
+		return false
+	}
+	switch fields := i.ManualFormSchemaSnapshotJSON["fields"].(type) {
+	case []interface{}:
+		return len(fields) > 0
+	case []jsonmap.JSON:
+		return len(fields) > 0
+	case []map[string]interface{}:
+		return len(fields) > 0
+	}
+	return false
+}
+
+// IsFormPending 有表单快照但提交值仍为空：采购需等客户填写后才能创建。
+func (i LocalOrderItem) IsFormPending() bool {
+	return i.HasFormSnapshot() && len(i.ManualFormSubmissionJSON) == 0
+}
+
 type LocalOrderItem struct {
 	ID                       uint         `json:"-"`
 	ProductID                uint         `json:"product_id"`

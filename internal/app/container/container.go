@@ -61,6 +61,7 @@ import (
 	paymentcontract "github.com/dujiao-next/internal/modules/payment/contract"
 	paymentprovider "github.com/dujiao-next/internal/modules/payment/infrastructure/gateway/provider"
 	procurementapp "github.com/dujiao-next/internal/modules/procurement/application"
+	procurementfulfill "github.com/dujiao-next/internal/modules/procurement/application/fulfill"
 	procurementgormstore "github.com/dujiao-next/internal/modules/procurement/infrastructure/gormstore"
 	promotionapp "github.com/dujiao-next/internal/modules/promotion/application"
 	promotiongormstore "github.com/dujiao-next/internal/modules/promotion/infrastructure/gormstore"
@@ -182,6 +183,7 @@ type Container struct {
 	SiteConnectionService         *siteconnectionapp.Service
 	ProductMappingService         *mappingapp.Service
 	ProcurementOrderService       *procurementapp.Service
+	ProcurementFulfillService     *procurementfulfill.Service
 	DownstreamCallbackService     *downstreamcallbackapp.Service
 	ReconciliationService         *reconciliationapp.Service
 	ChannelClientService          *channelclientapp.Service

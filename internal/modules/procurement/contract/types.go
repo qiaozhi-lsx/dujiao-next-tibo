@@ -165,8 +165,17 @@ type UseCase interface {
 	FillParentOrderNo(order *procurementdomain.Order)
 	RetryManual(id uint) error
 	CancelManual(id uint) error
-	// SubmitFulfillInfo 支付后提交延后填写的开通信息（调用方已完成订单归属鉴权）。
+}
+
+// 需要由传输层本地化的提示 key（FulfillProgress.MessageKey）。
+const (
+	MessageKeyProcurementFailed = "error.fulfill_procurement_failed"
+	MessageKeyOrderClosed       = "error.fulfill_order_closed"
+)
+
+// FulfillUseCase 是「支付后补填开通信息 / 查询开通进度」的应用契约。
+// 传入的是下单时的订单 ID（父订单）；调用方已完成订单归属鉴权，实现负责解析持有表单的子订单。
+type FulfillUseCase interface {
 	SubmitFulfillInfo(ctx context.Context, localOrderID uint, formData jsonmap.JSON) error
-	// GetFulfillProgress 查询开通进度（调用方已完成订单归属鉴权）。
 	GetFulfillProgress(ctx context.Context, localOrderID uint) (*FulfillProgress, error)
 }

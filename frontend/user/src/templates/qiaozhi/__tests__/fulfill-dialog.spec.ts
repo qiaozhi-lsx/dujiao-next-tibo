@@ -30,6 +30,17 @@ test('订单项：fulfill_info_pending 或「有快照且无提交值」视为�
   assert.equal(findFulfillPendingItem({ items: [{}, item] }), item)
 })
 
+test('父订单 + 子订单：订单项在子订单上，也能识别待填写与开通中', () => {
+  const pendingChild = { status: 'paid', items: [{ manual_form_schema_snapshot: schema, manual_form_submission: {} }] }
+  const parent = { status: 'paid', items: [], children: [pendingChild] }
+  assert.equal(orderHasFulfillInfoPending(parent), true)
+  assert.equal(findFulfillPendingItem(parent), pendingChild.items[0])
+  assert.equal(orderHasFulfillInfoPending({ status: 'paid', fulfill_info_pending: true }), true)
+  const submittedChild = { status: 'fulfilling', items: [{ manual_form_schema_snapshot: schema, manual_form_submission: { session_json: 'x' } }] }
+  assert.equal(orderHasFulfillInfoPending({ status: 'fulfilling', children: [submittedChild] }), false)
+  assert.equal(orderIsFulfillProcuring({ status: 'fulfilling', children: [submittedChild] }), true)
+})
+
 test('订单项：已提交开通信息且订单在 paid / fulfilling 时为开通中', () => {
   const items = [{ manual_form_schema_snapshot: schema, manual_form_submission: { session_json: 'x' } }]
   assert.equal(orderIsFulfillProcuring({ status: 'paid', items }), true)

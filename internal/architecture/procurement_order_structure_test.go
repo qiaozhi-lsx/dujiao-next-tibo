@@ -27,7 +27,7 @@ func TestProcurementUsesCompleteVerticalLayout(t *testing.T) {
 	if production != 0 || total != 0 {
 		t.Fatalf("procurement module root must remain structural only, got production=%d total=%d", production, total)
 	}
-	assertDirectoryGoFileBudget(t, applicationRoot, 9)
+	assertDirectoryGoFileBudget(t, applicationRoot, 8)
 	assertDirectoryGoFileBudget(t, contractRoot, 3)
 	assertDirectoryGoFileBudget(t, domainRoot, 1)
 	assertDirectoryGoFileBudget(t, storeRoot, 2)

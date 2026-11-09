@@ -15,17 +15,19 @@ import (
 
 // OrderSummary 订单列表响应（精简字段）
 type OrderSummary struct {
-	OrderNo                 string          `json:"order_no"`
-	Status                  string          `json:"status"`
-	Currency                string          `json:"currency"`
-	DiscountAmount          money.Amount    `json:"discount_amount"`
-	MemberDiscountAmount    money.Amount    `json:"member_discount_amount"`
-	PromotionDiscountAmount money.Amount    `json:"promotion_discount_amount"`
-	WholesaleDiscountAmount money.Amount    `json:"wholesale_discount_amount"`
-	TotalAmount             money.Amount    `json:"total_amount"`
-	CreatedAt               time.Time       `json:"created_at"`
-	Items                   []OrderItemResp `json:"items,omitempty"`
-	Children                []OrderSummary  `json:"children,omitempty"`
+	OrderNo                 string       `json:"order_no"`
+	Status                  string       `json:"status"`
+	Currency                string       `json:"currency"`
+	DiscountAmount          money.Amount `json:"discount_amount"`
+	MemberDiscountAmount    money.Amount `json:"member_discount_amount"`
+	PromotionDiscountAmount money.Amount `json:"promotion_discount_amount"`
+	WholesaleDiscountAmount money.Amount `json:"wholesale_discount_amount"`
+	TotalAmount             money.Amount `json:"total_amount"`
+	CreatedAt               time.Time    `json:"created_at"`
+	// FulfillInfoPending 本单（或任一子订单）有待填写开通信息的订单项。
+	FulfillInfoPending bool            `json:"fulfill_info_pending"`
+	Items              []OrderItemResp `json:"items,omitempty"`
+	Children           []OrderSummary  `json:"children,omitempty"`
 }
 
 // NewOrderSummary 从 orderdomain.Order 构造 OrderSummary
@@ -44,11 +46,13 @@ func NewOrderSummary(o *orderdomain.Order) OrderSummary {
 	for _, item := range o.Items {
 		resp := newOrderItemResp(&item)
 		resp.FulfillInfoPending = fulfillInfoPending(o.Status, &item)
+		s.FulfillInfoPending = s.FulfillInfoPending || resp.FulfillInfoPending
 		resp.Instructions = nil
 		s.Items = append(s.Items, resp)
 	}
 	for i := range o.Children {
 		child := NewOrderSummary(&o.Children[i])
+		s.FulfillInfoPending = s.FulfillInfoPending || child.FulfillInfoPending
 		s.Children = append(s.Children, child)
 	}
 	return s
@@ -88,6 +92,8 @@ type OrderDetail struct {
 	Items                    []OrderItemResp   `json:"items,omitempty"`
 	Fulfillment              *FulfillmentResp  `json:"fulfillment,omitempty"`
 	Children                 []OrderDetail     `json:"children,omitempty"`
+	// FulfillInfoPending 本单（或任一子订单）有待填写开通信息的订单项；父订单的订单项在子订单上，前端读这个汇总值。
+	FulfillInfoPending bool `json:"fulfill_info_pending"`
 }
 
 // OrderRefundResp 用户侧订单退款记录响应
@@ -126,6 +132,7 @@ func NewOrderDetail(o *orderdomain.Order) OrderDetail {
 	for _, item := range o.Items {
 		resp := newOrderItemResp(&item)
 		resp.FulfillInfoPending = fulfillInfoPending(o.Status, &item)
+		d.FulfillInfoPending = d.FulfillInfoPending || resp.FulfillInfoPending
 		if !paid {
 			resp.Instructions = nil
 		}
@@ -136,7 +143,9 @@ func NewOrderDetail(o *orderdomain.Order) OrderDetail {
 		d.Fulfillment = &fr
 	}
 	for i := range o.Children {
-		d.Children = append(d.Children, NewOrderDetail(&o.Children[i]))
+		child := NewOrderDetail(&o.Children[i])
+		d.FulfillInfoPending = d.FulfillInfoPending || child.FulfillInfoPending
+		d.Children = append(d.Children, child)
 	}
 	return d
 }

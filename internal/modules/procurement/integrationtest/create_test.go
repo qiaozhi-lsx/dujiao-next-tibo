@@ -10,10 +10,17 @@ import (
 	"testing"
 
 	mappingdomain "github.com/dujiao-next/internal/modules/catalog/mapping/domain"
+	mappinggormstore "github.com/dujiao-next/internal/modules/catalog/mapping/infrastructure/gormstore"
 	"github.com/dujiao-next/internal/modules/catalog/product/manualform"
 	orderdomain "github.com/dujiao-next/internal/modules/order/domain"
+	ordergormstore "github.com/dujiao-next/internal/modules/order/infrastructure/gormstore"
 	procurementapp "github.com/dujiao-next/internal/modules/procurement/application"
+	procurementfulfill "github.com/dujiao-next/internal/modules/procurement/application/fulfill"
 	procurementcontract "github.com/dujiao-next/internal/modules/procurement/contract"
+	procurementgormstore "github.com/dujiao-next/internal/modules/procurement/infrastructure/gormstore"
+	procurementmapping "github.com/dujiao-next/internal/modules/procurement/infrastructure/mappingreader"
+	procurementorder "github.com/dujiao-next/internal/modules/procurement/infrastructure/orderreader"
+	procurementupstream "github.com/dujiao-next/internal/modules/procurement/infrastructure/upstreamgateway"
 	siteconnectionapp "github.com/dujiao-next/internal/modules/siteconnection/application"
 	"github.com/dujiao-next/internal/shared/jsonmap"
 	"gorm.io/gorm"
@@ -70,6 +77,7 @@ func TestCreateForOrder_IdempotentSkipsDuplicate(t *testing.T) {
 type fulfillFixture struct {
 	db      *gorm.DB
 	svc     *procurementapp.Service
+	fulfill *procurementfulfill.Service
 	order   *orderdomain.Order
 	calls   *[]string
 	checkOK *bool
@@ -140,8 +148,25 @@ func newFulfillFixture(t *testing.T, orderNo string, caps []string) *fulfillFixt
 	db.Create(pm)
 	db.Create(&mappingdomain.SKUMapping{ProductMappingID: pm.ID, LocalSKUID: 1, UpstreamSKUID: 201, UpstreamIsActive: true})
 	f.svc = newTestProcurementService(db, connSvc)
+	f.fulfill = newTestFulfillService(db, connSvc, f.svc)
 	return f
 }
+
+func newTestFulfillService(db *gorm.DB, connections *siteconnectionapp.Service, creator procurementfulfill.Creator) *procurementfulfill.Service {
+	orders := ordergormstore.New(db, "test-guest-credential-secret-with-32-bytes")
+	return procurementfulfill.New(procurementfulfill.Options{
+		Repository:      procurementgormstore.New(db),
+		Orders:          procurementorder.New(orders),
+		ProductMappings: procurementmapping.NewProducts(mappinggormstore.NewMappingStore(db)),
+		SKUMappings:     procurementmapping.NewSKUs(mappinggormstore.NewSKUMappingStore(db)),
+		Connections:     procurementupstream.New(connections),
+		Creator:         creator,
+	})
+}
+
+type failingCreator struct{}
+
+func (failingCreator) CreateForOrder(uint) error { return errors.New("boom") }
 
 func (f *fulfillFixture) procCount() int64 {
 	var n int64
@@ -181,7 +206,7 @@ func TestCreateForOrder_SkipsFormPendingItem(t *testing.T) {
 
 func TestSubmitFulfillInfo_HappyPathWithPrecheck(t *testing.T) {
 	f := newFulfillFixture(t, "FULFILL-OK-001", []string{"session_check", "order_progress"})
-	if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": `{"accessToken":"x"}`}); err != nil {
+	if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": `{"accessToken":"x"}`}); err != nil {
 		t.Fatalf("SubmitFulfillInfo: %v", err)
 	}
 	if !f.called("/session/check") {
@@ -199,7 +224,7 @@ func TestSubmitFulfillInfo_HappyPathWithPrecheck(t *testing.T) {
 func TestSubmitFulfillInfo_PrecheckRejectSavesNothing(t *testing.T) {
 	f := newFulfillFixture(t, "FULFILL-REJECT-001", []string{"session_check"})
 	*f.checkOK = false
-	err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"})
+	err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"})
 	var rejected *procurementcontract.SessionCheckRejectedError
 	if !errors.As(err, &rejected) {
 		t.Fatalf("expected SessionCheckRejectedError, got %v", err)
@@ -214,7 +239,7 @@ func TestSubmitFulfillInfo_PrecheckRejectSavesNothing(t *testing.T) {
 
 func TestSubmitFulfillInfo_SkipsPrecheckWithoutCapability(t *testing.T) {
 	f := newFulfillFixture(t, "FULFILL-NOCAP-001", nil)
-	if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+	if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
 		t.Fatalf("SubmitFulfillInfo: %v", err)
 	}
 	if f.called("/session/check") {
@@ -228,13 +253,13 @@ func TestSubmitFulfillInfo_SkipsPrecheckWithoutCapability(t *testing.T) {
 func TestSubmitFulfillInfo_ValidationAndConflicts(t *testing.T) {
 	f := newFulfillFixture(t, "FULFILL-DUP-001", nil)
 	// 缺必填字段 → 表单校验错误，且未保存。
-	if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{}); !errors.Is(err, manualform.ErrRequiredMissing) {
+	if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{}); !errors.Is(err, manualform.ErrRequiredMissing) {
 		t.Fatalf("expected required-missing error, got %v", err)
 	}
-	if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+	if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
 		t.Fatalf("first submit: %v", err)
 	}
-	if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "def"}); !errors.Is(err, procurementcontract.ErrFulfillInfoAlreadySubmitted) {
+	if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "def"}); !errors.Is(err, procurementcontract.ErrFulfillInfoAlreadySubmitted) {
 		t.Fatalf("expected already-submitted conflict, got %v", err)
 	}
 	if f.submission()["session_json"] != "abc" {
@@ -244,7 +269,7 @@ func TestSubmitFulfillInfo_ValidationAndConflicts(t *testing.T) {
 	// 未支付订单不允许提交。
 	g := newFulfillFixture(t, "FULFILL-UNPAID-001", nil)
 	g.db.Model(&orderdomain.Order{}).Where("id = ?", g.order.ID).Update("status", constants.OrderStatusPendingPayment)
-	if err := g.svc.SubmitFulfillInfo(context.Background(), g.order.ID, jsonmap.JSON{"session_json": "abc"}); !errors.Is(err, procurementcontract.ErrFulfillInfoNotAllowed) {
+	if err := g.fulfill.SubmitFulfillInfo(context.Background(), g.order.ID, jsonmap.JSON{"session_json": "abc"}); !errors.Is(err, procurementcontract.ErrFulfillInfoNotAllowed) {
 		t.Fatalf("expected not-allowed for unpaid order, got %v", err)
 	}
 }
@@ -253,15 +278,15 @@ func TestGetFulfillProgress_Phases(t *testing.T) {
 	ctx := context.Background()
 	f := newFulfillFixture(t, "FULFILL-PROG-001", []string{"order_progress"})
 
-	p, err := f.svc.GetFulfillProgress(ctx, f.order.ID)
+	p, err := f.fulfill.GetFulfillProgress(ctx, f.order.ID)
 	if err != nil || p.Phase != procurementcontract.FulfillPhaseAwaitingInfo {
 		t.Fatalf("expected awaiting_info, got %#v err=%v", p, err)
 	}
 
-	if err := f.svc.SubmitFulfillInfo(ctx, f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+	if err := f.fulfill.SubmitFulfillInfo(ctx, f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
 		t.Fatalf("submit: %v", err)
 	}
-	p, _ = f.svc.GetFulfillProgress(ctx, f.order.ID)
+	p, _ = f.fulfill.GetFulfillProgress(ctx, f.order.ID)
 	if p.Phase != procurementcontract.FulfillPhaseSubmitting {
 		t.Fatalf("expected submitting, got %q", p.Phase)
 	}
@@ -269,7 +294,7 @@ func TestGetFulfillProgress_Phases(t *testing.T) {
 	// accepted + order_progress：透传上游步骤。
 	f.db.Model(&ProcurementOrder{}).Where("local_order_id = ?", f.order.ID).
 		Updates(map[string]any{"status": "accepted", "upstream_order_id": 999})
-	p, _ = f.svc.GetFulfillProgress(ctx, f.order.ID)
+	p, _ = f.fulfill.GetFulfillProgress(ctx, f.order.ID)
 	if p.Phase != procurementcontract.FulfillPhaseProcessing || len(p.Steps) != 2 || p.Step == nil || p.Step.Key != "charging" ||
 		p.Percent != 50 || p.PollAfterMs != 1500 || p.Message != "处理中" {
 		t.Fatalf("unexpected live progress: %#v", p)
@@ -277,22 +302,22 @@ func TestGetFulfillProgress_Phases(t *testing.T) {
 
 	// 无 order_progress 能力：降级为无步骤的 processing。
 	g := newFulfillFixture(t, "FULFILL-PROG-002", nil)
-	g.svc.SubmitFulfillInfo(ctx, g.order.ID, jsonmap.JSON{"session_json": "abc"})
+	g.fulfill.SubmitFulfillInfo(ctx, g.order.ID, jsonmap.JSON{"session_json": "abc"})
 	g.db.Model(&ProcurementOrder{}).Where("local_order_id = ?", g.order.ID).
 		Updates(map[string]any{"status": "accepted", "upstream_order_id": 999})
-	p, _ = g.svc.GetFulfillProgress(ctx, g.order.ID)
+	p, _ = g.fulfill.GetFulfillProgress(ctx, g.order.ID)
 	if p.Phase != procurementcontract.FulfillPhaseProcessing || len(p.Steps) != 0 {
 		t.Fatalf("expected degraded processing, got %#v", p)
 	}
 
 	// rejected → failed；fulfilled → completed。
 	g.db.Model(&ProcurementOrder{}).Where("local_order_id = ?", g.order.ID).Update("status", "rejected")
-	p, _ = g.svc.GetFulfillProgress(ctx, g.order.ID)
+	p, _ = g.fulfill.GetFulfillProgress(ctx, g.order.ID)
 	if p.Phase != procurementcontract.FulfillPhaseFailed || !p.Terminal || p.MessageKey == "" {
 		t.Fatalf("expected failed, got %#v", p)
 	}
 	g.db.Model(&ProcurementOrder{}).Where("local_order_id = ?", g.order.ID).Update("status", "fulfilled")
-	p, _ = g.svc.GetFulfillProgress(ctx, g.order.ID)
+	p, _ = g.fulfill.GetFulfillProgress(ctx, g.order.ID)
 	if p.Phase != procurementcontract.FulfillPhaseCompleted || !p.Terminal {
 		t.Fatalf("expected completed, got %#v", p)
 	}
@@ -318,7 +343,7 @@ func TestSubmitFulfillInfo_PrecheckUnavailableDoesNotBlock(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			f := newFulfillFixture(t, "FULFILL-UNAVAIL-00"+string(rune('0'+i)), []string{"session_check"})
 			*f.checkOverride = handler
-			if err := f.svc.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+			if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
 				t.Fatalf("precheck unavailable must not block: %v", err)
 			}
 			if !f.called("/session/check") {
@@ -328,5 +353,45 @@ func TestSubmitFulfillInfo_PrecheckUnavailableDoesNotBlock(t *testing.T) {
 				t.Fatalf("submission must be saved and procurement created: %#v procs=%d", f.submission(), f.procCount())
 			}
 		})
+	}
+}
+
+// CreateForOrder 失败（非 ErrExists）时撤销已保存的提交值，订单回到待填写，客户可重试。
+func TestSubmitFulfillInfo_CreateFailureRollsBackSubmission(t *testing.T) {
+	f := newFulfillFixture(t, "FULFILL-ROLLBACK-001", nil)
+	failing := newTestFulfillService(f.db, newTestSiteConnectionService(f.db, "test-key", t.TempDir()), failingCreator{})
+	if err := failing.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err == nil {
+		t.Fatal("expected the create failure to be returned")
+	}
+	if len(f.submission()) != 0 {
+		t.Fatalf("submission must be cleared after a failed create: %#v", f.submission())
+	}
+	// 回到待填写：用正常的创建器重试成功。
+	if err := f.fulfill.SubmitFulfillInfo(context.Background(), f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+		t.Fatalf("retry should succeed: %v", err)
+	}
+	if f.procCount() != 1 {
+		t.Fatalf("expected procurement order after retry, got %d", f.procCount())
+	}
+}
+
+// 采购单被上游接收后又被拒/取消：用上游进度里的 message 作为原因展示。
+func TestGetFulfillProgress_FailedUsesUpstreamMessage(t *testing.T) {
+	f := newFulfillFixture(t, "FULFILL-REASON-001", []string{"order_progress"})
+	ctx := context.Background()
+	if err := f.fulfill.SubmitFulfillInfo(ctx, f.order.ID, jsonmap.JSON{"session_json": "abc"}); err != nil {
+		t.Fatalf("submit: %v", err)
+	}
+	f.db.Model(&ProcurementOrder{}).Where("local_order_id = ?", f.order.ID).
+		Updates(map[string]any{"status": "rejected", "upstream_order_id": 999})
+	p, _ := f.fulfill.GetFulfillProgress(ctx, f.order.ID)
+	if p.Phase != procurementcontract.FulfillPhaseFailed || p.Message != "处理中" || p.MessageKey != "" {
+		t.Fatalf("expected upstream message as the reason, got %#v", p)
+	}
+	// 没有上游订单号时回落到通用文案 key。
+	f.db.Model(&ProcurementOrder{}).Where("local_order_id = ?", f.order.ID).Update("upstream_order_id", 0)
+	p, _ = f.fulfill.GetFulfillProgress(ctx, f.order.ID)
+	if p.Message != "" || p.MessageKey != procurementcontract.MessageKeyProcurementFailed {
+		t.Fatalf("expected generic key, got %#v", p)
 	}
 }

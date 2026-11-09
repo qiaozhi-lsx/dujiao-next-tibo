@@ -59,20 +59,26 @@ export const itemHasFormSnapshot = (item: any): boolean => hasFields(item?.manua
 export const isFulfillInfoPendingItem = (item: any): boolean =>
   Boolean(item?.fulfill_info_pending) || (itemHasFormSnapshot(item) && !isNonEmptyObject(item?.manual_form_submission))
 
-/** 订单里第一个待填写开通信息的订单项，没有则 null。 */
-export const findFulfillPendingItem = (order: any): any | null => {
-  const items = Array.isArray(order?.items) ? order.items : []
-  return items.find((item: any) => isFulfillInfoPendingItem(item)) || null
+/** 订单的所有订单项：下单是「父订单 + 每个商品一个子订单」，订单项在子订单上，这里把本单与子订单的订单项摊平。 */
+export const collectOrderItems = (order: any): any[] => {
+  const own = Array.isArray(order?.items) ? order.items : []
+  const children = Array.isArray(order?.children) ? order.children : []
+  return [...own, ...children.flatMap((child: any) => collectOrderItems(child))]
 }
 
-export const orderHasFulfillInfoPending = (order: any): boolean => findFulfillPendingItem(order) !== null
+/** 订单里第一个待填写开通信息的订单项，没有则 null。 */
+export const findFulfillPendingItem = (order: any): any | null =>
+  collectOrderItems(order).find((item: any) => isFulfillInfoPendingItem(item)) || null
+
+/** 后端汇总标记 fulfill_info_pending，或订单项（含子订单）里有待填写项。 */
+export const orderHasFulfillInfoPending = (order: any): boolean =>
+  Boolean(order?.fulfill_info_pending) || findFulfillPendingItem(order) !== null
 
 /** 已提交开通信息、订单仍在处理（paid / fulfilling）：可查看开通进度。 */
 export const orderIsFulfillProcuring = (order: any): boolean => {
   const status = String(order?.status || '')
   if (status !== 'paid' && status !== 'fulfilling') return false
-  const items = Array.isArray(order?.items) ? order.items : []
-  return items.some((item: any) => itemHasFormSnapshot(item) && isNonEmptyObject(item?.manual_form_submission))
+  return collectOrderItems(order).some((item: any) => itemHasFormSnapshot(item) && isNonEmptyObject(item?.manual_form_submission))
 }
 
 export const isTerminalProgress = (progress: Pick<FulfillProgress, 'phase' | 'terminal'> | null | undefined): boolean =>
